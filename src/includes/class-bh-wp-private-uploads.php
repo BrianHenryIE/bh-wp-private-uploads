@@ -18,6 +18,7 @@ use BH_WP_Private_Uploads\admin\Admin;
 use BH_WP_Private_Uploads\frontend\Frontend;
 use BH_WP_Private_Uploads\BrianHenryIE\WPPB\WPPB_Loader_Interface;
 use BH_WP_Private_Uploads\BrianHenryIE\WPPB\WPPB_Plugin_Abstract;
+use BH_WP_Private_Uploads\frontend\Send_Private_File;
 
 /**
  * The core plugin class.
@@ -108,6 +109,10 @@ class BH_WP_Private_Uploads extends WPPB_Plugin_Abstract {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_frontend, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_frontend, 'enqueue_scripts' );
+
+		$this->send_private_file = new Send_Private_File();
+
+		$this->loader->add_action( 'init', $this->send_private_file, 'init' );
 
 	}
 

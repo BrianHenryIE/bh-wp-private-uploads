@@ -1,114 +1,107 @@
-=== BH WP Private Uploads ===
-Contributors: (this should be a list of wordpress.org userid's)
-Donate link: http://example.com/
-Tags: comments, spam
-Requires at least: 3.0.1
-Tested up to: 3.4
-Stable tag: 4.3
+=== Private Uploads ===
+Contributors: ChrisDennis
+Donate link: http://fbcs.co.uk/pucd-donation/
+Tags: private,server,privacy,documents,web server,nginx
+Requires at least: 4.3.0
+Tested up to: 5.1
+Stable tag: 0.1.2
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Here is a short description of the plugin.  This should be no more than 150 characters.  No markup here.
+Protects sensitive uploaded files so that only logged-in users can access them.
+
+The plugin depends on corresponding web server (e.g. Nginx, Apache) configuration to work.
 
 == Description ==
 
-This is the long description.  No limit, and you can use Markdown (as well as in the following sections).
+'Private' uploaded files (PDFs, images, etc.) will normally be only included in private posts and pages.  But the files themselves can still be accessed by anyone if they know the corresponding URLs.
 
-For backwards compatibility, if this section is missing, the full length of the short description will be used, and
-Markdown parsed.
+For example, a PDF file's URL might be
 
-A few notes about the sections above:
+	http://example.com/wp-content/uploads/minutes-20160924.pdf
 
-*   "Contributors" is a comma separated list of wp.org/wp-plugins.org usernames
-*   "Tags" is a comma separated list of tags that apply to the plugin
-*   "Requires at least" is the lowest version that the plugin will work on
-*   "Tested up to" is the highest version that you've *successfully used to test the plugin*. Note that it might work on
-higher versions... this is just the highest one you've verified.
-*   Stable tag should indicate the Subversion "tag" of the latest stable version, or "trunk," if you use `/trunk/` for
-stable.
+and anyone could download that file because WordPress does not get a chance to check their authorisation.
 
-    Note that the `readme.txt` of the stable tag is the one that is considered the defining one for the plugin, so
-if the `/trunk/readme.txt` file says that the stable tag is `4.3`, then it is `/tags/4.3/readme.txt` that'll be used
-for displaying information about the plugin.  In this situation, the only thing considered from the trunk `readme.txt`
-is the stable tag pointer.  Thus, if you develop in trunk, you can update the trunk `readme.txt` to reflect changes in
-your in-development version, without having that information incorrectly disclosed about the current stable version
-that lacks those changes -- as long as the trunk's `readme.txt` points to the correct stable tag.
+The solution that the Private Uploads plugin uses involves moving any private files to a separate folder, and then configuring the web server to ask WordPress to authenticate access to files in that folder.
 
-    If no stable tag is provided, it is assumed that trunk is stable, but you should specify "trunk" if that's where
-you put the stable version, in order to eliminate any doubt.
+So the file's URL might now be
+
+	http://example.com/wp-content/uploads/private/minutes-20160924.pdf
+
+and an HTTP server rewrite rule will convert this to
+
+	http://example.com/?pucd-folder=private&pucd-file=minutes-20160924.pdf
+
+The Private Uploads plugin will intercept that URL and reject it with a 403 status code.
+
+This plugin is more efficient than some similar ones because it only has to run when serving files in the private folder(s): the web server handles other uploaded files (ones not in the private folders) directly.
+
+== Requirements ==
+
+* Sufficient access to the web server to allow the required configuration.
+
+== Acknowledgements ==
+
+* This plugin was inspired by a discussion on [StackExchange](https://wordpress.stackexchange.com/questions/37144/how-to-protect-uploads-if-user-is-not-logged-in).
+
+== Future Plans ==
+
+* Currently, access to private files just depends on the `is_user_logged_in()` function.  This plugin could be developed to give more fine-grained control, such as having a folder for each user.
 
 == Installation ==
 
-This section describes how to install the plugin and get it working.
+Install the plugin in the usual way and activate it.
 
-e.g.
+Move your private uploads (PDFs, images, or whatever) into a separate sub-folder within the WordPress uploads folder (usually /wp-content/uploads).  One way of creating such a folder and moving the private files is by means of the [Media Organiser](https://wordpress.org/plugins/media-organiser/) plugin.
 
-1. Upload `bh-wp-private-uploads.php` to the `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('plugin_snake_hook'); ?>` in your templates
+Then configure your web server as follows:
+
+= Nginx =
+
+Include a line like this in the server section of the Nginx configuration:
+
+    rewrite ^/wp-content/uploads/(private)/(.*)$ /?pucd-folder=$1&pucd-file=$2 break;
+
+The folder name 'private' can be anything you like -- it just has to match the name of the folder where your private files are kept, and be enclosed in parentheses in the rewrite statement.
+
+More than one private folder can be configured by adding more lines of the same form, for example:
+
+    rewrite ^/wp-content/uploads/(2017/secure)/(.*)$ /?pucd-folder=$1&pucd-file=$2 break;
+
+= Apache =
+
+[Enchiridion](https://wordpress.org/support/users/enchiridion/) has supplied the following configuration for Apache.  Thank you.
+
+Here's an equivalent rule for Apache to add to your existing rules:
+
+    RewriteRule ^wp-content/uploads/(private)/(.*)$ /?pucd-folder=$1&pucd-file=$2 [L]
+
+Or you can copy/paste this entire block into your `.htaccess` file. Add before the `# BEGIN WordPress` block:
+
+    <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    # Block unauthenticated user access to the /private/ uploads folder
+    RewriteRule ^wp-content/uploads/(private)/(.*)$ /?pucd-folder=$1&pucd-file=$2 [L]
+    </IfModule>
+
+= Other web servers =
+
+are left as an exercise for the reader.
 
 == Frequently Asked Questions ==
 
-= A question that someone might have =
-
-An answer to that question.
-
-= What about foo bar? =
-
-Answer to foo bar dilemma.
 
 == Screenshots ==
 
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
-2. This is the second screen shot
 
 == Changelog ==
 
-= 1.0 =
-* A change since the previous version.
-* Another change.
+= 0.1.1 =
 
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
+Tested with WordPress 5.  Documentation tidied up.
 
-== Upgrade Notice ==
+= 0.1.0 =
 
-= 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
+* First public release.
 
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.
-
-== Arbitrary section ==
-
-You may provide arbitrary sections, in the same format as the ones above.  This may be of use for extremely complicated
-plugins where more information needs to be conveyed that doesn't fit into the categories of "description" or
-"installation."  Arbitrary sections will be shown below the built-in sections outlined above.
-
-== A brief Markdown Example ==
-
-Ordered list:
-
-1. Some feature
-1. Another feature
-1. Something else about the plugin
-
-Unordered list:
-
-* something
-* something else
-* third thing
-
-Here's a link to [WordPress](http://wordpress.org/ "Your favorite software") and one to [Markdown's Syntax Documentation][markdown syntax].
-Titles are optional, naturally.
-
-[markdown syntax]: http://daringfireball.net/projects/markdown/syntax
-            "Markdown is what the parser uses to process much of the readme file"
-
-Markdown uses email style notation for blockquotes and I've been told:
-> Asterisks for *emphasis*. Double it up  for **strong**.
-
-`<?php code(); // goes in backticks ?>`

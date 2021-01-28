@@ -1,9 +1,13 @@
 {
-    "name": "your-domain/bh-wp-private-uploads",
+    "name": "brianhenryie/bh-wp-private-uploads",
     "description": "This is a short description of what plugin_title does.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0+-or-later",
     "authors": [
+        {
+            "name": "Chris Dennis",
+            "email": "cgdennis@btinternet.com"
+        },
         {
             "name": "BrianHenryIE",
             "email": "BrianHenryIE@gmail.com"
@@ -44,7 +48,8 @@
     "require": {
         "brianhenryie/wppb-lib": "dev-master",
         "php": ">=7.2",
-        "pablo-sg-pacheco/wp-namespace-autoloader": "dev-master"
+        "pablo-sg-pacheco/wp-namespace-autoloader": "dev-master",
+        "ext-fileinfo": "*"
     },
     "require-dev": {
         "10up/wp_mock": "0.4.2",

@@ -2,6 +2,14 @@
 
 # BH WP Private Uploads
 
+[Chris Dennis](https://github.com/StarsoftAnalysis)'s great [Private Uploads](wordpress.org/plugins/private-uploads/) plugin with added convenience functions, REST API and user level permissions.
+
+
+```
+curl -o /dev/null --silent --head --write-out '%{http_code}\n' http://localhost:8080/bh-wp-private-uploads/wp-content/uploads/private/private.txt
+```
+
+
 ## Contributing
 
 Clone this repo, open PhpStorm, then run `composer install` to install the dependencies.
