@@ -12,10 +12,10 @@
  * @package           BH_WP_Private_Uploads
  *
  * @wordpress-plugin
- * Plugin Name:       BH WP Private Uploads
+ * Plugin Name:       Private Uploads
  * Plugin URI:        http://github.com/username/bh-wp-private-uploads/
- * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
- * Version:           1.0.0
+ * Description:       PHP proxy for files stored in `wp-content/uploads/private`.
+ * Version:           2.0.1
  * Author:            BrianHenryIE
  * Author URI:        http://example.com/
  * License:           GPL-2.0+
@@ -24,12 +24,14 @@
  * Domain Path:       /languages
  */
 
-namespace BH_WP_Private_Uploads;
+namespace BrianHenryIE\WP_Private_Uploads;
 
-use BH_WP_Private_Uploads\includes\Activator;
-use BH_WP_Private_Uploads\includes\Deactivator;
-use BH_WP_Private_Uploads\includes\BH_WP_Private_Uploads;
-use BH_WP_Private_Uploads\BrianHenryIE\WPPB\WPPB_Loader;
+use BrianHenryIE\WP_Private_Uploads\API\API;
+use BrianHenryIE\WP_Private_Uploads\API\Settings;
+use BrianHenryIE\WP_Private_Uploads\BrianHenryIE\WP_Logger\Logger;
+use BrianHenryIE\WP_Private_Uploads\Includes\Activator;
+use BrianHenryIE\WP_Private_Uploads\Includes\Deactivator;
+use BrianHenryIE\WP_Private_Uploads\Includes\BH_WP_Private_Uploads;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -43,7 +45,7 @@ require_once plugin_dir_path( __FILE__ ) . 'autoload.php';
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'BH_WP_PRIVATE_UPLOADS_VERSION', '1.0.0' );
+define( 'BH_WP_PRIVATE_UPLOADS_VERSION', '2.0.0' );
 
 /**
  * The code that runs during plugin activation.
@@ -78,15 +80,20 @@ register_deactivation_hook( __FILE__, 'BH_WP_Private_Uploads\deactivate_bh_wp_pr
  */
 function instantiate_bh_wp_private_uploads() {
 
-	$loader = new WPPB_Loader();
-	$plugin = new BH_WP_Private_Uploads( $loader );
+	$settings = new Settings();
 
-	return $plugin;
+	$logger = Logger::instance( $settings );
+
+	$api = new API( $settings, $logger );
+
+	$plugin = new BH_WP_Private_Uploads( $api, $settings, $logger );
+
+	return $api;
 }
 
 /**
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and frontend-facing site hooks.
  */
-$GLOBALS['bh_wp_private_uploads'] = $bh_wp_private_uploads = instantiate_bh_wp_private_uploads();
-$bh_wp_private_uploads->run();
+$GLOBALS['bh_wp_private_uploads'] = instantiate_bh_wp_private_uploads();
+

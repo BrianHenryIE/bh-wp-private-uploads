@@ -9,7 +9,7 @@
  * @subpackage Private_Uploads/frontend
  */
 
-namespace BH_WP_Private_Uploads\frontend;
+namespace BrianHenryIE\WP_Private_Uploads\Frontend;
 
 /**
  * The public-facing functionality of the plugin.

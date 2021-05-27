@@ -29,7 +29,7 @@
             "type": "git"
         },
         {
-            "url": "https://github.com/BrianHenryIE/WPPB-lib",
+            "url": "https://github.com/BrianHenryIE/admin-notices",
             "type": "git"
         },
         {
@@ -43,17 +43,26 @@
         {
             "type":"composer",
             "url":"https://wpackagist.org"
+        },
+        {
+            "type": "path",
+            "url": "../bh-wp-logger"
+        },
+        {
+            "url": "https://github.com/BrianHenryIE/bh-wp-logger",
+            "type": "git"
         }
     ],
     "require": {
-        "brianhenryie/wppb-lib": "dev-master",
-        "php": ">=7.2",
+        "brianhenryie/wp-logger": "dev-master",
+        "php": ">=7.4",
         "pablo-sg-pacheco/wp-namespace-autoloader": "dev-master",
         "ext-fileinfo": "*"
     },
     "require-dev": {
         "10up/wp_mock": "0.4.2",
         "brianhenryie/composer-phpstorm": "dev-master",
+        "brianhenryie/strauss": "*",
         "brianhenryie/wp-dev": "dev-master",
         "dealerdirect/phpcodesniffer-composer-installer": "*",
         "codeception/module-asserts": "^1.0",
@@ -63,7 +72,6 @@
         "codeception/module-filesystem": "^1.0",
         "codeception/util-universalframework": "^1.0",
         "codeception/module-cli": "^1.0",
-        "coenjacobs/mozart": "dev-master",
         "cweagans/composer-patches": "*",
         "jaschilz/php-coverage-badger": "^2.0",
         "kporras07/composer-symlinks": "dev-master",
@@ -71,7 +79,7 @@
         "phpunit/phpunit": ">=7.0",
         "phpunit/phpcov": "^5.0",
         "phpcompatibility/phpcompatibility-wp": "*",
-        "squizlabs/php_codesniffer": "dev-master#1371c59bd5da5cfc877ab8478753362edc9bbc9b",
+        "squizlabs/php_codesniffer": "*",
         "wordpress/wordpress": "^5.5",
         "wp-cli/wp-cli-bundle": "*",
         "wp-coding-standards/wpcs": "*",
@@ -83,16 +91,14 @@
             "jaschilz/php-coverage-badger": {
                 "Allow customising the text": "https://github.com/JASchilz/PHPCoverageBadge/pull/1.patch"
             },
-            "squizlabs/php_codesniffer": {
-                "Add GitHub Actions Annotations report type": "https://github.com/squizlabs/PHP_CodeSniffer/pull/2918.patch"
+            "10up/wp_mock": {
+                "Add AnyObject matcher": "https://github.com/BrianHenryIE/wp_mock/pull/1.patch"
             }
         },
-        "mozart": {
-            "dep_namespace": "BH_WP_Private_Uploads\\",
-            "dep_directory": "/src/vendor/",
-            "classmap_prefix": "BH_WP_Private_Uploads_",
-            "classmap_directory": "/src/dependencies/",
-            "delete_vendor_directories": false
+        "strauss": {
+            "namespace_prefix": "BrianHenryIE\\WP_Private_Uploads\\",
+            "target_directory": "/src/strauss/",
+            "classmap_prefix": "BH_WP_Private_Uploads_"
         },
         "symlinks": {
             "wp-content": "wordpress/wp-content",
@@ -115,7 +121,7 @@
     },
     "scripts": {
         "post-install-cmd": [
-            "\"vendor/bin/mozart\" compose",
+            "vendor/bin/strauss",
             "vendor/bin/wp core download --path=wordpress --allow-root || true;",
             "export $(grep -v '^#' .env.testing | xargs); vendor/bin/wp config create --dbname=$TEST_SITE_DB_NAME --dbuser=$TEST_SITE_DB_USER --dbpass=$TEST_SITE_DB_PASSWORD --allow-root || true",
             "Kporras07\\ComposerSymlinks\\ScriptHandler::createSymlinks",
@@ -124,7 +130,7 @@
             "BrianHenryIE\\ComposerPhpStorm\\PHPUnitRunConfigurations::update"
         ],
         "post-update-cmd": [
-            "\"vendor/bin/mozart\" compose",
+            "vendor/bin/strauss",
             "vendor/bin/wp core download --path=wordpress --allow-root || true;",
             "export $(grep -v '^#' .env.testing | xargs); vendor/bin/wp config create --dbname=$TEST_SITE_DB_NAME --dbuser=$TEST_SITE_DB_USER --dbpass=$TEST_SITE_DB_PASSWORD --allow-root || true",
             "Kporras07\\ComposerSymlinks\\ScriptHandler::createSymlinks",

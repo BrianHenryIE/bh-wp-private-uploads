@@ -12,13 +12,15 @@
  * @subpackage BH_WP_Private_Uploads/includes
  */
 
-namespace BH_WP_Private_Uploads\includes;
+namespace BrianHenryIE\WP_Private_Uploads\Includes;
 
-use BH_WP_Private_Uploads\admin\Admin;
-use BH_WP_Private_Uploads\frontend\Frontend;
-use BH_WP_Private_Uploads\BrianHenryIE\WPPB\WPPB_Loader_Interface;
-use BH_WP_Private_Uploads\BrianHenryIE\WPPB\WPPB_Plugin_Abstract;
-use BH_WP_Private_Uploads\frontend\Send_Private_File;
+use BrianHenryIE\WP_Private_Uploads\Admin\Admin;
+use BrianHenryIE\WP_Private_Uploads\API\API_Interface;
+use BrianHenryIE\WP_Private_Uploads\API\CLI;
+use BrianHenryIE\WP_Private_Uploads\API\Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\Frontend\Send_Private_File;
+use Psr\Log\LoggerInterface;
+use WP_CLI;
 
 /**
  * The core plugin class.
@@ -34,7 +36,16 @@ use BH_WP_Private_Uploads\frontend\Send_Private_File;
  * @subpackage BH_WP_Private_Uploads/includes
  * @author     BrianHenryIE <BrianHenryIE@gmail.com>
  */
-class BH_WP_Private_Uploads extends WPPB_Plugin_Abstract {
+class BH_WP_Private_Uploads {
+
+	/** @var LoggerInterface  */
+	protected $logger;
+
+	/** @var Settings_Interface  */
+	protected $settings;
+
+	/** @var API_Interface  */
+	protected $api;
 
 	/**
 	 * Define the core functionality of the plugin.
@@ -43,24 +54,22 @@ class BH_WP_Private_Uploads extends WPPB_Plugin_Abstract {
 	 * Load the dependencies, define the locale, and set the hooks for the admin area and
 	 * the frontend-facing side of the site.
 	 *
-	 * @since    1.0.0
+	 * @param API_Interface      $api
+	 * @param Settings_Interface $settings
+	 * @param LoggerInterface    $logger
 	 *
-	 * @param WPPB_Loader_Interface $loader The WPPB class which adds the hooks and filters to WordPress.
+	 * @since    1.0.0
 	 */
-	public function __construct( $loader ) {
-		if ( defined( 'BH_WP_PRIVATE_UPLOADS_VERSION' ) ) {
-			$version = BH_WP_PRIVATE_UPLOADS_VERSION;
-		} else {
-			$version = '1.0.0';
-		}
-		$plugin_name = 'bh-wp-private-uploads';
+	public function __construct( $api, $settings, $logger ) {
 
-		parent::__construct( $loader, $plugin_name, $version );
+		$this->logger   = $logger;
+		$this->settings = $settings;
+		$this->api      = $api;
 
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_frontend_hooks();
-
+		$this->define_api_hooks();
 	}
 
 	/**
@@ -76,8 +85,18 @@ class BH_WP_Private_Uploads extends WPPB_Plugin_Abstract {
 
 		$plugin_i18n = new I18n();
 
-		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
+		add_action( 'plugins_loaded', array( $plugin_i18n, 'load_plugin_textdomain' ) );
 
+	}
+
+	/**
+	 * This also registers the REST API.
+	 */
+	protected function define_includes_hooks() {
+
+		$post = new Post();
+
+		add_action( 'init', array( $post, 'register_post_type' ) );
 	}
 
 	/**
@@ -89,10 +108,10 @@ class BH_WP_Private_Uploads extends WPPB_Plugin_Abstract {
 	 */
 	protected function define_admin_hooks() {
 
-		$plugin_admin = new Admin( $this->get_plugin_name(), $this->get_version() );
+		$plugin_admin = new Admin( $this->settings );
 
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		add_action( 'admin_enqueue_scripts', array( $plugin_admin, 'enqueue_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( $plugin_admin, 'enqueue_scripts' ) );
 
 	}
 
@@ -105,15 +124,23 @@ class BH_WP_Private_Uploads extends WPPB_Plugin_Abstract {
 	 */
 	protected function define_frontend_hooks() {
 
-		$plugin_frontend = new Frontend( $this->get_plugin_name(), $this->get_version() );
-
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_frontend, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_frontend, 'enqueue_scripts' );
-
 		$this->send_private_file = new Send_Private_File();
 
-		$this->loader->add_action( 'init', $this->send_private_file, 'init' );
-
+		add_action( 'init', array( $this->send_private_file, 'init' ) );
 	}
 
+	/**
+	 *
+	 * @since    1.0.0
+	 * @access   protected
+	 */
+	protected function define_api_hooks() {
+
+		if ( class_exists( WP_CLI::class ) ) {
+			CLI::$api = $this->api;
+			// wp private-uploads
+			WP_CLI::add_command( 'private-uploads', CLI::class );
+		}
+
+	}
 }

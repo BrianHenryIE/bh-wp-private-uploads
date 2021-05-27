@@ -6,9 +6,9 @@
  * @author  BrianHenryIE <BrianHenryIE@gmail.com>
  */
 
-namespace BH_WP_Private_Uploads;
+namespace BrianHenryIE\WP_Private_Uploads;
 
-use BH_WP_Private_Uploads\includes\BH_WP_Private_Uploads;
+use BrianHenryIE\WP_Private_Uploads\API\API;
 
 /**
  * Class Plugin_WP_Mock_Test
@@ -44,11 +44,43 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 			'register_deactivation_hook'
 		);
 
+		\WP_Mock::userFunction(
+			'get_current_user_id',
+			array(
+				'return' => 0
+			)
+		);
+
+		\WP_Mock::userFunction(
+			'wp_normalize_path',
+			array(
+				'return_arg' => 0
+			)
+		);
+
+        \WP_Mock::userFunction(
+            'is_admin',
+            array(
+                'return_arg' => false
+            )
+        );
+
+        \WP_Mock::userFunction(
+            'get_current_user_id'
+        );
+
+        \WP_Mock::userFunction(
+            'wp_normalize_path',
+            array(
+                'return_arg' => true
+            )
+        );
+
 		require_once $plugin_root_dir . '/bh-wp-private-uploads.php';
 
 		$this->assertArrayHasKey( 'bh_wp_private_uploads', $GLOBALS );
 
-		$this->assertInstanceOf( BH_WP_Private_Uploads::class, $GLOBALS['bh_wp_private_uploads'] );
+		$this->assertInstanceOf( API::class, $GLOBALS['bh_wp_private_uploads'] );
 
 	}
 

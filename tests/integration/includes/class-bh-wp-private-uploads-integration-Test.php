@@ -6,10 +6,10 @@
  * @author  BrianHenryIE <BrianHenryIE@gmail.com>
  */
 
-namespace BH_WP_Private_Uploads\includes;
+namespace BrianHenryIE\WP_Private_Uploads\Includes;
 
-use BH_WP_Private_Uploads\admin\Admin;
-use BH_WP_Private_Uploads\frontend\Frontend;
+use BrianHenryIE\WP_Private_Uploads\Admin\Admin;
+use BrianHenryIE\WP_Private_Uploads\Frontend\Frontend;
 
 /**
  * Class Develop_Test
@@ -39,36 +39,6 @@ class BH_WP_Private_Uploads_Integration_Test extends \Codeception\TestCase\WPTes
 		$action_name       = 'admin_enqueue_scripts';
 		$expected_priority = 10;
 		$class_type        = Admin::class;
-		$method_name       = 'enqueue_scripts';
-
-		$function_is_hooked = $this->is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority );
-
-		$this->assertNotFalse( $function_is_hooked );
-	}
-
-	/**
-	 * Verify enqueue_scripts action is correctly added for styles, at priority 10, on class Frontend
-	 */
-	public function test_action_enqueue_scripts_styles() {
-
-		$action_name       = 'wp_enqueue_scripts';
-		$expected_priority = 10;
-		$class_type        = Frontend::class;
-		$method_name       = 'enqueue_styles';
-
-		$function_is_hooked = $this->is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority );
-
-		$this->assertNotFalse( $function_is_hooked );
-	}
-
-	/**
-	 * Verify enqueue_scripts action is added for scripts, at priority 10, on class Frontend.
-	 */
-	public function test_action_enqueue_scripts_scripts() {
-
-		$action_name       = 'wp_enqueue_scripts';
-		$expected_priority = 10;
-		$class_type        = Frontend::class;
 		$method_name       = 'enqueue_scripts';
 
 		$function_is_hooked = $this->is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority );

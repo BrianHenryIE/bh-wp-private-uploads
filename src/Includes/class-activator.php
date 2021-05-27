@@ -9,7 +9,7 @@
  * @subpackage BH_WP_Private_Uploads/includes
  */
 
-namespace BH_WP_Private_Uploads\includes;
+namespace BrianHenryIE\WP_Private_Uploads\Includes;
 
 /**
  * Fired during plugin activation.

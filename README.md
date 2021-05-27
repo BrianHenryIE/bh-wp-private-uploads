@@ -2,12 +2,38 @@
 
 # BH WP Private Uploads
 
-[Chris Dennis](https://github.com/StarsoftAnalysis)'s great [Private Uploads](wordpress.org/plugins/private-uploads/) plugin with added convenience functions, REST API and user level permissions.
+[Chris Dennis](https://github.com/StarsoftAnalysis)'s brilliant [Private Uploads](wordpress.org/plugins/private-uploads/) plugin with added convenience functions, REST API and user level permissions.
 
+```
+/** @var BH_WP_Private_Uploads\API\API_Interface */
+$private_uploads = $GLOBALS['bh_wp_private_uploads'];
+
+$private_uploads->download_remote_file_to_private_uploads( 'http://example.org/a.pdf' );
+```
+
+
+Added filter to control access by file.
+
+https://github.com/gamajo/codeception-redirects
 
 ```
 curl -o /dev/null --silent --head --write-out '%{http_code}\n' http://localhost:8080/bh-wp-private-uploads/wp-content/uploads/private/private.txt
 ```
+
+
+Does the rewrite rule work when WordPress is installed in a subdir?
+
+
+Permissions: 
+we have registered a post type.
+For files that need to be tied to a specific user, make them the author of the post
+For broader permissions, use the parent of the post--- i.e. set the parent post to be the WooCommerce order and anyone who
+is allowed to view the order can view the file.
+
+
+
+How to test is the private uploads folder private?
+A simple wp_remote_get() ?
 
 
 ## Contributing
@@ -33,6 +59,9 @@ export $(grep -v '^#' .env.testing | xargs)
 
 # Create the databases.
 mysql -u $mysql_username -p$mysql_password -e "CREATE USER '"$TEST_DB_USER"'@'%' IDENTIFIED WITH mysql_native_password BY '"$TEST_DB_PASSWORD"';";
+mysql -u $mysql_username -p$mysql_password -e "CREATE USER '"$TEST_DB_USER"'@'%' IDENTIFIED BY '"$TEST_DB_PASSWORD"';";
+
+
 mysql -u $mysql_username -p$mysql_password -e "CREATE DATABASE "$TEST_SITE_DB_NAME"; USE "$TEST_SITE_DB_NAME"; GRANT ALL PRIVILEGES ON "$TEST_SITE_DB_NAME".* TO '"$TEST_DB_USER"'@'%';";
 mysql -u $mysql_username -p$mysql_password -e "CREATE DATABASE "$TEST_DB_NAME"; USE "$TEST_DB_NAME"; GRANT ALL PRIVILEGES ON "$TEST_DB_NAME".* TO '"$TEST_DB_USER"'@'%';";
 ```

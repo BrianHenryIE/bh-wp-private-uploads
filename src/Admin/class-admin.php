@@ -1,34 +1,41 @@
 <?php
 /**
- * The public-facing functionality of the plugin.
+ * The admin-specific functionality of the plugin.
  *
  * @link       http://example.com
  * @since      1.0.0
  *
  * @package    BH_WP_Private_Uploads
- * @subpackage BH_WP_Private_Uploads/frontend
+ * @subpackage BH_WP_Private_Uploads/admin
  */
 
-namespace BH_WP_Private_Uploads\frontend;
+namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
-use BH_WP_Private_Uploads\BrianHenryIE\WPPB\WPPB_Object;
+use BrianHenryIE\WP_Private_Uploads\API\Settings_Interface;
 
 /**
- * The public-facing functionality of the plugin.
+ * The admin-specific functionality of the plugin.
  *
  * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the frontend-facing stylesheet and JavaScript.
+ * enqueue the admin-specific stylesheet and JavaScript.
  *
  * @package    BH_WP_Private_Uploads
- * @subpackage BH_WP_Private_Uploads/frontend
+ * @subpackage BH_WP_Private_Uploads/admin
  * @author     BrianHenryIE <BrianHenryIE@gmail.com>
  */
-class Frontend extends WPPB_Object {
+class Admin {
+
+	/** @var Settings_Interface */
+	protected $settings;
+
+	public function __construct( $settings ) {
+		$this->settings = $settings;
+	}
 
 	/**
-	 * Register the stylesheets for the frontend-facing side of the site.
+	 * Register the stylesheets for the admin area.
 	 *
-	 * @hooked wp_enqueue_scripts
+	 * @hooked admin_enqueue_scripts
 	 *
 	 * @since    1.0.0
 	 */
@@ -46,14 +53,14 @@ class Frontend extends WPPB_Object {
 		 * class.
 		 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/bh-wp-private-uploads-frontend.css', array(), $this->version, 'all' );
+		wp_enqueue_style( $this->settings->get_plugin_slug(), plugin_dir_url( __FILE__ ) . 'css/bh-wp-private-uploads-admin.css', array(), $this->settings->get_plugin_version(), 'all' );
 
 	}
 
 	/**
-	 * Register the JavaScript for the frontend-facing side of the site.
+	 * Register the JavaScript for the admin area.
 	 *
-	 * @hooked wp_enqueue_scripts
+	 * @hooked admin_enqueue_scripts
 	 *
 	 * @since    1.0.0
 	 */
@@ -71,7 +78,7 @@ class Frontend extends WPPB_Object {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/bh-wp-private-uploads-frontend.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( $this->settings->get_plugin_slug(), plugin_dir_url( __FILE__ ) . 'js/bh-wp-private-uploads-admin.js', array( 'jquery' ), $this->settings->get_plugin_version(), false );
 
 	}
 

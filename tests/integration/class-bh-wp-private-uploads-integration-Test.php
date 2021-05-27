@@ -6,9 +6,10 @@
  * @author     BrianHenryIE <BrianHenryIE@gmail.com>
  */
 
-namespace BH_WP_Private_Uploads;
+namespace BrianHenryIE\WP_Private_Uploads;
 
-use BH_WP_Private_Uploads\includes\BH_WP_Private_Uploads;
+use BrianHenryIE\WP_Private_Uploads\API\API;
+use BrianHenryIE\WP_Private_Uploads\Includes\BH_WP_Private_Uploads;
 
 /**
  * Verifies the plugin has been instantiated and added to PHP's $GLOBALS variable.
@@ -22,7 +23,7 @@ class Plugin_Integration_Test extends \Codeception\TestCase\WPTestCase {
 
 		$this->assertArrayHasKey( 'bh_wp_private_uploads', $GLOBALS );
 
-		$this->assertInstanceOf( BH_WP_Private_Uploads::class, $GLOBALS['bh_wp_private_uploads'] );
+		$this->assertInstanceOf( API::class, $GLOBALS['bh_wp_private_uploads'] );
 	}
 
 }

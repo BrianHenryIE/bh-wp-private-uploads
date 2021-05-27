@@ -11,48 +11,11 @@
  * @see https://github.com/pablo-sg-pacheco/wp-namespace-autoloader/
  */
 
-namespace BH_WP_Private_Uploads;
+namespace BrianHenryIE\WP_Private_Uploads;
 
-use BH_WP_Private_Uploads\Pablo_Pacheco\WP_Namespace_Autoloader\WP_Namespace_Autoloader;
+use BrianHenryIE\WP_Private_Uploads\Pablo_Pacheco\WP_Namespace_Autoloader\WP_Namespace_Autoloader;
 
-
-$class_map_file = __DIR__ . '/autoload-classmap.php';
-if ( file_exists( $class_map_file ) ) {
-
-	$class_map = include $class_map_file;
-
-	if ( is_array( $class_map ) ) {
-		spl_autoload_register(
-			function ( $classname ) use ( $class_map ) {
-
-				if ( array_key_exists( $classname, $class_map ) && file_exists( $class_map[ $classname ] ) ) {
-					require_once $class_map[ $classname ];
-				}
-			}
-		);
-	}
-}
-
-// The plugin-scoped namespace for composer required libraries, as specified in composer.json Mozart config.
-$dep_namespace = 'BH_WP_Private_Uploads';
-// The Mozart config `dep_directory` adjusted for relative path.
-$dep_directory = '/vendor/';
-
-spl_autoload_register(
-	function ( $namespaced_class_name ) use ( $dep_namespace, $dep_directory ) {
-
-		$autoload_directory = __DIR__ . $dep_directory . '/';
-
-		// The class name with its true namespace.
-		$bare_namespaced_class_name = preg_replace( "#$dep_namespace\\\*#", '', $namespaced_class_name );
-
-		$file_path = $autoload_directory . str_replace( '\\', DIRECTORY_SEPARATOR, $bare_namespaced_class_name ) . '.php';
-
-		if ( file_exists( $file_path ) ) {
-			require_once $file_path;
-		}
-	}
-);
+require_once __DIR__ . '/strauss/autoload.php';
 
 $wpcs_autoloader = new WP_Namespace_Autoloader();
 $wpcs_autoloader->init();
