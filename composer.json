@@ -33,58 +33,51 @@
             "type": "git"
         },
         {
-            "url": "https://github.com/BrianHenryIE/composer-phpstorm",
-            "type": "git"
-        },
-        {
-            "url": "https://github.com/BrianHenryIE/bh-wp-dev",
-            "type": "git"
-        },
-        {
             "type":"composer",
             "url":"https://wpackagist.org"
         },
         {
-            "type": "path",
-            "url": "../bh-wp-logger"
+            "url": "https://github.com/BrianHenryIE/bh-wp-logger",
+            "type": "git"
         },
         {
-            "url": "https://github.com/BrianHenryIE/bh-wp-logger",
+            "url": "https://github.com/BrianHenryIE/dist-archive-command",
             "type": "git"
         }
     ],
     "require": {
         "brianhenryie/wp-logger": "dev-master",
         "php": ">=7.4",
-        "pablo-sg-pacheco/wp-namespace-autoloader": "dev-master",
+        "pablo-sg-pacheco/wp-namespace-autoloader": "*",
         "ext-fileinfo": "*"
     },
     "require-dev": {
         "10up/wp_mock": "0.4.2",
         "brianhenryie/composer-phpstorm": "dev-master",
         "brianhenryie/strauss": "*",
-        "brianhenryie/wp-dev": "dev-master",
-        "dealerdirect/phpcodesniffer-composer-installer": "*",
         "codeception/module-asserts": "^1.0",
+        "codeception/module-cli": "^1.0",
         "codeception/module-db": "^1.0.0",
+        "codeception/module-filesystem": "^1.0",
         "codeception/module-phpbrowser": "^1.0.0",
         "codeception/module-webdriver": "^1.0",
-        "codeception/module-filesystem": "^1.0",
         "codeception/util-universalframework": "^1.0",
-        "codeception/module-cli": "^1.0",
         "cweagans/composer-patches": "*",
+        "dealerdirect/phpcodesniffer-composer-installer": "*",
         "jaschilz/php-coverage-badger": "^2.0",
         "kporras07/composer-symlinks": "dev-master",
         "lucatume/wp-browser": "*",
-        "phpunit/phpunit": ">=7.0",
-        "phpunit/phpcov": "^5.0",
         "phpcompatibility/phpcompatibility-wp": "*",
+        "phpstan/extension-installer": "^1.1",
+        "phpunit/phpcov": "*",
         "squizlabs/php_codesniffer": "*",
-        "wordpress/wordpress": "^5.5",
+        "szepeviktor/phpstan-wordpress": "^0.7.2",
+        "voku/portable-ascii": "dev-master",
+        "wordpress/wordpress": "*",
         "wp-cli/wp-cli-bundle": "*",
+        "wp-cli/dist-archive-command": "dev-master",
         "wp-coding-standards/wpcs": "*",
-        "wpackagist-theme/twentytwenty": "*",
-        "voku/portable-ascii": "dev-master"
+        "wpackagist-theme/twentytwenty": "*"
     },
     "extra": {
         "patches": {
@@ -98,7 +91,24 @@
         "strauss": {
             "namespace_prefix": "BrianHenryIE\\WP_Private_Uploads\\",
             "target_directory": "/src/strauss/",
-            "classmap_prefix": "BH_WP_Private_Uploads_"
+            "classmap_prefix": "BH_WP_Private_Uploads_",
+            "exclude_from_copy": {
+                "file_patterns": [
+                    "~psr/log/Psr/Log/Test.*~"
+                ]
+            },
+            "namespace_replacement_patterns": {
+                "~BrianHenryIE\\\\(.*)~" : "BrianHenryIE\\WP_Private_Uploads\\\\$1"
+            },
+            "override_autoload": {
+                "yahnis-elsts/plugin-update-checker": {
+                    "classmap": ["Puc"],
+                    "files": ["load-v4p11.php","vendor/PucReadmeParser.php"]
+                },
+                "erusev/parsedown": {
+                    "files": ["Parsedown.php"]
+                }
+            }
         },
         "symlinks": {
             "wp-content": "wordpress/wp-content",
@@ -144,8 +154,12 @@
             "vendor/bin/phpcov merge --clover tests/_output/clover.xml --html tests/_output/html tests/_output --text;",
             "open tests/_output/html/index.html"
         ],
+        "lint": [
+            "vendor/bin/phpcbf | true",
+            "vendor/bin/phpcs"
+        ],
         "create-plugin-archive": [
-            "BrianHenryIE\\WP_Dev\\CreatePluginArchive::createZip"
+            "vendor/bin/wp dist-archive src --plugin-dirname=bh-wp-private-uploads"
         ]
     }
 }

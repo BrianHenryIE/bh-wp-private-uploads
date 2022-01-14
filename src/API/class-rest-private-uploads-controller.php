@@ -1,6 +1,6 @@
 <?php
 
-namespace  BH_WP_Private_Uploads\api;
+namespace  BrianHenryIE\WP_Private_Uploads\API;
 
 use WP_Error;
 use WP_REST_Attachments_Controller;

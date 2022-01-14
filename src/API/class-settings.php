@@ -2,7 +2,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\API;
 
-use BrianHenryIE\WP_Private_Uploads\BrianHenryIE\WP_Logger\API\Logger_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\WP_Logger\API\Logger_Settings_Interface;
 use Psr\Log\LogLevel;
 
 class Settings implements Settings_Interface, Logger_Settings_Interface {
@@ -34,6 +34,6 @@ class Settings implements Settings_Interface, Logger_Settings_Interface {
 	}
 
 	public function get_plugin_version(): string {
-		return '2.0.0';
+		return '2.0.2';
 	}
 }
