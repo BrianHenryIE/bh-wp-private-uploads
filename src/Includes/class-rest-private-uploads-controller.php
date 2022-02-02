@@ -1,35 +1,47 @@
 <?php
+/**
+ * Extend WP_REST_Posts_Controller and just use a subset of its functions.
+ *
+ * Class WP_REST_Attachments_Controller
+ *
+ * @package    brianhenryie/bh-wp-private-uploads
+ */
 
-namespace  BrianHenryIE\WP_Private_Uploads\API;
+namespace  BrianHenryIE\WP_Private_Uploads\Includes;
 
+use BrianHenryIE\WP_Private_Uploads\API\API_Interface;
+use BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\Private_Uploads;
 use WP_Error;
 use WP_REST_Attachments_Controller;
 use WP_REST_Controller;
 use WP_REST_Request;
 use WP_REST_Server;
 
-
-/**
- * Extend WP_REST_Posts_Controller and just use a subset of its functions.
- *
- * Class WP_REST_Attachments_Controller
- *
- * @package PED_Warehouse\private_uploads
- */
 class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 
 	/** @var API_Interface */
-	protected $api;
+	protected API_Interface $api;
 
+	protected Private_Uploads_Settings_Interface $settings;
+
+	/**
+	 *
+	 */
 	public function __construct() {
-		parent::__construct( 'private-uploads' );
 
-		$this->namespace = 'brianhenryie/v1';
-		$this->rest_base = 'private-uploads';
+		// TODO: This isn't great, in that it forces the singleton to be used. It would be nicer if the singleton
+		// existed just for convenience.
+		// Who instantiates this?! (it is subsequent/related to the post type being registered).
+		$this->api      = Private_Uploads::instance();
+		$this->settings = $this->api->get_settings();
 
-		// During normal plugin lifecycle, this will already be populated.
-		global $bh_wp_private_uploads;
-		$this->api = $bh_wp_private_uploads;
+		$post_type = "{$this->settings->get_plugin_slug()}_private_uploads";
+
+		parent::__construct( $post_type );
+
+		$this->namespace = $this->settings->get_rest_namespace();
+		$this->rest_base = 'uploads'; // Just "uploads" because if the uploads weren't private, they'd go in the regular uploads folder.
 	}
 
 	/**
@@ -53,18 +65,17 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 
 	}
 
-
 	/**
 	 *
 	 * Based on insert_attachment()
-     * We don't use insert_attachment because that also creates an entry in the Media Library, which we do not want.
+	 * We don't use insert_attachment because that also creates an entry in the Media Library, which we do not want.
 	 *
 	 * @see WP_REST_Attachments_Controller::insert_attachment()
 	 *
 	 * @param WP_REST_Request $request
 	 * @return array|WP_Error
 	 */
-	public function upload_item( $request ) {
+	public function upload_item( WP_REST_Request $request ) {
 
 		$yyyymm = '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' );
 
@@ -93,8 +104,8 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 
 			// Use private uploads dir.
 
-			$uploads['basedir'] = "{$uploads['basedir']}/private";
-			$uploads['baseurl'] = "{$uploads['baseurl']}/private";
+			$uploads['basedir'] = "{$uploads['basedir']}/{$this->settings->get_uploads_subdirectory_name()}";
+			$uploads['baseurl'] = "{$uploads['baseurl']}/{$this->settings->get_uploads_subdirectory_name()}";
 
 			$uploads['path'] = $uploads['basedir'] . $uploads['subdir'];
 			$uploads['url']  = $uploads['baseurl'] . $uploads['subdir'];
@@ -112,6 +123,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		if ( ! empty( $files ) ) {
 			$file = $this->upload_from_file( $files, $headers );
 		} else {
+			// This `$data` type does not match the function signature, but it's lifted from WordPress core, so presumed ok.
 			$file = $this->upload_from_data( $request->get_body(), $headers );
 		}
 

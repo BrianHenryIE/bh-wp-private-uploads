@@ -1,25 +1,31 @@
 <?php
 /**
- * The public-facing functionality of the plugin.
+ * The public entrypoint of the library.
  *
  * @link       https://github.com/BrianHenryIE/private-uploads
  * @since      0.2.0
  *
- * @package    Private_Uploads
- * @subpackage Private_Uploads/frontend
+ * @author     Brian Henry <BrianHenryIE@gmail.com>
+ * @author     Chris Dennis <cgdennis@btinternet.com>
+ *
+ * @package    brianhenryie/bh-wp-private-uploads
  */
 
 namespace BrianHenryIE\WP_Private_Uploads\Frontend;
 
-/**
- * The public-facing functionality of the plugin.
- *
- * @package    Private_Uploads
- * @subpackage Private_Uploads/frontend
- * @author     Chris Dennis <cgdennis@btinternet.com>
- * @author     Brian Henry <BrianHenryIE@gmail.com>
- */
-class Send_Private_File {
+use BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Interface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+
+class Serve_Private_File {
+	use LoggerAwareTrait;
+
+	protected Private_Uploads_Settings_Interface $settings;
+
+	public function __construct( Private_Uploads_Settings_Interface $settings, LoggerInterface $logger ) {
+		$this->setLogger( $logger );
+		$this->settings = $settings;
+	}
 
 	/**
 	 * Hook into the init action to look for our HTTP arguments
@@ -27,12 +33,17 @@ class Send_Private_File {
 	 * @hooked init
 	 */
 	public function init() {
-		$folder = $this->request_value( 'pucd-folder' );
-		$file   = $this->request_value( 'pucd-file' );
+		// $folder = $this->request_value( $this->settings->get_plugin_slug() . '-private-uploads-folder' );
 
-		if ( $file && $folder ) {
-			$this->send_private_file( $folder, $file );
+		$file_key = $this->settings->get_plugin_slug() . '-private-uploads-file';
+
+		$file = $this->request_value( $file_key );
+
+		if ( empty( $file ) ) { // } || empty(  $folder ) ) {
+			return;
 		}
+
+		$this->send_private_file( $file );
 	}
 
 	/**
@@ -50,10 +61,21 @@ class Send_Private_File {
 	 * @param string $folder The folder path to return the file from.
 	 * @param string $file The requested filename.
 	 */
-	protected function send_private_file( $folder, $file ) {
+	protected function send_private_file( $file ) {
 
-		// Only return files to logged-in users.
-		if ( ! is_user_logged_in() ) {
+		// Determine should the file be served.
+		// Default yes to administrator.
+		$should_serve_file = current_user_can( 'administrator' );
+
+		/**
+		 * Allow filtering for other users.
+		 *
+		 * @param bool $should_serve_file
+		 * @param string $file
+		 */
+		$should_serve_file = apply_filters( "bh_wp_private_uploads_{$this->settings->get_plugin_slug()}_allow", $should_serve_file, $file );
+
+		if ( ! $should_serve_file ) {
 			status_header( '403' );
 			die();
 		}
@@ -61,8 +83,8 @@ class Send_Private_File {
 		// Check the inputs: both $folder and $file are either simple
 		// filenames such as 'abc.jpg' or paths such as 'foo/bar/abc.jpg'
 		// And strip any leading and trailing separators.
-		$folder = trim( $this->sanitize_dir_name( $folder ), '/' );
-		$file   = trim( $this->sanitize_dir_name( $file ), '/' );
+		// $folder = trim( $this->sanitize_dir_name( $folder ), '/' );
+		$file = trim( $this->sanitize_dir_name( $file ), '/' );
 
 		$upload = wp_upload_dir();
 
@@ -71,7 +93,7 @@ class Send_Private_File {
 			die();
 		}
 
-		$path = $upload['basedir'] . '/' . $folder . '/' . $file;
+		$path = WP_CONTENT_DIR . '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/' . $file;
 		if ( ! is_file( $path ) ) {
 			status_header( 404, 'File not found' );
 			die();
@@ -97,7 +119,7 @@ class Send_Private_File {
 		$etag               = md5( $last_modified );
 		header( "Last-Modified: $last_modified" );
 		header( 'ETag: "' . $etag . '"' );
-		header( 'Expires: ' . gmdate( $date_format, time() + 3600 ) ); // an arbitrary hour from now.
+		header( 'Expires: ' . gmdate( $date_format, time() + HOUR_IN_SECONDS ) ); // an arbitrary hour from now.
 
 		// Support for caching.
 		$client_etag              = $this->request_value( 'HTTP_IF_NONE_MATCH' );
