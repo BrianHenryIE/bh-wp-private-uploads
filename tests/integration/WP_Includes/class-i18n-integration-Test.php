@@ -6,7 +6,7 @@
  * @author  BrianHenryIE <BrianHenryIE@gmail.com>
  */
 
-namespace BrianHenryIE\WP_Private_Uploads\Includes;
+namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
 /**
  * Class BH_WP_Private_Uploads_Test

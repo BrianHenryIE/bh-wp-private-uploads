@@ -6,9 +6,10 @@
  * @author  BrianHenryIE <BrianHenryIE@gmail.com>
  */
 
-namespace BrianHenryIE\WP_Private_Uploads;
+namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
-use BrianHenryIE\WP_Private_Uploads\API\API;
+use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\API;
+use BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes\BH_WP_Private_Uploads_Test_Plugin;
 
 /**
  * Class Plugin_WP_Mock_Test
@@ -17,16 +18,29 @@ use BrianHenryIE\WP_Private_Uploads\API\API;
  */
 class Plugin_Unit_Test extends \Codeception\Test\Unit {
 
-	protected function _before() {
+
+
+	protected function setup(): void {
 		\WP_Mock::setUp();
+	}
+
+	protected function tearDown(): void {
+		\WP_Mock::tearDown();
+		\Patchwork\restoreAll();
 	}
 
 	/**
 	 * Verifies the plugin initialization.
 	 */
-	public function test_plugin_include() {
+	public function test_plugin_include(): void {
 
-		$plugin_root_dir = dirname( __DIR__, 2 ) . '/src';
+		// Prevents code-coverage counting, and removes the need to define the WordPress functions that are used in that class.
+		\Patchwork\redefine(
+			array( BH_WP_Private_Uploads_Test_Plugin::class, '__construct' ),
+			function( $api, $settings, $logger ) {}
+		);
+
+		$plugin_root_dir = dirname( __DIR__, 2 ) . '/test-plugin';
 
 		\WP_Mock::userFunction(
 			'plugin_dir_path',
@@ -37,80 +51,50 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 		);
 
 		\WP_Mock::userFunction(
-			'register_activation_hook'
-		);
-
-		\WP_Mock::userFunction(
-			'register_deactivation_hook'
-		);
-
-		\WP_Mock::userFunction(
-			'get_current_user_id',
+			'plugin_basename',
 			array(
-				'return' => 0
+				'args'   => array( \WP_Mock\Functions::type( 'string' ) ),
+				'return' => 'bh-wp-private-uploads-test-plugin/bh-wp-private-uploads-test-plugin.php',
 			)
+		);
+
+		\WP_Mock::userFunction(
+			'get_option',
+			array(
+				'args'   => array( 'active_plugins' ),
+				'return' => array(),
+			)
+		);
+
+		\WP_Mock::userFunction(
+			'is_admin',
+			array(
+				'return' => false,
+			)
+		);
+
+		\WP_Mock::userFunction(
+			'get_current_user_id'
 		);
 
 		\WP_Mock::userFunction(
 			'wp_normalize_path',
 			array(
-				'return_arg' => 0
+				'return_arg' => true,
 			)
 		);
 
-        \WP_Mock::userFunction(
-            'is_admin',
-            array(
-                'return_arg' => false
-            )
-        );
-
-        \WP_Mock::userFunction(
-            'get_current_user_id'
-        );
-
-        \WP_Mock::userFunction(
-            'wp_normalize_path',
-            array(
-                'return_arg' => true
-            )
-        );
-
-		require_once $plugin_root_dir . '/bh-wp-private-uploads.php';
-
-		$this->assertArrayHasKey( 'bh_wp_private_uploads', $GLOBALS );
-
-		$this->assertInstanceOf( API::class, $GLOBALS['bh_wp_private_uploads'] );
-
-	}
-
-
-	/**
-	 * Verifies the plugin does not output anything to screen.
-	 */
-	public function test_plugin_include_no_output() {
-
-		$plugin_root_dir = dirname( __DIR__, 2 ) . '/src';
-
 		\WP_Mock::userFunction(
-			'plugin_dir_path',
+			'get_option',
 			array(
-				'args'   => array( \WP_Mock\Functions::type( 'string' ) ),
-				'return' => $plugin_root_dir . '/',
+				'args'   => array( 'active_plugins' ),
+				'return' => array(),
 			)
-		);
-
-		\WP_Mock::userFunction(
-			'register_activation_hook'
-		);
-
-		\WP_Mock::userFunction(
-			'register_deactivation_hook'
 		);
 
 		ob_start();
 
-		require_once $plugin_root_dir . '/bh-wp-private-uploads.php';
+		include $plugin_root_dir . '/bh-wp-private-uploads-test-plugin.php';
 
 		$printed_output = ob_get_contents();
 
@@ -118,6 +102,8 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 
 		$this->assertEmpty( $printed_output );
 
-	}
+		$this->assertArrayHasKey( 'bh_wp_private_uploads_test_plugin', $GLOBALS );
 
+		$this->assertInstanceOf( API::class, $GLOBALS['bh_wp_private_uploads_test_plugin'] );
+	}
 }

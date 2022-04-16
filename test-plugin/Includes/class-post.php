@@ -3,19 +3,20 @@
  * Seems to be te easiest way to register the REST route
  *
  * @see register_post_type();
+ *
+ * @package    brianhenryie/bh-wp-private-uploads
  */
 
-namespace BrianHenryIE\WP_Private_Uploads\Includes;
+namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes;
 
-use BrianHenryIE\WP_Private_Uploads\API\REST_Private_Uploads_Controller;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\REST_Private_Uploads_Controller;
 
 class Post {
-
 
 	/**
 	 * @hooked init
 	 */
-	public function register_post_type() {
+	public function register_post_type(): void {
 
 		register_post_type(
 			'private-uploads',

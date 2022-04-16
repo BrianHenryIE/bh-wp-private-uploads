@@ -1,18 +1,20 @@
 <?php
 /**
  * Convenience defaults for Settings_Interface implementations.
+ *
+ * @package     brianhenryie/bh-wp-private-uploads
  */
 
-namespace BrianHenryIE\WP_Private_Uploads\API;
+namespace BrianHenryIE\WP_Private_Uploads;
 
 trait Private_Uploads_Settings_Trait {
 
 	/**
 	 * Default to the plugins slug.
 	 *
-	 * e.g. wp-content/uploads/my-plugin-slug will be the private directory.
+	 * E.g. wp-content/uploads/my-plugin-slug will be the private directory.
 	 *
-	 * @return string
+	 * @return ?string
 	 */
 	public function get_uploads_subdirectory_name(): string {
 		return $this->get_plugin_slug();

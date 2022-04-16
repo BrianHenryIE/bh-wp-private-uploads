@@ -6,7 +6,7 @@
  * @author  BrianHenryIE <BrianHenryIE@gmail.com>
  */
 
-namespace BrianHenryIE\WP_Private_Uploads\Includes;
+namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin;
 use BrianHenryIE\WP_Private_Uploads\Frontend\Frontend;
@@ -79,7 +79,7 @@ class BH_WP_Private_Uploads_Integration_Test extends \Codeception\TestCase\WPTes
 			$action_function = $action['function'];
 			if ( is_array( $action_function ) ) {
 				if ( $action_function[0] instanceof $class_type ) {
-					if( $method_name === $action_function[1] ) {
+					if ( $method_name === $action_function[1] ) {
 						$hooked_method = $action_function[1];
 						break;
 					}

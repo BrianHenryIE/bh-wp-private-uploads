@@ -9,7 +9,7 @@
 namespace BrianHenryIE\WP_Private_Uploads;
 
 use BrianHenryIE\WP_Private_Uploads\API\API;
-use BrianHenryIE\WP_Private_Uploads\Includes\BH_WP_Private_Uploads;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\BH_WP_Private_Uploads_Test_Plugin;
 
 /**
  * Verifies the plugin has been instantiated and added to PHP's $GLOBALS variable.

@@ -18,6 +18,6 @@ modules:
             domain: "%TEST_SITE_WP_DOMAIN%"
             adminEmail: "%TEST_SITE_ADMIN_EMAIL%"
             title: "bh-wp-private-uploads"
-            plugins: ['bh-wp-private-uploads/bh-wp-private-uploads.php']
-            activatePlugins: ['bh-wp-private-uploads/bh-wp-private-uploads.php']
+            plugins: ['bh-wp-private-uploads-test-plugin/bh-wp-private-uploads-test-plugin.php']
+            activatePlugins: ['bh-wp-private-uploads-test-plugin/bh-wp-private-uploads-test-plugin.php']
 bootstrap: _bootstrap.php

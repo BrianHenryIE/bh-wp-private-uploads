@@ -2,14 +2,17 @@ parameters:
     level: 8
     paths:
         - src
+        - test-plugin
     excludePaths:
-        - src/strauss/*
+        - test-plugin/vendor/*
     bootstrapFiles:
-        - src/autoload.php
+        - test-plugin/autoload.php
+        - phpstanbootstrap.php
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
     scanDirectories:
-        - src/strauss
         - wp-content/plugins
         - vendor/wp-cli
+    scanFiles:
+        - vendor/antecedent/patchwork/Patchwork.php
     ignoreErrors:
         - '#LoggerInterface\|null#'

@@ -1,8 +1,8 @@
 <?php
 
-namespace BrianHenryIE\WP_Private_Uploads\Includes;
+namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
-use BrianHenryIE\WP_Private_Uploads\API\API_Interface;
+use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use WP_CLI;
@@ -34,8 +34,8 @@ class CLI {
 			return;
 		}
 
-		WP_CLI::log( 'Beginning download of  ' . $url ); // TODO: ... to where??
+		WP_CLI::log( 'Beginning download of  ' . $filtered_url ); // TODO: ... print to where??
 
-		$this->api->download_remote_file_to_private_uploads( $url );
+		$this->api->download_remote_file_to_private_uploads( $filtered_url );
 	}
 }

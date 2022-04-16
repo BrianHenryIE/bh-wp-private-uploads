@@ -1,13 +1,27 @@
 <?php
+/**
+ *
+ *
+ * Required:
+ *
+ * @see Private_Uploads_Settings_Interface::get_plugin_slug()
+ *
+ * Provided:
+ * @see Private_Uploads_Settings_Trait
+ *
+ * @package brianhenryie/bh-wp-private-uploads
+ */
 
-namespace BrianHenryIE\WP_Private_Uploads\API;
+namespace BrianHenryIE\WP_Private_Uploads;
 
 interface Private_Uploads_Settings_Interface {
 
 	public function get_plugin_slug(): string;
 
 	/**
-	 * @return string
+	 * Defaults to the plugin slug when using Private_Uploads_Settings_Trait.
+	 *
+	 * Should have no pre or trailing slash.
 	 */
 	public function get_uploads_subdirectory_name(): string;
 
@@ -19,5 +33,8 @@ interface Private_Uploads_Settings_Interface {
 	 */
 	public function get_rest_namespace(): ?string;
 
+	/**
+	 *
+	 */
 	public function get_cli_base(): ?string;
 }

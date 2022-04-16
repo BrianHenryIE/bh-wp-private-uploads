@@ -1,117 +1,180 @@
-[![WordPress tested 5.5](https://img.shields.io/badge/WordPress-v5.5%20tested-0073aa.svg)](https://wordpress.org/plugins/plugin_slug) [![PHPCS WPCS](https://img.shields.io/badge/PHPCS-WordPress%20Coding%20Standards-8892BF.svg)](https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards) [![PHPUnit ](.github/coverage.svg)](https://brianhenryie.github.io/plugin_slug/)
+[![WordPress tested 5.9](https://img.shields.io/badge/WordPress-v5.9%20tested-0073aa.svg)](https://wordpress.org/plugins/plugin_slug)
 
 # BH WP Private Uploads
 
-[Chris Dennis](https://github.com/StarsoftAnalysis)'s brilliant [Private Uploads](wordpress.org/plugins/private-uploads/) plugin with added convenience functions, REST API and user level permissions.
+A library to easily create a WordPress uploads subdirectory whose contents cannot be publicly downloaded. Based on [Chris Dennis](https://github.com/StarsoftAnalysis) 's brilliant [Private Uploads](wordpress.org/plugins/private-uploads/) plugin. Adds convenience functions for uploading files to the protected directory, CLI and REST API commands, and displays an admin notice if the directory is public.
+
+### Status
+
+Some amount of PHPUnit, WPCS, PhpStan done, but lots to do.
+
+### Intro
+
+I've needed this in various plugins and libraries:
+
+e.g.
+* [BH WP Logger](https://github.com/BrianHenryIE/bh-wp-logger) needs the "logs" directory to be private
+* [BH WP Mailboxes](https://github.com/BrianHenryIE/bh-wp-mailboxes) needs the "attachments" directory to be private
+* BH WC Auto Print Shipping Labels & Receipts needs its PDF directory to be private
+
+### Install
+
+This library is not on Packagist yet, so first add this repo:
+
+`composer config repositories.brianhenryie/bh-wp-private-uploads git https://github.com/brianhenryie/bh-wp-private-uploads`
+
+The reason being it is using a fork of [wptrt/admin-notices](https://github.com/WPTT/admin-notices) because of [a race condition in Firefox](https://github.com/WPTT/admin-notices/issues/14). So also add that repo:
+
+`composer config repositories.wptrt/admin-notices git https://github.com/brianhenryie/admin-notices`
+
+Then require as normal:
+
+`composer require brianhenryie/bh-wp-private-uploads`
+
+The following code expects you're prefixing your library namespaces with a tool such as [brianhenryie/strauss](https://github.com/BrianHenryIE/strauss/).
+
+### Instantiate
+
+The following code will create a folder, `wp-content/uploads/my-plugin`, with a `.htaccess` protecting it (via WordPress rewrite rules), and creates a cron job to verify the URL is protected, otherwise it displays an admin notice warning the site admin.
+
+```php
+$settings = new class() implements \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface {
+	use \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
+
+	public function get_plugin_slug(): string {
+		return 'my-plugin';
+	}
+};
+$private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance( $settings );
+```
+
+The trait provides some sensible defaults based off the plugin slug, which can be easily overridden. It also allows forward-compatability, i.e. methods can be added to the settings interface and defaults provided by the trait.
+
+### Use
+
+That `$private_uploads` instance can be passed around, or the singleton can be accessed anywhere in the code without requiring the settings again.
+
+```php
+$private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance();
+```
+
+The `\BrianHenryIE\WP_Private_Uploads\API\API` class (which `Private_Uploads` extends) contains convenience functions for downloading and moving files to the private uploads folder. Their signatures resemble WordPress's internal functions, since behind the scenes they use `wp_handle_upload` and have the same return signature.
+
+```php
+// Download `https://example.org/doc.pdf` to `wp-content/uploads/my-plugin/2022/02/target-filename.pdf`.
+$private_uploads->download_remote_file_to_private_uploads( 'https://example.org/doc.pdf', 'target-filename.pdf' );
+
+// Move `'/local/path/to/doc.pdf` to `wp-content/uploads/my-plugin/2022/02/target-filename.pdf`.
+$private_uploads->move_file_to_private_uploads( '/local/path/to/doc.pdf', 'target-filename.pdf' );
+```
+
+By default, administrators can access the files via their URL. This can be widened to more users with the filter:
+
+```php
+/**
+ * Allow filtering for other users.
+ *
+ * @param bool $should_serve_file
+ * @param string $file
+ */
+$should_serve_file = apply_filters( "bh_wp_private_uploads_{$plugin_slug}_allow", $should_serve_file, $file );
+```
+
+e.g. WooCommerce plugins probably always want shop-managers to be able to access files:
+
+```php
+add_filter( "bh_wp_private_uploads_{$plugin_slug}_allow", 'add_shop_manager_to_allow' );
+function add_shop_manager_to_allow( bool $should_serve_file ): bool {
+	return $should_serve_file || current_user_can( 'manage_woocommerce' );
+}
+```
+
+
+### Advanced
+
+#### Folder Name
+
+The folder name can easily be changed, e.g. `wp-content/uploads/email-attachments`:
+
+```php
+$settings = new class() implements \BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Interface {
+	use \BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Trait;
+
+	public function get_plugin_slug(): string {
+		return 'my-plugin';
+	}
+	
+    /**
+	 * Defaults to the plugin slug when using Private_Uploads_Settings_Trait.
+	 */
+	public function get_uploads_subdirectory_name(): string {
+		return 'email-attachments';
+	}
+
+};
+$private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance( $settings );
+```
+
+#### CLI Command
+
+A CLI command is easily added during configuration:
+
+```php
+$settings = new class() implements \BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Interface {
+	use \BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Trait;
+
+	public function get_plugin_slug(): string {
+		return 'my-plugin';
+	}
+	
+	/**
+	 * Defaults to no CLI commands when using Private_Uploads_Settings_Trait.
+	 */
+	public function get_cli_base(): ?string {
+		return 'my-plugin';
+	}
+
+};
+$private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance( $settings );
+```
 
 ```
-/** @var BH_WP_Private_Uploads\API\API_Interface */
-$private_uploads = $GLOBALS['bh_wp_private_uploads'];
-
-$private_uploads->download_remote_file_to_private_uploads( 'http://example.org/a.pdf' );
+wp my-plugin download https://example.org/doc.pdf
 ```
 
+#### !Singleton
 
-Added filter to control access by file.
+There's no need to use the singleton.
 
-https://github.com/gamajo/codeception-redirects
+```php
+$private_uploads = new Private_Uploads( $private_uploads_settings, $logger );
+// Add the hooks:
+new BH_WP_Private_Uploads( $private_uploads, $private_uploads_settings, $logger );
+```
+
+#### Quick Test
+
+To quickly test the URL is private with cURL:
 
 ```
 curl -o /dev/null --silent --head --write-out '%{http_code}\n' http://localhost:8080/bh-wp-private-uploads/wp-content/uploads/private/private.txt
 ```
 
+### TODO
 
-Does the rewrite rule work when WordPress is installed in a subdir?
+* User level permissions per file. (custom post type with filepath/url as GUID)
+* Acceptance tests: https://github.com/gamajo/codeception-redirects
+* Unit test REST endpoint
+* Does the rewrite rule work when WordPress is installed in a subdir?
+* Add Nginx instructions
+* Detect the user's hosting provider
+* GDPR deletion
+* REST API file upload -> webhook.
 
+#### Permissions: 
 
-Permissions: 
-we have registered a post type.
+We already have registered a post type for registering the REST endpoint.
 For files that need to be tied to a specific user, make them the author of the post
-For broader permissions, use the parent of the post--- i.e. set the parent post to be the WooCommerce order and anyone who
-is allowed to view the order can view the file.
+For broader permissions, use the parent of the post--- e.g. set the parent post to be the WooCommerce order and anyone who is allowed to view the order can view the file.
+Also ties into privacy (GDPR deletion etc.)
 
-
-
-How to test is the private uploads folder private?
-A simple wp_remote_get() ?
-
-
-## Contributing
-
-Clone this repo, open PhpStorm, then run `composer install` to install the dependencies.
-
-```
-git clone https://github.com/brianhenryie/plugin_slug.git;
-open -a PhpStorm ./;
-composer install;
-```
-
-For integration and acceptance tests, a local webserver must be running with `localhost:8080/plugin_slug/` pointing at the root of the repo. MySQL must also be running locally – with two databases set up with:
-
-```
-mysql_username="root"
-mysql_password="secret"
-
-# export PATH=${PATH}:/usr/local/mysql/bin
-
-# Make .env available to bash.
-export $(grep -v '^#' .env.testing | xargs)
-
-# Create the databases.
-mysql -u $mysql_username -p$mysql_password -e "CREATE USER '"$TEST_DB_USER"'@'%' IDENTIFIED WITH mysql_native_password BY '"$TEST_DB_PASSWORD"';";
-mysql -u $mysql_username -p$mysql_password -e "CREATE USER '"$TEST_DB_USER"'@'%' IDENTIFIED BY '"$TEST_DB_PASSWORD"';";
-
-
-mysql -u $mysql_username -p$mysql_password -e "CREATE DATABASE "$TEST_SITE_DB_NAME"; USE "$TEST_SITE_DB_NAME"; GRANT ALL PRIVILEGES ON "$TEST_SITE_DB_NAME".* TO '"$TEST_DB_USER"'@'%';";
-mysql -u $mysql_username -p$mysql_password -e "CREATE DATABASE "$TEST_DB_NAME"; USE "$TEST_DB_NAME"; GRANT ALL PRIVILEGES ON "$TEST_DB_NAME".* TO '"$TEST_DB_USER"'@'%';";
-```
-
-### WordPress Coding Standards
-
-See documentation on [WordPress.org](https://make.wordpress.org/core/handbook/best-practices/coding-standards/) and [GitHub.com](https://github.com/WordPress/WordPress-Coding-Standards).
-
-Correct errors where possible and list the remaining with:
-
-```
-vendor/bin/phpcbf; vendor/bin/phpcs
-```
-
-### Tests
-
-Tests use the [Codeception](https://codeception.com/) add-on [WP-Browser](https://github.com/lucatume/wp-browser) and include vanilla PHPUnit tests with [WP_Mock](https://github.com/10up/wp_mock). 
-
-Run tests with:
-
-```
-vendor/bin/codecept run unit;
-vendor/bin/codecept run wpunit;
-vendor/bin/codecept run integration;
-vendor/bin/codecept run acceptance;
-```
-
-Output and merge code coverage with:
-
-```
-vendor/bin/codecept run unit --coverage unit.cov;
-vendor/bin/codecept run wpunit --coverage wpunit.cov;
-vendor/bin/phpcov merge --clover tests/_output/clover.xml --html tests/_output/html tests/_output --text;
-```
-
-To save changes made to the acceptance database:
-
-```
-export $(grep -v '^#' .env.testing | xargs)
-mysqldump -u $TEST_SITE_DB_USER -p$TEST_SITE_DB_PASSWORD $TEST_SITE_DB_NAME > tests/_data/dump.sql
-```
-
-To clear Codeception cache after moving/removing test files:
-
-```
-vendor/bin/codecept clean
-```
-
-### More Information
-
-See [github.com/BrianHenryIE/WordPress-Plugin-Boilerplate](https://github.com/BrianHenryIE/WordPress-Plugin-Boilerplate) for initial setup rationale. 
-
-# Acknowledgements

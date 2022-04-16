@@ -9,11 +9,13 @@
  * @author     Chris Dennis <cgdennis@btinternet.com>
  *
  * @package    brianhenryie/bh-wp-private-uploads
+ *
+ * phpcs:disable WordPress.Security.NonceVerification.Recommended
  */
 
 namespace BrianHenryIE\WP_Private_Uploads\Frontend;
 
-use BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 
@@ -37,11 +39,14 @@ class Serve_Private_File {
 
 		$file_key = $this->settings->get_plugin_slug() . '-private-uploads-file';
 
-		$file = $this->request_value( $file_key );
-
-		if ( empty( $file ) ) { // } || empty(  $folder ) ) {
+		if ( ! isset( $_REQUEST[ $file_key ] ) ) {
 			return;
 		}
+
+		// If the file key is set, we definitely want to handle the request.
+
+		// This is empty when requesting the folder itself.
+		$file = $this->request_value( $file_key );
 
 		$this->send_private_file( $file );
 	}
@@ -52,7 +57,7 @@ class Serve_Private_File {
 	 * @return string
 	 */
 	protected function request_value( $key ) {
-		return isset( $_REQUEST[ $key ] ) ? trim( $_REQUEST[ $key ] ) : '';
+		return isset( $_REQUEST[ $key ] ) ? trim( wp_unslash( $_REQUEST[ $key ] ) ) : '';
 	}
 
 	/**
@@ -75,7 +80,11 @@ class Serve_Private_File {
 		 */
 		$should_serve_file = apply_filters( "bh_wp_private_uploads_{$this->settings->get_plugin_slug()}_allow", $should_serve_file, $file );
 
+		// If the user is logged in and should not have access, return a 403.
+		// If they are not logged in, redirect to the login screen.
+
 		if ( ! $should_serve_file ) {
+			// TODO: debug log the user.
 			status_header( '403' );
 			die();
 		}
@@ -93,7 +102,7 @@ class Serve_Private_File {
 			die();
 		}
 
-		$path = WP_CONTENT_DIR . '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/' . $file;
+		$path = $upload['basedir'] . DIRECTORY_SEPARATOR . $this->settings->get_uploads_subdirectory_name() . DIRECTORY_SEPARATOR . $file;
 		if ( ! is_file( $path ) ) {
 			status_header( 404, 'File not found' );
 			die();
@@ -135,6 +144,7 @@ class Serve_Private_File {
 
 		// If we made it this far, just serve the file.
 		status_header( 200 );
+		// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_read_readfile (WP_Filesystem is only loaded for admin requests, not applicable here).
 		readfile( $path );
 		die();
 
@@ -144,6 +154,7 @@ class Serve_Private_File {
 	 * Sanitize each part of a path name.
 	 *
 	 * @see sanitize_file_name()
+	 * @since 0.1.2
 	 *
 	 * @param string $dir
 	 *

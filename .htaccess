@@ -1,15 +1,14 @@
-RewriteRule ^wp-content/uploads/(private)/(.*)$ /bh-wp-private-uploads/wordpress/index.php?pucd-folder=$1&pucd-file=$2 [L]
 
 # Serve the contents of /wordpress/ from the root URL for the project.
 RewriteEngine on
 RewriteCond %{HTTP_HOST} ^.*bh-wp-private-uploads$ [NC,OR]
 RewriteCond %{REQUEST_URI} !wordpress/
-RewriteRule (.*) wordpress/$1 [L]
+RewriteRule (.*) wordpress/$1
 
 # Remove /wordpress from any querystring, i.e. it was being added to login redirect.
 RewriteEngine on
 RewriteCond %{QUERY_STRING} ^(.*)%2Fwordpress(.*)$ [NC]
-RewriteRule (.*) %{REQUEST_URI}?%1%2 [R=301,L,NE]
+RewriteRule (.*) %{REQUEST_URI}?%1%2 [R=301,NE]
 
 # Enable WP_DEBUG.
 php_flag log_errors On

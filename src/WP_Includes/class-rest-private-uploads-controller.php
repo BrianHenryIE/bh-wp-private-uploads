@@ -7,10 +7,10 @@
  * @package    brianhenryie/bh-wp-private-uploads
  */
 
-namespace  BrianHenryIE\WP_Private_Uploads\Includes;
+namespace  BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
-use BrianHenryIE\WP_Private_Uploads\API\API_Interface;
-use BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\API_Interface;
+use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads;
 use WP_Error;
 use WP_REST_Attachments_Controller;
@@ -73,7 +73,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 * @see WP_REST_Attachments_Controller::insert_attachment()
 	 *
 	 * @param WP_REST_Request $request
-	 * @return array|WP_Error
+	 * @return array{file:array{file:string, url:string, type:string}}|WP_Error
 	 */
 	public function upload_item( WP_REST_Request $request ) {
 
