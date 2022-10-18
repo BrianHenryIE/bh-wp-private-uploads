@@ -133,11 +133,18 @@ class API implements API_Interface {
 		};
 		add_filter( 'upload_dir', $private_path, 10, 1 );
 
-		$action = array( 'action' => 'wp_handle_private_upload' );
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$_POST = $_POST + $action;
+		if( isset( $_POST['action'] ) ) {
+			$post_action_before = $_POST['action'];
+		}
 
-		$file = wp_handle_upload( $file, $action );
+		$action = 'wp_handle_private_upload';
+		$_POST['action'] = $action;
+
+		$file = wp_handle_upload( $file, array( 'action' => $action ) );
+
+		if( isset( $post_action_before ) ) {
+			$_POST['action'] = $post_action_before;
+		}
 
 		remove_filter( 'upload_dir', $private_path );
 
