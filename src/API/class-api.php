@@ -177,6 +177,7 @@ class API implements API_Interface {
 	 * @hooked init
 	 *
 	 * TODO: Don't run this every time.
+	 * TODO: Run it when necessary: when a file is moved
 	 *
 	 * @return array{dir:string|null,message:string}
 	 * @throws Exception When PHP fails to create the directory.
