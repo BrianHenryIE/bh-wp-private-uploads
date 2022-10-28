@@ -11,12 +11,13 @@
  * @package    brianhenryie/bh-wp-private-uploads
  */
 
-namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes;
+namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
 use BrianHenryIE\WP_Private_Uploads_Test_Plugin\Admin\Admin;
 use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\API;
 use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\API_Interface;
 use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes\I18n;
 use Psr\Log\LoggerInterface;
 
 /**

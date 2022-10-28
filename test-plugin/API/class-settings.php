@@ -51,10 +51,19 @@ class Settings implements Settings_Interface, Logger_Settings_Interface, Private
 	 * Return null to NOT add a REST endpoint.
 	 */
 	public function get_rest_namespace(): ?string {
-		return 'test-plugin/v1';
+		return 'brianhenryie/v1';
 	}
 
 	public function get_cli_base(): ?string {
 		return 'test_plugin';
+	}
+
+	/**
+	 * "Must not exceed 20 characters and may only contain lowercase alphanumeric characters, dashes, and underscores. See sanitize_key ()."
+	 *
+	 * @return string
+	 */
+	public function get_post_type_name(): string {
+		return 'test_plugin_private';
 	}
 }

@@ -63,7 +63,8 @@ class BH_WP_Private_Uploads {
 		$this->define_frontend_hooks();
 		$this->define_cron_job_hooks();
 		$this->define_cli_hooks();
-		$this->define_rest_api_hooks();
+		$this->define_post_hooks();
+		// $this->define_rest_api_hooks();
 		$this->define_rewrite_hooks();
 	}
 
@@ -76,7 +77,7 @@ class BH_WP_Private_Uploads {
 	 *
 	 * @since    2.0.0
 	 */
-	protected function define_includes_hooks(): void {
+	protected function define_post_hooks(): void {
 
 		$post = new Post( $this->settings );
 

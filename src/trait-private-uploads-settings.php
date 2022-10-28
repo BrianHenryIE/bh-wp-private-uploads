@@ -34,4 +34,19 @@ trait Private_Uploads_Settings_Trait {
 		return null;
 	}
 
+	/**
+	 * Default to `{$plugin_slug}_private_uploads`.
+	 *
+	 * "Must not exceed 20 characters and may only contain lowercase alphanumeric characters, dashes, and underscores. See sanitize_key()."
+	 */
+	public function get_post_type_name(): string {
+
+		$plugin_slug = $this->get_plugin_slug();
+
+		if ( strlen( $plugin_slug ) > 12 ) {
+			return sanitize_key( substr( $plugin_slug, 0, 12 ) . '_private' );
+		}
+
+		return substr( sanitize_key( "{$this->get_plugin_slug()}_private_uploads" ), 0, 20 );
+	}
 }

@@ -27,7 +27,7 @@ interface Private_Uploads_Settings_Interface {
 
 	/**
 	 *
-	 * e.g. `brianhenryie/v1`. will result in an endpoint of 'brianhenryie/v1/private-uploads`.
+	 * e.g. `brianhenryie/v1` will result in an endpoint of 'brianhenryie/v1/uploads`.
 	 *
 	 * Return null to NOT add a REST endpoint.
 	 */
@@ -37,4 +37,11 @@ interface Private_Uploads_Settings_Interface {
 	 *
 	 */
 	public function get_cli_base(): ?string;
+
+	/**
+	 * Defaults to `{$plugin_slug}_private_uploads`.
+	 *
+	 * "Must not exceed 20 characters and may only contain lowercase alphanumeric characters, dashes, and underscores. See sanitize_key()."
+	 */
+	public function get_post_type_name(): string;
 }

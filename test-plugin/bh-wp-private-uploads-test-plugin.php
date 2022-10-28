@@ -29,7 +29,6 @@ namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\API;
 use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\Settings;
 use BrianHenryIE\WP_Logger\Logger;
-use BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes\BH_WP_Private_Uploads_Test_Plugin;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {

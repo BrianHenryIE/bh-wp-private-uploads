@@ -24,16 +24,18 @@ class Post {
 	 */
 	public function register_post_type(): void {
 
-		$post_type_name = "{$this->settings->get_plugin_slug()}_private_uploads";
+		$post_type_name = $this->settings->get_post_type_name();
 
 		$post_type_config = array(
-			'public'                => false,
-			'publicly_queryable'    => false,
-			'delete_with_user'      => true,
-			'supports'              => array(),
-			'show_in_rest'          => true,
-			'rest_base'             => 'uploads',
-			'rest_controller_class' => REST_Private_Uploads_Controller::class,
+			'public'                         => false,
+			'publicly_queryable'             => false,
+			'delete_with_user'               => true,
+			'supports'                       => array(),
+			'show_in_rest'                   => ! is_null( $this->settings->get_rest_namespace() ),
+			// 'rest_base'             => 'uploads',
+							'rest_namespace' => $this->settings->get_rest_namespace(),
+			'rest_controller_class'          => REST_Private_Uploads_Controller::class,
+			'settings'                       => $this->settings, // Can we set arbitrary data on a post type?!
 		);
 
 		register_post_type(
