@@ -100,9 +100,6 @@
             "jaschilz/php-coverage-badger": {
                 "Allow customising the text": "https://github.com/JASchilz/PHPCoverageBadge/pull/1.patch"
             },
-            "10up/wp_mock": {
-                "Add AnyObject matcher": "https://github.com/10up/wp_mock/pull/161.patch"
-            },
             "wptrt/admin-notices":{
                 "dev-merged": "https://github.com/BrianHenryIE/admin-notices/pull/1.patch"
             }
