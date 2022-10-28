@@ -32,7 +32,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	public function __construct( $post_type_name ) {
 
 		$post_type_object = get_post_type_object( $post_type_name );
-		$this->settings = $post_type_object->settings;
+		$this->settings   = $post_type_object->settings;
 
 		parent::__construct( $post_type_name );
 	}
@@ -126,8 +126,13 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		$post_type = $this->post_type;
 		add_filter(
 			'wp_insert_attachment_data',
-			function ( $data, $postarr, $unsanitized_postarr ) use ( $post_type ) {
+			function ( $data, $postarr, $unsanitized_postarr ) use ( $post_type, $request ) {
 				$data['post_type'] = $post_type;
+
+				if ( ! empty( $request->get_param( 'post_author' ) ) ) {
+					$data['post_author'] = $request->get_param( 'post_author' );
+				}
+
 				return $data;
 			},
 			10,

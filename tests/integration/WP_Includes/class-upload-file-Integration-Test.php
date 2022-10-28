@@ -25,6 +25,8 @@ class Upload_File_Integration_Test extends \Codeception\TestCase\WPTestCase {
 
 		$post_id = wp_insert_post( array( 'post_content' => 'attach the pdf to this post' ) );
 
+		$user_id = wp_create_user( 'customer', 'customer@example.org' );
+
 		// User 1 is admin.
 		wp_set_current_user( 1 );
 
@@ -36,7 +38,7 @@ class Upload_File_Integration_Test extends \Codeception\TestCase\WPTestCase {
 		$request->set_param( 'description', 'Without a description, my attachment is descriptionless.' );
 		$request->set_param( 'alt_text', 'Alt text is stored outside post schema.' );
 		$request->set_param( 'post_parent', $post_id ); // e.g. the WooCommerce order id.
-		// TODO: Author.
+		$request->set_param( 'post_author', $user_id ); // e.g. the WooCommerce order id.
 
 		$request->set_body( file_get_contents( $test_file_path ) );
 		$response = rest_get_server()->dispatch( $request );
@@ -58,6 +60,8 @@ class Upload_File_Integration_Test extends \Codeception\TestCase\WPTestCase {
 		$this->assertEquals( 'test_plugin_private', $attachment->post_type );
 
 		$this->assertEquals( $post_id, $attachment->post_parent );
+
+		$this->assertEquals( $user_id, $attachment->post_author );
 
 		$this->assertFileExists( $expected_uploaded_file_path );
 
