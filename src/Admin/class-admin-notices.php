@@ -46,7 +46,8 @@ class Admin_Notices extends Notices {
 		}
 
 		$title   = '';
-		$content = apply_filters( 'bh_wp_private_uploads_url_is_public_warning_' . $this->settings->get_plugin_slug(), "Private uploads directory at {$url} is publicly accessible.", $url );
+		$content = 'Private uploads directory at <a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a> is publicly accessible.';
+		$content = apply_filters( 'bh_wp_private_uploads_url_is_public_warning_' . $this->settings->get_plugin_slug(), $content, $url );
 
 		// ID must be globally unique because it is the css id that will be used.
 		$this->add(
