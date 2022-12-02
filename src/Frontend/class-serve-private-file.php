@@ -33,8 +33,10 @@ class Serve_Private_File {
 	 * Hook into the init action to look for our HTTP arguments
 	 *
 	 * @hooked init
+	 *
+	 * @return void Either returns quickly or outputs the file and `die()`s.
 	 */
-	public function init() {
+	public function init(): void {
 		// $folder = $this->request_value( $this->settings->get_plugin_slug() . '-private-uploads-folder' );
 
 		$file_key = $this->settings->get_plugin_slug() . '-private-uploads-file';
@@ -63,7 +65,6 @@ class Serve_Private_File {
 	/**
 	 * The heavy lifting of the plugin. This sets the output headers and writes the file to the user's browser.
 	 *
-	 * @param string $folder The folder path to return the file from.
 	 * @param string $file The requested filename.
 	 */
 	protected function send_private_file( $file ) {

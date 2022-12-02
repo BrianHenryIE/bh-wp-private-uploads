@@ -19,7 +19,13 @@ use DateTime;
 class API implements API_Interface {
 	use LoggerAwareTrait;
 
-	/** @var Private_Uploads_Settings_Interface  */
+	/**
+	 *
+	 * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
+	 * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_plugin_slug()
+	 *
+	 * @var Private_Uploads_Settings_Interface
+	 */
 	protected Private_Uploads_Settings_Interface $settings;
 
 	/**
@@ -36,9 +42,9 @@ class API implements API_Interface {
 	/**
 	 * Downloads a file and saves it in uploads/private/...
 	 *
-	 * @param string            $url Remote URL to download file from.
-	 * @param ?string           $filename Destination filename.
-	 * @param DateTimeInterface $datetime Destination uploads subdir date.
+	 * @param string             $file_url Remote URL to download file from.
+	 * @param ?string            $filename Destination filename.
+	 * @param ?DateTimeInterface $datetime Destination uploads subdir date.
 	 *
 	 * @return array On success, returns an associative array of file attributes.
 	 *               On failure, returns `$overrides['upload_error_handler']( &$file, $message )`
@@ -49,7 +55,6 @@ class API implements API_Interface {
 		$tmp_file = download_url( $file_url );
 
 		return $this->move_file_to_private_uploads( $tmp_file, $filename, $datetime );
-
 	}
 
 	/**
@@ -133,16 +138,16 @@ class API implements API_Interface {
 		};
 		add_filter( 'upload_dir', $private_path, 10, 1 );
 
-		if( isset( $_POST['action'] ) ) {
+		if ( isset( $_POST['action'] ) ) {
 			$post_action_before = $_POST['action'];
 		}
 
-		$action = 'wp_handle_private_upload';
+		$action          = 'wp_handle_private_upload';
 		$_POST['action'] = $action;
 
 		$file = wp_handle_upload( $file, array( 'action' => $action ) );
 
-		if( isset( $post_action_before ) ) {
+		if ( isset( $post_action_before ) ) {
 			$_POST['action'] = $post_action_before;
 		}
 
@@ -257,7 +262,6 @@ class API implements API_Interface {
 				break;
 			}
 		}
-		$is_url_private_result['tested_url'] = $url;
 
 		$is_url_private_result = $this->is_url_private( $url );
 
@@ -293,12 +297,10 @@ class API implements API_Interface {
 
 		} else {
 
-			$server_string = $result['headers']['server'];
-
 			$response_code = $result['response']['code'];
 
 			// I think 404 is valid when the directory does exist.
-			$private_response_codes = array( 301, 401, 403, 404 );
+			$private_response_codes = array( 301, 302, 401, 403, 404 );
 
 			$is_url_private_result['is_private'] = in_array( $response_code, $private_response_codes, true );
 
@@ -310,6 +312,10 @@ class API implements API_Interface {
 	/**
 	 * Test if the .htaccess redirect is working to return the file when appropriate.
 	 * i.e. the webserver might be 403ing for another reason, and never 200ing.
+	 *
+	 * @param string $url
+	 *
+	 * @return array{is_private:bool}
 	 */
 	protected function is_url_public_for_admin( string $url ): array {
 

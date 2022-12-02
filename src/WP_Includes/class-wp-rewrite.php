@@ -1,4 +1,9 @@
 <?php
+/**
+ * Register the rule with WordPress to keep the upload directory private.
+ *
+ * @package    brianhenryie/bh-wp-private-uploads
+ */
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
@@ -9,6 +14,11 @@ use Psr\Log\LoggerInterface;
 class WP_Rewrite {
 	use LoggerAwareTrait;
 
+	/**
+	 * @uses Private_Uploads_Settings_Interface::get_plugin_slug()
+	 *
+	 * @var Private_Uploads_Settings_Interface
+	 */
 	protected Private_Uploads_Settings_Interface $settings;
 
 	public function __construct( Private_Uploads_Settings_Interface $settings, LoggerInterface $logger ) {

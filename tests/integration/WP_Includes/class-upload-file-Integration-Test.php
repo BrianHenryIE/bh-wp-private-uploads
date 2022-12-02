@@ -38,7 +38,7 @@ class Upload_File_Integration_Test extends \Codeception\TestCase\WPTestCase {
 		$request->set_param( 'description', 'Without a description, my attachment is descriptionless.' );
 		$request->set_param( 'alt_text', 'Alt text is stored outside post schema.' );
 		$request->set_param( 'post_parent', $post_id ); // e.g. the WooCommerce order id.
-		$request->set_param( 'post_author', $user_id ); // e.g. the WooCommerce order id.
+		$request->set_param( 'post_author', $user_id ); // e.g. the WooCommerce customer user id.
 
 		$request->set_body( file_get_contents( $test_file_path ) );
 		$response = rest_get_server()->dispatch( $request );

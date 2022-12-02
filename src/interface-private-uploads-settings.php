@@ -27,7 +27,7 @@ interface Private_Uploads_Settings_Interface {
 
 	/**
 	 *
-	 * e.g. `brianhenryie/v1` will result in an endpoint of 'brianhenryie/v1/uploads`.
+	 * E.g. `brianhenryie/v1` will result in an endpoint of 'brianhenryie/v1/uploads`.
 	 *
 	 * Return null to NOT add a REST endpoint.
 	 */

@@ -54,7 +54,7 @@ class BH_WP_Private_Uploads_Test_Plugin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function __construct( API $api, Settings_Interface $settings, LoggerInterface $logger ) {
+	public function __construct( API_Interface $api, Settings_Interface $settings, LoggerInterface $logger ) {
 
 		$this->logger   = $logger;
 		$this->settings = $settings;

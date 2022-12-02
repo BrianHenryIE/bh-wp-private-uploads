@@ -1,6 +1,6 @@
 <?php
 /**
- * Seems to be te easiest way to register the REST route
+ * Seems to be the easiest way to register the REST route.
  *
  * @see register_post_type();
  *

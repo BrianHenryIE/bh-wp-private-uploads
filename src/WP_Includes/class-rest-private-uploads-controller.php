@@ -168,7 +168,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	/**
 	 *
 	 * Based on insert_attachment()
-	 * We don't use insert_attachment because that also creates an entry in the Media Library, which we do not want.
+	 * We don't use insert_attachment because that also creates an entry in the Media Library, which we do not always want.
 	 *
 	 * @see WP_REST_Attachments_Controller::insert_attachment()
 	 *

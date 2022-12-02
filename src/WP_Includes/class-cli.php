@@ -20,8 +20,13 @@ class CLI {
 
 	/**
 	 * wp plugin-slug download http://example.org/my.pdf
+	 *
+	 * @param string[] $args
+	 * @param array<string,string> $assoc_args
+	 *
+	 * @return void
 	 */
-	public function download_url( $args ) {
+	public function download_url( array $args, array $assoc_args ):void {
 
 		$url = $args[0];
 

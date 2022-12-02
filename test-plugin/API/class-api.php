@@ -16,6 +16,9 @@ class API extends \BrianHenryIE\WP_Private_Uploads\API\API implements API_Interf
 		new BH_WP_Private_Uploads( $this, $settings, $logger );
 	}
 
+	/**
+	 * @return array{is_private:bool}
+	 */
 	public function get_is_url_public_for_admin(): array {
 		$url = WP_CONTENT_URL . '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/';
 		return $this->is_url_public_for_admin( $url );

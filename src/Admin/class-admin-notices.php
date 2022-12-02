@@ -40,13 +40,14 @@ class Admin_Notices extends Notices {
 
 		$notice_id = $this->settings->get_plugin_slug() . '-private-uploads-public-url';
 
-		if ( $is_private ) {
+		if ( false !== $is_private ) {
 			// URL is private, no need to display admin notice (and no need to log this fact!).
 			return;
 		}
 
 		$title   = '';
-		$content = 'Private uploads directory at <a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a> is publicly accessible.';
+		$href    = '<a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a>';
+		$content = sprintf( __( 'Private uploads directory at %s is publicly accessible.', 'bh-wp-private-uploads' ), $href );
 		$content = apply_filters( 'bh_wp_private_uploads_url_is_public_warning_' . $this->settings->get_plugin_slug(), $content, $url );
 
 		// ID must be globally unique because it is the css id that will be used.
