@@ -13,9 +13,11 @@
 
 namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
-use Pablo_Pacheco\WP_Namespace_Autoloader\WP_Namespace_Autoloader;
+use Alley_Interactive\Autoloader\Autoloader;;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$wpcs_autoloader = new WP_Namespace_Autoloader();
-$wpcs_autoloader->init();
+Autoloader::generate(
+	__NAMESPACE__,
+	__DIR__,
+)->register();
