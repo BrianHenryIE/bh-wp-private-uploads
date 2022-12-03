@@ -13,7 +13,8 @@
 
 namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
-use Alley_Interactive\Autoloader\Autoloader;;
+use Alley_Interactive\Autoloader\Autoloader;
+
 
 require_once __DIR__ . '/../vendor/autoload.php';
 

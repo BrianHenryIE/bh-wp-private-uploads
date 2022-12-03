@@ -21,7 +21,7 @@ class CLI {
 	/**
 	 * wp plugin-slug download http://example.org/my.pdf
 	 *
-	 * @param string[] $args
+	 * @param string[]             $args
 	 * @param array<string,string> $assoc_args
 	 *
 	 * @return void

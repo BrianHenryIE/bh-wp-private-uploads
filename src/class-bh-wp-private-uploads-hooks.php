@@ -15,8 +15,6 @@ namespace BrianHenryIE\WP_Private_Uploads;
 
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
-use BrianHenryIE\WP_Private_Uploads\API_Interface;
-use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
