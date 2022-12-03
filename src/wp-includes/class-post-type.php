@@ -11,7 +11,7 @@ namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 
-class Post {
+class Post_Type {
 
 	protected Private_Uploads_Settings_Interface $settings;
 
@@ -27,15 +27,15 @@ class Post {
 		$post_type_name = $this->settings->get_post_type_name();
 
 		$post_type_config = array(
-			'public'                         => false,
-			'publicly_queryable'             => false,
-			'delete_with_user'               => true,
-			'supports'                       => array(),
-			'show_in_rest'                   => ! is_null( $this->settings->get_rest_namespace() ),
+			'public'                => false,
+			'publicly_queryable'    => false,
+			'delete_with_user'      => true,
+			'supports'              => array(),
+			'show_in_rest'          => ! is_null( $this->settings->get_rest_namespace() ),
 			// 'rest_base'             => 'uploads',
-							'rest_namespace' => $this->settings->get_rest_namespace(),
-			'rest_controller_class'          => REST_Private_Uploads_Controller::class,
-			'settings'                       => $this->settings, // Can we set arbitrary data on a post type?!
+			'rest_namespace'        => $this->settings->get_rest_namespace(),
+			'rest_controller_class' => REST_Private_Uploads_Controller::class,
+			'settings'              => $this->settings, // Can we set arbitrary data on a post type?!
 		);
 
 		register_post_type(

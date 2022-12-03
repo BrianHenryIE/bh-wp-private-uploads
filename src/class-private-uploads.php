@@ -3,7 +3,6 @@
 namespace BrianHenryIE\WP_Private_Uploads;
 
 use BrianHenryIE\WP_Private_Uploads\API\API;
-use BrianHenryIE\WP_Private_Uploads\WP_Includes\BH_WP_Private_Uploads;
 use Exception;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -36,7 +35,7 @@ class Private_Uploads extends API implements API_Interface {
 
 			self::$instance = new self( $settings, $logger );
 
-			new BH_WP_Private_Uploads( self::$instance, $settings, $logger );
+			new BH_WP_Private_Uploads_Hooks( self::$instance, $settings, $logger );
 
 			return self::$instance;
 		}

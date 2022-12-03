@@ -27,7 +27,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 *
 	 * Earlier we added the settings object to the post type object which is used here.
 	 *
-	 * @see Post
+	 * @see Post_Type
 	 */
 	public function __construct( $post_type_name ) {
 

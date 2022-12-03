@@ -11,12 +11,18 @@
  * @package    brianhenryie/bh-wp-private-uploads
  */
 
-namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
+namespace BrianHenryIE\WP_Private_Uploads;
 
+use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\Media;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite;
 use Psr\Log\LoggerInterface;
 use WP_CLI;
 
@@ -31,7 +37,7 @@ use WP_CLI;
  *
  * @author     BrianHenryIE <BrianHenryIE@gmail.com>
  */
-class BH_WP_Private_Uploads {
+class BH_WP_Private_Uploads_Hooks {
 
 	protected LoggerInterface $logger;
 
@@ -66,6 +72,7 @@ class BH_WP_Private_Uploads {
 		$this->define_post_hooks();
 		// $this->define_rest_api_hooks();
 		$this->define_rewrite_hooks();
+		$this->define_media_library_hooks();
 	}
 
 	protected function define_api_hooks(): void {
@@ -79,7 +86,7 @@ class BH_WP_Private_Uploads {
 	 */
 	protected function define_post_hooks(): void {
 
-		$post = new Post( $this->settings );
+		$post = new Post_Type( $this->settings );
 
 		add_action( 'init', array( $post, 'register_post_type' ) );
 	}
@@ -165,5 +172,20 @@ class BH_WP_Private_Uploads {
 		$rewrite = new WP_Rewrite( $this->settings, $this->logger );
 
 		add_action( 'init', array( $rewrite, 'register_rewrite_rule' ) );
+	}
+
+	/**
+	 * Define hooks which redirect attachments uploaded through the media library to the private uploads directory.
+	 */
+	protected function define_media_library_hooks(): void {
+
+		$media = new Media( $this->settings );
+
+		add_action( 'wp_ajax_query-attachments', array( $media, 'on_query_attachments' ), 1 );
+		add_action( 'admin_init', array( $media, 'on_upload_attachment' ), 1 );
+
+		$admin_assets = new Admin_Assets();
+
+		add_action( 'admin_enqueue_scripts', array( $admin_assets, 'register_script' ), 1 );
 	}
 }
