@@ -44,7 +44,7 @@ class Media {
 	 * @hooked wp_ajax_query-attachments
 	 * @see wp_ajax_query_attachments()
 	 */
-	public function on_query_attachments() {
+	public function on_query_attachments(): void {
 
 		if ( ! isset( $_GET['post_type'] ) || $this->settings->get_post_type_name() !== $_GET['post_type'] ) {
 			return;
@@ -129,7 +129,7 @@ class Media {
 	 *
 	 * @param int $post_id
 	 */
-	public function change_post_type_to_attachment_in_cache( int $post_id ) {
+	public function change_post_type_to_attachment_in_cache( int $post_id ): void {
 
 		$cached_post = wp_cache_get( $post_id, 'posts' );
 		if ( ! $cached_post ) {

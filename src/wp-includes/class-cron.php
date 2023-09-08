@@ -1,4 +1,11 @@
 <?php
+/**
+ * Registers and handles a cron job for checking is the private uploads directory correctly inaccessible.
+ *
+ * It is preferred to run this as a background task because the valid "403" response is sometimes interpreted as an error.
+ *
+ * @package brianhenryie/bh-wp-private-uploads
+ */
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
@@ -7,6 +14,9 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Register jobs with `wp_schedule_event()` and handle the actions they call via `add_action()`.
+ */
 class Cron {
 
 	use LoggerAwareTrait;

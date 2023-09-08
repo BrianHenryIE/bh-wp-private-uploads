@@ -82,7 +82,7 @@ class Serve_Private_File {
 		$should_serve_file = apply_filters( "bh_wp_private_uploads_{$this->settings->get_plugin_slug()}_allow", $should_serve_file, $file );
 
 		// If the user is logged in and should not have access, return a 403.
-		// If they are not logged in, redirect to the login screen.
+		// If they are not logged in (401) redirect to the login screen.
 
 		if ( ! $should_serve_file ) {
 			// TODO: debug log the user.
@@ -90,11 +90,9 @@ class Serve_Private_File {
 			die();
 		}
 
-		// Check the inputs: both $folder and $file are either simple
-		// filenames such as 'abc.jpg' or paths such as 'foo/bar/abc.jpg'
+		// Check the input: $file is a path such as 'foo/bar/abc.jpg'
 		// And strip any leading and trailing separators.
-		// $folder = trim( $this->sanitize_dir_name( $folder ), '/' );
-		$file = trim( $this->sanitize_dir_name( $file ), '/' );
+		$file = trim( $this->sanitize_filepath( $file ), '/' );
 
 		$upload = wp_upload_dir();
 
@@ -148,7 +146,6 @@ class Serve_Private_File {
 		// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_read_readfile (WP_Filesystem is only loaded for admin requests, not applicable here).
 		readfile( $path );
 		die();
-
 	}
 
 	/**

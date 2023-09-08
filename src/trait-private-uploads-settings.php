@@ -1,6 +1,8 @@
 <?php
 /**
- * Convenience defaults for Settings_Interface implementations.
+ * Convenience defaults for Private_Uploads_Settings_Interface implementations.
+ *
+ * Implementing this allows new functions to be added to the interface without consumers needing to manually update.
  *
  * @package     brianhenryie/bh-wp-private-uploads
  */

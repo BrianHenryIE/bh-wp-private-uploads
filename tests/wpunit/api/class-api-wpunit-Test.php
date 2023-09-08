@@ -143,7 +143,6 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 		$this->assertTrue( $result['is_private'] );
 	}
 
-
 	/**
 	 * @covers ::check_and_update_is_url_private
 	 */

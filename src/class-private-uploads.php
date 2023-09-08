@@ -1,4 +1,11 @@
 <?php
+/**
+ * Private Uploads – library for access control for your WordPress plugin's wp-content/uploads files.
+ *
+ * This is a singleton class for convenience. Instantiate the API class directly for more control.
+ *
+ * @package brianhenryie/bh-wp-private-uploads
+ */
 
 namespace BrianHenryIE\WP_Private_Uploads;
 
@@ -8,7 +15,9 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-
+/**
+ * Makes a singleton available at `Private_Uploads::instance()`.
+ */
 class Private_Uploads extends API implements API_Interface {
 	use LoggerAwareTrait;
 
