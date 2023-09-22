@@ -65,6 +65,7 @@
         "wptrt/admin-notices": "dev-master"
     },
     "require-dev": {
+        "ext-json": "*",
         "10up/wp_mock": "dev-trunk",
         "alleyinteractive/wordpress-autoloader": "^1.1",
         "antecedent/patchwork": "^2.1",
@@ -93,15 +94,13 @@
         "wp-cli/dist-archive-command": "dev-main",
         "wp-cli/wp-cli-bundle": "*",
         "wp-coding-standards/wpcs": "*",
+        "wpackagist-plugin/woocommerce": "*",
         "wpackagist-theme/twentytwenty": "*"
     },
     "extra": {
         "patches": {
             "jaschilz/php-coverage-badger": {
                 "Allow customising the text": "https://github.com/JASchilz/PHPCoverageBadge/pull/1.patch"
-            },
-            "wptrt/admin-notices": {
-                "Fix Firefox race condition": "https://github.com/BrianHenryIE/admin-notices/commit/af52f563398b42cff82d38eefa55c8121d698ebe.patch"
             }
         },
         "symlinks": {
