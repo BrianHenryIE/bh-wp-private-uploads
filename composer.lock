@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5c6b8c1961c089cf9e66bee73a9237d8",
+    "content-hash": "39fc9c7f00d756c852542b50010a459d",
     "packages": [
         {
             "name": "psr/log",
@@ -62,12 +62,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/WPTT/admin-notices.git",
-                "reference": "d574d0cd371d41ddb69743cbeb56b1f04d815b24"
+                "reference": "42101e8cf841b17342fcef984a06caf63990c6f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WPTT/admin-notices/zipball/d574d0cd371d41ddb69743cbeb56b1f04d815b24",
-                "reference": "d574d0cd371d41ddb69743cbeb56b1f04d815b24",
+                "url": "https://api.github.com/repos/WPTT/admin-notices/zipball/42101e8cf841b17342fcef984a06caf63990c6f2",
+                "reference": "42101e8cf841b17342fcef984a06caf63990c6f2",
                 "shasum": ""
             },
             "require": {
