@@ -92,7 +92,7 @@ class Serve_Private_File {
 
 		// Check the input: $file is a path such as 'foo/bar/abc.jpg'
 		// And strip any leading and trailing separators.
-		$file = trim( $this->sanitize_filepath( $file ), '/' );
+		$file = trim( $this->sanitize_dir_name( $file ), '/' );
 
 		$upload = wp_upload_dir();
 
