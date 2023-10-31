@@ -30,7 +30,7 @@ class Post_Type {
 
 		$plugin_slug     = $this->settings->get_plugin_slug();
 		$plugins         = get_plugins();
-		$plugin_basename = function ( string $plugin_slug ) use ( $plugins ): ?string {
+		$get_plugin_basename = function ( string $plugin_slug ) use ( $plugins ): ?string {
 			foreach ( $plugins as $plugin_basename => $plugin_data ) {
 				if ( explode( '/', $plugin_basename )[0] === $plugin_slug ) {
 					return $plugin_basename;
@@ -38,9 +38,10 @@ class Post_Type {
 			}
 			return null;
 		};
+		$plugin_basename = $get_plugin_basename( $plugin_slug );
 		$plugin_name     = is_null( $plugin_basename )
 				? $plugin_slug
-				: $plugins[ $plugin_basename( $plugin_slug ) ]['Name'];
+				: $plugins[ $plugin_basename ]['Name'];
 
 		$post_type_config = array(
 			'public'                => false,
