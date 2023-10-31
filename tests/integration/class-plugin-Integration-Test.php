@@ -21,9 +21,8 @@ class Plugin_Integration_Test extends \Codeception\TestCase\WPTestCase {
 	 */
 	public function test_plugin_instantiated() {
 
-		$this->assertArrayHasKey( 'bh_wp_private_uploads', $GLOBALS );
+		$this->assertArrayHasKey( 'bh_wp_private_uploads_test_plugin', $GLOBALS );
 
-		$this->assertInstanceOf( API::class, $GLOBALS['bh_wp_private_uploads'] );
+		$this->assertInstanceOf( API::class, $GLOBALS['bh_wp_private_uploads_test_plugin'] );
 	}
-
 }

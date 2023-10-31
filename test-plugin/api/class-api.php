@@ -2,18 +2,18 @@
 
 namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin\API;
 
-use BrianHenryIE\WP_Private_Uploads\WP_Includes\BH_WP_Private_Uploads;
+use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 
 class API extends \BrianHenryIE\WP_Private_Uploads\API\API implements API_Interface {
 	use LoggerAwareTrait;
 
-	public function __construct( $settings, LoggerInterface $logger ) {
+	public function __construct( Settings $settings, LoggerInterface $logger ) {
 
 		parent::__construct( $settings, $logger );
 
-		new BH_WP_Private_Uploads( $this, $settings, $logger );
+		new BH_WP_Private_Uploads_Hooks( $this, $settings, $logger );
 	}
 
 	/**

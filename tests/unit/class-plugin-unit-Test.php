@@ -8,8 +8,8 @@
 
 namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
+use BrianHenryIE\WP_Logger\Logger;
 use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\API;
-use BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes\BH_WP_Private_Uploads_Test_Plugin;
 
 /**
  * Class Plugin_WP_Mock_Test
@@ -17,8 +17,6 @@ use BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes\BH_WP_Private_Upload
  * @coversNothing
  */
 class Plugin_Unit_Test extends \Codeception\Test\Unit {
-
-
 
 	protected function setup(): void {
 		\WP_Mock::setUp();
@@ -37,7 +35,17 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 		// Prevents code-coverage counting, and removes the need to define the WordPress functions that are used in that class.
 		\Patchwork\redefine(
 			array( BH_WP_Private_Uploads_Test_Plugin::class, '__construct' ),
-			function( $api, $settings, $logger ) {}
+			function ( $api, $settings, $logger ) {}
+		);
+
+		\Patchwork\redefine(
+			array( Logger::class, '__construct' ),
+			function ( $setting ) {}
+		);
+
+		\Patchwork\redefine(
+			array( API::class, '__construct' ),
+			function ( $setting, $logger ) {}
 		);
 
 		$plugin_root_dir = dirname( __DIR__, 2 ) . '/test-plugin';
@@ -47,6 +55,7 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 			array(
 				'args'   => array( \WP_Mock\Functions::type( 'string' ) ),
 				'return' => $plugin_root_dir . '/',
+				'times'  => 1,
 			)
 		);
 
@@ -55,40 +64,7 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 			array(
 				'args'   => array( \WP_Mock\Functions::type( 'string' ) ),
 				'return' => 'bh-wp-private-uploads-test-plugin/bh-wp-private-uploads-test-plugin.php',
-			)
-		);
-
-		\WP_Mock::userFunction(
-			'get_option',
-			array(
-				'args'   => array( 'active_plugins' ),
-				'return' => array(),
-			)
-		);
-
-		\WP_Mock::userFunction(
-			'is_admin',
-			array(
-				'return' => false,
-			)
-		);
-
-		\WP_Mock::userFunction(
-			'get_current_user_id'
-		);
-
-		\WP_Mock::userFunction(
-			'wp_normalize_path',
-			array(
-				'return_arg' => true,
-			)
-		);
-
-		\WP_Mock::userFunction(
-			'get_option',
-			array(
-				'args'   => array( 'active_plugins' ),
-				'return' => array(),
+				'times'  => 1,
 			)
 		);
 

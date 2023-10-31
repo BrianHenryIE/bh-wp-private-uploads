@@ -54,25 +54,9 @@ function instantiate_bh_wp_private_uploads(): API {
 	$settings = new Settings();
 
 	$logger = Logger::instance( $settings );
+	$api    = new API( $settings, $logger );
 
-	$api = new API( $settings, $logger );
-
-	$plugin = new BH_WP_Private_Uploads_Test_Plugin( $api, $settings, $logger );
-
-	add_action(
-		'admin_notices',
-		function() use ( $api ) {
-
-			$private = $api->get_is_url_private();
-
-			$admin_public = $api->get_is_url_public_for_admin();
-
-			echo '<div class="notice notice-warning">
-             <p>[Test Plugin] This notice appears on the settings page.</p>
-         </div>';
-
-		}
-	);
+	new BH_WP_Private_Uploads_Test_Plugin( $api, $settings, $logger );
 
 	return $api;
 }
@@ -82,3 +66,12 @@ function instantiate_bh_wp_private_uploads(): API {
  * admin-specific hooks, and frontend-facing site hooks.
  */
 $GLOBALS['bh_wp_private_uploads_test_plugin'] = instantiate_bh_wp_private_uploads();
+
+// Fix the symlinks in symlinks in symlinks.
+add_filter(
+	'plugins_url',
+	function ( $url ): string {
+		$plugin_slug = 'bh-wp-private-uploads';
+		return preg_replace( "/(.*$plugin_slug)(.*\/$plugin_slug)(\/.*)/", '$1$3', $url );
+	}
+);
