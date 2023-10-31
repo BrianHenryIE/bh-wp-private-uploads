@@ -64,7 +64,5 @@ class Upload_File_Integration_Test extends \Codeception\TestCase\WPTestCase {
 		$this->assertEquals( $user_id, $attachment->post_author );
 
 		$this->assertFileExists( $expected_uploaded_file_path );
-
 	}
-
 }

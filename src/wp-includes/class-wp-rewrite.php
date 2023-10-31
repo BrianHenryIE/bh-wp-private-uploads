@@ -16,11 +16,15 @@ class WP_Rewrite {
 
 	/**
 	 * @uses Private_Uploads_Settings_Interface::get_plugin_slug()
-	 *
-	 * @var Private_Uploads_Settings_Interface
 	 */
 	protected Private_Uploads_Settings_Interface $settings;
 
+	/**
+	 * Constructor
+	 *
+	 * @param Private_Uploads_Settings_Interface $settings Settings for this plugin's private uploads.
+	 * @param LoggerInterface                    $logger A PSR logger.
+	 */
 	public function __construct( Private_Uploads_Settings_Interface $settings, LoggerInterface $logger ) {
 		$this->setLogger( $logger );
 		$this->settings = $settings;
@@ -49,5 +53,4 @@ class WP_Rewrite {
 
 		// TODO: Also delete the transient if this is the first time the rule is added.
 	}
-
 }

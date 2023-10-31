@@ -21,10 +21,13 @@ use Psr\Log\NullLogger;
 class Private_Uploads extends API implements API_Interface {
 	use LoggerAwareTrait;
 
-	/** @var ?Private_Uploads */
 	protected static ?Private_Uploads $instance = null;
 
 	/**
+	 * Get the singleton instance for this plugin.
+	 *
+	 * Use of this is optional – the API class can be instantiated directly.
+	 *
 	 * @param ?Private_Uploads_Settings_Interface $settings The settings, which must be provided on first instantiation, but not on subsequent uses of the singleton.
 	 * @param ?LoggerInterface                    $logger Optional PSR logger. NullLogger will be used if omitted.
 	 *
@@ -51,5 +54,4 @@ class Private_Uploads extends API implements API_Interface {
 
 		throw new Exception( 'Settings must be provided on first use.' );
 	}
-
 }

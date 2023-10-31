@@ -1,4 +1,8 @@
 <?php
+/**
+ *
+ *
+ */
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
@@ -26,7 +30,7 @@ class CLI {
 	 *
 	 * @return void
 	 */
-	public function download_url( array $args, array $assoc_args ):void {
+	public function download_url( array $args, array $assoc_args ): void {
 
 		$url = $args[0];
 

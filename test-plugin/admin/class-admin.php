@@ -28,6 +28,11 @@ class Admin {
 
 	protected Settings_Interface $settings;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param Settings_Interface $settings The plugin settings.
+	 */
 	public function __construct( Settings_Interface $settings ) {
 		$this->settings = $settings;
 	}
@@ -55,5 +60,4 @@ class Admin {
 
 		wp_enqueue_script( $this->settings->get_plugin_slug(), plugin_dir_url( __FILE__ ) . 'js/bh-wp-private-uploads-admin.js', array( 'jquery' ), $this->settings->get_plugin_version(), false );
 	}
-
 }

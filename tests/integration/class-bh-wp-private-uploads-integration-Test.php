@@ -60,7 +60,6 @@ class BH_WP_Private_Uploads_Integration_Test extends \Codeception\TestCase\WPTes
 		$function_is_hooked = $this->is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority );
 
 		$this->assertNotFalse( $function_is_hooked );
-
 	}
 
 

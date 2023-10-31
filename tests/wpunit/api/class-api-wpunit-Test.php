@@ -35,7 +35,7 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 		add_filter(
 			'pre_http_request',
-			function() {
+			function () {
 				return new \WP_Error( '1', 'test_check_url_wp_error' );
 			}
 		);
@@ -47,7 +47,6 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 		$result = $method->invokeArgs( $api, array( $url ) );
 
 		$this->assertTrue( $logger->hasError( 'test_check_url_wp_error' ) );
-
 	}
 
 	/**
@@ -57,7 +56,7 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 		add_filter(
 			'site_url',
-			function() {
+			function () {
 				return 'http://localhost:8080/bh-wp-private-uploads';
 			}
 		);
@@ -110,7 +109,7 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 		add_filter(
 			'site_url',
-			function() {
+			function () {
 				return 'http://localhost:8080/bh-wp-private-uploads/';
 			}
 		);
@@ -150,7 +149,7 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 		add_filter(
 			'site_url',
-			function() {
+			function () {
 				return 'http://localhost:8080/bh-wp-private-uploads/';
 			}
 		);
@@ -176,5 +175,4 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 		$this->assertNull( $result['is_private'] );
 	}
-
 }

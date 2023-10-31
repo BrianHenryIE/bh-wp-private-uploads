@@ -48,9 +48,9 @@ class BH_WP_Private_Uploads_Test_Plugin {
 	 * Load the dependencies, define the locale, and set the hooks for the admin area and
 	 * the frontend-facing side of the site.
 	 *
-	 * @param API_Interface      $api
-	 * @param Settings_Interface $settings
-	 * @param LoggerInterface    $logger
+	 * @param API_Interface      $api Plugin API functions.
+	 * @param Settings_Interface $settings The plugin settings.
+	 * @param LoggerInterface    $logger A PSR logger.
 	 *
 	 * @since    1.0.0
 	 */
@@ -80,7 +80,6 @@ class BH_WP_Private_Uploads_Test_Plugin {
 		add_action( 'plugins_loaded', array( $plugin_i18n, 'load_plugin_textdomain' ) );
 	}
 
-
 	/**
 	 * Register all of the hooks related to the admin area functionality
 	 * of the plugin.
@@ -102,7 +101,5 @@ class BH_WP_Private_Uploads_Test_Plugin {
 	 * @since    1.0.0
 	 */
 	protected function define_frontend_hooks(): void {
-
 	}
-
 }

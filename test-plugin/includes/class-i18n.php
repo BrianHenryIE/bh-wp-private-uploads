@@ -38,9 +38,7 @@ class I18n {
 		load_plugin_textdomain(
 			'bh-wp-private-uploads',
 			false,
-			plugin_basename( dirname( __FILE__, 2 ) ) . '/languages/'
+			plugin_basename( dirname( __DIR__, 1 ) ) . '/languages/'
 		);
-
 	}
-
 }
