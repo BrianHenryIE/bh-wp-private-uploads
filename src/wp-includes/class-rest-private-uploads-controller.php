@@ -10,10 +10,11 @@
  * @package    brianhenryie/bh-wp-private-uploads
  */
 
-namespace  BrianHenryIE\WP_Private_Uploads\WP_Includes;
+namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use WP_Error;
+use WP_Post_Type;
 use WP_REST_Attachments_Controller;
 use WP_REST_Controller;
 use WP_REST_Request;
@@ -28,11 +29,14 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 * Earlier we added the settings object to the post type object which is used here.
 	 *
 	 * @see Post_Type
+	 * @param string $post_type_name
 	 */
 	public function __construct( $post_type_name ) {
 
+		/** @var WP_Post_Type $post_type_object */
 		$post_type_object = get_post_type_object( $post_type_name );
-		$this->settings   = $post_type_object->settings;
+
+		$this->settings = $post_type_object->settings;
 
 		parent::__construct( $post_type_name );
 	}
@@ -40,7 +44,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	/**
 	 * Register the standard attachment routes, plus an additional route with does not create an actual post.
 	 *
-	 * POST /wp-json/brianhenryie/v1/private-uploads
+	 * POST /wp-json/my-plugin/v1/uploads
 	 *
 	 * @see WP_REST_Controller::register_routes()
 	 * @see WP_REST_Attachments_Controller::register_routes()
@@ -99,7 +103,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		 * }
 		 * @return array $uploads
 		 */
-		$private_path = function( $uploads ) use ( $uploads_subdirectory_name ) {
+		$private_path = function ( $uploads ) use ( $uploads_subdirectory_name ) {
 
 			// Use private uploads dir.
 			$uploads['basedir'] = "{$uploads['basedir']}/{$uploads_subdirectory_name}";
@@ -131,6 +135,8 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 
 				if ( ! empty( $request->get_param( 'post_author' ) ) ) {
 					$data['post_author'] = $request->get_param( 'post_author' );
+				} else {
+					$data['post_author'] = 0;
 				}
 
 				return $data;
@@ -143,13 +149,12 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		if ( ! empty( $request->get_param( 'post_parent' ) ) ) {
 			add_filter(
 				'wp_insert_post_parent',
-				function() use ( $request ) {
+				function () use ( $request ) {
 					return $request->get_param( 'post_parent' );
 				}
 			);
 		}
 	}
-
 
 	/**
 	 * Upload a file and create a new post
@@ -194,13 +199,11 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 			return $file;
 		}
 
-		do_action( 'rest_private_uploads_upload', $file, $request );
+		// Slug / Post type name?
+		do_action( 'rest_private_uploads_upload', $file, $request, $this->settings );
 
 		return array(
 			'file' => $file,
 		);
-
 	}
 }
-
-
