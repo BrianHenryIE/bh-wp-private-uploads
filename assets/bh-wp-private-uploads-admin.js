@@ -1,4 +1,4 @@
-function registerPrivateUploadsMediaLibrary( selector, post_type, post_id, post_author ) {
+function registerPrivateUploadsMediaLibrary( selector, private_attachment_post_type, post_id, post_author, modal_title, modal_text ) {
 
 	// Uploading files
 	var file_frame;
@@ -19,10 +19,10 @@ function registerPrivateUploadsMediaLibrary( selector, post_type, post_id, post_
 			file_frame.uploader.uploader.param( 'post_id', set_to_post_id );
 
 			// For uploading.
-			window.wp.Uploader.defaults.multipart_params.post_type = post_type;
+			window.wp.Uploader.defaults.multipart_params.post_type = private_attachment_post_type;
 
 			// For querying.
-			wp.ajax.settings.url = realAjaxUrl + '?post_type=' + post_type;
+			wp.ajax.settings.url = realAjaxUrl + '?post_type=' + private_attachment_post_type;
 
 			// Open frame
 			file_frame.open();
@@ -34,11 +34,11 @@ function registerPrivateUploadsMediaLibrary( selector, post_type, post_id, post_
 
 		// Create the media frame.
 		file_frame = wp.media.frames.file_frame = wp.media({
-			title: 'Fulfillment Photos',
+			title: modal_title,
 			button: {
-				text: 'Use this image',
+				text: modal_text,
 			},
-			multiple: false
+			multiple: true
 		});
 
 		// When an image is selected, run a callback.
@@ -47,8 +47,18 @@ function registerPrivateUploadsMediaLibrary( selector, post_type, post_id, post_
 			var attachment = file_frame.state().get('selection').first().toJSON();
 
 			// Do something with attachment.id and/or attachment.url here
-			$( '#image-preview-private' ).attr( 'src', attachment.url ).css( 'width', 'auto' );
-			$( '#image_attachment_id_private' ).val( attachment.id );
+
+			// TODO: set attachment.url to a data tag on the image
+			// TODO: set ALT/title text
+
+			var meta_box_id = '#' + private_attachment_post_type;
+
+			if( attachment.sizes ) {
+				jQuery(meta_box_id + ' .no-uploads-yet').css('display', 'none');
+				jQuery(meta_box_id + ' .image-preview-private').attr('src', attachment.sizes['medium'].url);
+				jQuery(meta_box_id + ' .image-preview-private').css('display', '');
+				// jQuery(meta_box_id + ' .image_attachment_id_private').val(attachment.id);
+			}
 
 			// Restore the main post ID
 			wp.media.model.settings.post.id = wp_media_post_id;
@@ -56,14 +66,14 @@ function registerPrivateUploadsMediaLibrary( selector, post_type, post_id, post_
 			window.wp.Uploader.defaults.multipart_params.post_type = null;
 			wp.ajax.settings.url = realAjaxUrl;
 
-			// TODO: When an image is selected... the order status should be packed.
+			// TODO: Trigger here. E.g. when an image is selected... the order status should be packed.
 		});
 
 		// For uploading.
-		window.wp.Uploader.defaults.multipart_params.post_type = post_type;
+		window.wp.Uploader.defaults.multipart_params.post_type = private_attachment_post_type;
 
 		// For querying.
-		wp.ajax.settings.url = realAjaxUrl + '?post_type=' + post_type;
+		wp.ajax.settings.url = realAjaxUrl + '?post_type=' + private_attachment_post_type;
 
 		// Finally, open the modal
 		file_frame.open();
@@ -76,5 +86,4 @@ function registerPrivateUploadsMediaLibrary( selector, post_type, post_id, post_
 		window.wp.Uploader.defaults.multipart_params.post_type = null;
 		wp.ajax.settings.url = realAjaxUrl;
 	});
-
 }

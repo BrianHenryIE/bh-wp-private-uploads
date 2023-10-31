@@ -14,12 +14,15 @@
 namespace BrianHenryIE\WP_Private_Uploads;
 
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets;
+use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu;
+use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
 use BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Media;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite;
 use Psr\Log\LoggerInterface;
 use WP_CLI;
@@ -68,9 +71,13 @@ class BH_WP_Private_Uploads_Hooks {
 		$this->define_cron_job_hooks();
 		$this->define_cli_hooks();
 		$this->define_post_hooks();
-		// $this->define_rest_api_hooks();
 		$this->define_rewrite_hooks();
+
+		$this->define_meta_box_hooks();
 		$this->define_media_library_hooks();
+		new Upload( $settings );
+
+		$this->define_admin_menu_hooks();
 	}
 
 	protected function define_api_hooks(): void {
@@ -119,7 +126,7 @@ class BH_WP_Private_Uploads_Hooks {
 	/**
 	 * Define hooks for a cron job to regularly check the folder is private.
 	 */
-	protected function define_cron_job_hooks():void {
+	protected function define_cron_job_hooks(): void {
 
 		$cron = new Cron( $this->api, $this->settings, $this->logger );
 
@@ -150,14 +157,6 @@ class BH_WP_Private_Uploads_Hooks {
 
 		// E.g. `wp plugin-slug download`.
 		WP_CLI::add_command( "{$cli_base} download", array( $cli, 'download_url' ) );
-
-	}
-
-	/**
-	 * Define hooks to add upload functionality to the REST API.
-	 */
-	protected function define_rest_api_hooks(): void {
-		// Currently, this is taken care of as part of registering the post type.
 	}
 
 	/**
@@ -180,8 +179,23 @@ class BH_WP_Private_Uploads_Hooks {
 		add_action( 'wp_ajax_query-attachments', array( $media, 'on_query_attachments' ), 1 );
 		add_action( 'admin_init', array( $media, 'on_upload_attachment' ), 1 );
 
-		$admin_assets = new Admin_Assets();
+		$admin_assets = new Admin_Assets( $this->settings );
 
-		add_action( 'admin_enqueue_scripts', array( $admin_assets, 'register_script' ), 1 );
+		add_action( 'admin_init', array( $admin_assets, 'register_script' ), 1 );
+	}
+
+	protected function define_meta_box_hooks(): void {
+		$admin_meta_boxes = new Admin_Meta_Boxes( $this->settings, $this->logger );
+
+		add_action( 'add_meta_boxes', array( $admin_meta_boxes, 'add_meta_box' ), 10, 2 );
+	}
+
+	protected function define_admin_menu_hooks(): void {
+
+		$admin_menu_hooks = new Admin_Menu( $this->settings );
+
+		add_action( 'admin_menu', array( $admin_menu_hooks, 'add_private_media_library_menu' ) );
+		add_filter( 'submenu_file', array( $admin_menu_hooks, 'highlight_menu' ), 10, 2 );
+		add_filter( 'admin_menu', array( $admin_menu_hooks, 'remove_top_level_menu' ), 1000 );
 	}
 }

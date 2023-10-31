@@ -3,6 +3,7 @@
  * Hook into WordPress's attachment functions to save the attachment in our specified directory.
  *
  * @see media_handle_upload()
+ * @see \BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes
  *
  * @package brianhenryie/bh-wp-private-uploads
  */
@@ -68,25 +69,32 @@ class Media {
 	 */
 	public function on_upload_attachment(): void {
 
-		if ( ! isset( $_POST['action'] ) ) {
-			return;
-		}
+		// if ( ! isset( $_POST['action'] ) ) {
+		// return;
+		// }
+		//
+		// if ( ! check_ajax_referer( 'media-form', false, false ) ) {
+		// return;
+		// }
+		//
+		// if ( 'upload-attachment' !== $_POST['action'] ) {
+		// return;
+		// }
 
-		if ( ! check_ajax_referer( 'media-form', false, false ) ) {
-			return;
-		}
+		global $pagenow;
 
-		if ( 'upload-attachment' !== $_POST['action'] ) {
-			return;
-		}
-
-		if ( ! isset( $_POST['post_type'] ) || $this->settings->get_post_type_name() !== $_POST['post_type'] ) {
+		if ( !
+			( 'async-upload.php' === $pagenow
+		&&
+				false !== strpos( $_SERVER['HTTP_REFERER'], 'post_type=' . $this->settings->get_post_type_name() ) )
+			||
+			( isset( $_POST['post_type'] ) && $this->settings->get_post_type_name() === $_POST['post_type'] ) ) {
 			return;
 		}
 
 		add_filter( 'upload_dir', array( $this, 'set_uploads_subdirectory' ), 10, 1 );
 
-		add_filter( 'wp_insert_attachment_data', array( $this, 'set_post_type_on_insert_attachment' ), 10, 3 );
+		add_filter( 'wp_insert_attachment_data', array( $this, 'set_post_type_on_insert_attachment' ), 10, 4 );
 
 		add_action( 'add_attachment', array( $this, 'change_post_type_to_attachment_in_cache' ) );
 	}
@@ -160,7 +168,8 @@ class Media {
 			}
 		}
 
-		$response['url'] = str_replace( WP_CONTENT_URL . '/uploads', WP_CONTENT_URL . '/uploads/' . $this->settings->get_uploads_subdirectory_name(), $response['url'] );
+		// This was already correct last time I looked
+		// $response['url'] = str_replace( WP_CONTENT_URL . '/uploads', WP_CONTENT_URL . '/uploads/' . $this->settings->get_uploads_subdirectory_name(), $response['url'] );
 
 		return $response;
 	}
@@ -206,7 +215,7 @@ class Media {
 	 * }
 	 * @return array{path:string, url:string, subdir:string, basedir:string, baseurl:string, error:string|false} $uploads
 	 */
-	public function set_uploads_subdirectory( array $uploads ):array {
+	public function set_uploads_subdirectory( array $uploads ): array {
 
 		// We want this to return once when the file is being moved, but not to apply when the relative filepaths are being calculated.
 		remove_filter( 'upload_dir', array( $this, 'set_uploads_subdirectory' ) );
@@ -222,5 +231,4 @@ class Media {
 
 		return $uploads;
 	}
-
 }

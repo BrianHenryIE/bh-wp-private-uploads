@@ -26,15 +26,35 @@ class Post_Type {
 
 		$post_type_name = $this->settings->get_post_type_name();
 
+		require_once constant( 'ABSPATH' ) . 'wp-admin/includes/plugin.php';
+
+		$plugin_slug     = $this->settings->get_plugin_slug();
+		$plugins         = get_plugins();
+		$plugin_basename = function ( string $plugin_slug ) use ( $plugins ): ?string {
+			foreach ( $plugins as $plugin_basename => $plugin_data ) {
+				if ( explode( '/', $plugin_basename )[0] === $plugin_slug ) {
+					return $plugin_basename;
+				}
+			}
+			return null;
+		};
+		$plugin_name     = is_null( $plugin_basename )
+				? $plugin_slug
+				: $plugins[ $plugin_basename( $plugin_slug ) ]['Name'];
+
 		$post_type_config = array(
 			'public'                => false,
 			'publicly_queryable'    => false,
 			'delete_with_user'      => true,
 			'supports'              => array(),
-			'show_in_rest'          => ! is_null( $this->settings->get_rest_namespace() ),
-			// 'rest_base'             => 'uploads',
-			'rest_namespace'        => $this->settings->get_rest_namespace(),
+			'label'                 => "{$plugin_name} Uploads",
+			'show_ui'               => true,
+			'show_in_menu'          => true,
+			'show_in_rest'          => true,
+			'rest_namespace'        => $this->settings->get_plugin_slug() . '/v1',
+			'rest_base'             => 'uploads',
 			'rest_controller_class' => REST_Private_Uploads_Controller::class,
+			'_edit_link'            => "post.php?post=%d&post_type={$post_type_name}",
 			'settings'              => $this->settings, // Can we set arbitrary data on a post type?!
 		);
 
@@ -43,5 +63,4 @@ class Post_Type {
 			$post_type_config
 		);
 	}
-
 }
