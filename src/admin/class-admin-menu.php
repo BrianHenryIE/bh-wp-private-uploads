@@ -12,8 +12,6 @@ use WP_Post_Type;
 
 /**
  * When a menu title is configured, add a submenu of Media linking to the Private Media Library.
- *
- * @see Private_Uploads_Settings_Interface::get_submenu_title())
  */
 class Admin_Menu {
 
