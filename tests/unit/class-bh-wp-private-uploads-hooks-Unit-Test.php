@@ -118,12 +118,17 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 			array( new AnyInstance( Cron::class ), 'check_is_url_public' )
 		);
 
+		\WP_Mock::expectActionAdded(
+			'test-plugin_unsnooze_dismissed_private_uploads_notice',
+			array( new AnyInstance( Cron::class ), 'unsnooze_dismissed_notice' )
+		);
+
 		$logger   = new ColorLogger();
 		$api      = self::makeEmpty( API_Interface::class );
 		$settings = self::makeEmpty(
 			Private_Uploads_Settings_Interface::class,
 			array(
-				'get_plugin_slug' => Expected::once( 'test-plugin' ),
+				'get_plugin_slug' => Expected::atLeastOnce( 'test-plugin' ),
 			)
 		);
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
@@ -135,13 +140,6 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 	public function test_define_cli_hooks(): void {
 
 		$this->markTestIncomplete( 'Might need WPUnit to test this.' );
-	}
-
-	/**
-	 * @covers ::define_rest_api_hooks
-	 */
-	public function test_define_rest_api_hooks(): void {
-		// Currently, this is taken care of as part of registering the post type.
 	}
 
 	/**

@@ -9,6 +9,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
+use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Psr\Log\LoggerAwareTrait;
@@ -60,13 +61,10 @@ class Cron {
 
 		$cron_hook = "private_uploads_check_url_{$this->settings->get_plugin_slug()}";
 
-		if ( false !== wp_get_scheduled_event( $cron_hook ) ) {
-			return;
+		if ( false === wp_get_scheduled_event( $cron_hook ) ) {
+			wp_schedule_event( time(), 'hourly', $cron_hook );
+			$this->logger->info( "Registered the `{$cron_hook}` cron job." );
 		}
-
-		wp_schedule_event( time(), 'hourly', $cron_hook );
-
-		$this->logger->info( "Registered the `{$cron_hook}` cron job." );
 	}
 
 	/**
@@ -79,5 +77,20 @@ class Cron {
 		$this->logger->debug( "Executing {$action} cron job." );
 
 		$this->api->check_and_update_is_url_private();
+	}
+
+	/**
+	 * The wp-trt/admin-notices library dismisses permanently, but the "private uploads is accessible" warning
+	 * should not be dismissed forever.
+	 *
+	 * @see Admin_Notices::on_dismiss()
+	 * @hooked <plugin_slug>_unsnooze_dismissed_private_uploads_notice
+	 */
+	public function unsnooze_dismissed_notice(): void {
+
+		$delete_dismissed_notice_option_name = "wptrt_notice_dismissed_{$this->settings->get_plugin_slug()}-private-uploads-public-url";
+
+		// TODO: Move into API and add CLI command.
+		delete_option( $delete_dismissed_notice_option_name );
 	}
 }

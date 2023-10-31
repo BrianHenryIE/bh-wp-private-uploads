@@ -1,7 +1,9 @@
 <?php
 /**
  * Show an admin notice when the "private" folder can be accessed publicly.
- * Also when it cannot be accessed by authorized users.
+ * TODO: Also when it cannot be accessed by authorized users.
+ *
+ * @package brianhenryie/bh-wp-private-uploads
  */
 
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
@@ -16,7 +18,6 @@ class Admin_Notices extends Notices {
 
 	use LoggerAwareTrait;
 
-	/** @var Private_Uploads_Settings_Interface  */
 	protected Private_Uploads_Settings_Interface $settings;
 
 	protected API_Interface $api;
@@ -38,12 +39,12 @@ class Admin_Notices extends Notices {
 		$url        = $is_private_result['url'];
 		$is_private = $is_private_result['is_private'];
 
-		$notice_id = $this->settings->get_plugin_slug() . '-private-uploads-public-url';
-
 		if ( false !== $is_private ) {
 			// URL is private, no need to display admin notice (and no need to log this fact!).
 			return;
 		}
+
+		$notice_id = $this->settings->get_plugin_slug() . '-private-uploads-url-is-public';
 
 		$title   = '';
 		$href    = '<a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a>';
@@ -60,10 +61,26 @@ class Admin_Notices extends Notices {
 				'type'  => 'warning',
 			)
 		);
+	}
 
-		// TODO: On dismiss, add a cron job to delete the dismissal in a week.
-		// i.e. you can sleep the warning but not hide it.
-		$is_dismissed_option_name = "wptrt_notice_dismissed_{$notice_id}";
+	/**
+	 * On dismiss, add a cron job to delete the dismissal in a week.
+	 * I.e. you can sleep the warning that your private files are accessible, but not hide from it forever.
+	 *
+	 * I.e. when the dismissed option is created, schedule a cron job to delete it in a week.
+	 * If the directory is correctly inaccessible, the notice will never appear.
+	 *
+	 * @hooked update_option_wptrt_notice_dismissed_<plugin-slug>-private-uploads-public-url
+	 * @see update_option()
+	 *
+	 * @param mixed  $old_value The old option value.
+	 * @param mixed  $value     The new option value.
+	 * @param string $option    Option name.
+	 */
+	public function on_dismiss( $old_value, $value, string $option ): void {
 
+		$hook = "{$this->settings->get_plugin_slug()}_unsnooze_dismissed_private_uploads_notice";
+
+		wp_schedule_single_event( time() + WEEK_IN_SECONDS, $hook );
 	}
 }
