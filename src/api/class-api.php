@@ -10,11 +10,11 @@ namespace BrianHenryIE\WP_Private_Uploads\API;
 
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use DateTime;
 
 class API implements API_Interface {
 	use LoggerAwareTrait;
@@ -51,10 +51,22 @@ class API implements API_Interface {
 	 *               or `array( 'error' => $message )`.
 	 */
 	public function download_remote_file_to_private_uploads( string $file_url, string $filename = null, ?DateTimeInterface $datetime = null ): array {
-
 		$tmp_file = download_url( $file_url );
 
-		return $this->move_file_to_private_uploads( $tmp_file, $filename, $datetime );
+		if ( is_wp_error( $tmp_file ) ) {
+			// TODO: Look into using `$overrides['upload_error_handler']( &$file, $message )`.
+			return array( 'error' => "Failed `download_url( {$file_url} )` in " . __NAMESPACE__ . ' Private Uploads API.' );
+		}
+
+		$filename = $filename ?? basename( $file_url );
+
+		$result = $this->move_file_to_private_uploads( $tmp_file, $filename, $datetime );
+
+		if ( is_readable( $tmp_file ) ) {
+			unlink( $tmp_file );
+		}
+
+		return $result;
 	}
 
 	/**
@@ -77,8 +89,11 @@ class API implements API_Interface {
 	 *               or `array( 'error' => $message )`.
 	 */
 	public function move_file_to_private_uploads( $tmp_file, $filename, ?DateTimeInterface $datetime = null, $filesize = null ): array {
-
-		$datetime = $datetime ?? new DateTime();
+		// Use the file's created date, which is either 'now' or hopefully was read from the webserver.
+		// TODO: check does WordPress attempt to read the original file creation date during `download_url()`.
+		$datetime = $datetime
+					?? DateTimeImmutable::createFromFormat( 'U', (string) ( filectime( $tmp_file ) ?: time() ) )
+					?: new DateTimeImmutable();
 
 		// Look at the extension.
 		$mime     = wp_check_filetype( $tmp_file );
@@ -122,7 +137,7 @@ class API implements API_Interface {
 		 * }
 		 * @return array $uploads
 		 */
-		$private_path = function( $uploads ) use ( $yyyymm, $private_directory_name ) {
+		$private_path = function ( $uploads ) use ( $yyyymm, $private_directory_name ) {
 
 			// Use private uploads dir.
 
@@ -156,7 +171,6 @@ class API implements API_Interface {
 		return $file;
 	}
 
-
 	/**
 	 * NB: "Transient key names are limited to 191 characters".
 	 *
@@ -170,12 +184,6 @@ class API implements API_Interface {
 		// Sanitize this with a view to allowing private subdirs.
 		$subdirectory = sanitize_key( $this->settings->get_uploads_subdirectory_name() );
 		return "{$plugin_slug}_private_uploads_{$subdirectory}_is_private";
-	}
-
-	protected function get_webserver_type_transient_name(): string {
-		// Don't share transients between plugins in case schema changes.
-		$plugin_slug = sanitize_key( $this->settings->get_plugin_slug() );
-		return "{$plugin_slug}_private_uploads_webserver_type";
 	}
 
 	/**
@@ -220,7 +228,7 @@ class API implements API_Interface {
 	 *
 	 * It should be a pretty fast HTTP request anyway, since its target is itself.
 	 *
-	 * @return array{url:string, is_private:bool?, http_response_code?:int}
+	 * @return array{url:string, is_private:bool|null, http_response_code?:int}
 	 */
 	public function check_and_update_is_url_private(): array {
 
@@ -229,13 +237,13 @@ class API implements API_Interface {
 		/**
 		 * Null suggests the last check failed.
 		 *
-		 * @var array{is_private:bool|null, url:string} $transient_value
+		 * @var false|array{is_private:bool|null, url:string} $transient_value
 		 */
 		$transient_value = get_transient( $transient_name );
 
 		if ( ! empty( $transient_value )
-			 && is_array( $transient_value )
-			 && isset( $transient_value['is_private'] ) ) {
+			&& is_array( $transient_value )
+			&& isset( $transient_value['is_private'] ) ) {
 			return $transient_value;
 		}
 
@@ -254,7 +262,10 @@ class API implements API_Interface {
 		}
 
 		$dir   = WP_CONTENT_DIR . '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/';
-		$files = scandir( $dir );
+		$files = scandir( $dir ) ?: array();
+
+		// What to do when the directory is empty?
+
 		foreach ( $files as $file ) {
 			// This could be a folder or "." or "..".
 			if ( is_file( $file ) ) {
@@ -315,7 +326,7 @@ class API implements API_Interface {
 	 *
 	 * @param string $url
 	 *
-	 * @return array{is_private:bool}
+	 * @return array{is_private:bool|null}
 	 */
 	protected function is_url_public_for_admin( string $url ): array {
 
@@ -325,7 +336,7 @@ class API implements API_Interface {
 
 		$args['cookies'] = array_filter(
 			$_COOKIE,
-			function( $value, $key ) {
+			function ( $value, $key ) {
 				return false !== strpos( $key, 'WordPress' );
 			},
 			ARRAY_FILTER_USE_BOTH
@@ -339,25 +350,17 @@ class API implements API_Interface {
 
 		if ( is_wp_error( $result ) ) {
 			// This error seems to happen occasionally (intermittently).
-			// $this->logger->error( $result->get_error_message(), array( 'error' => $result ) );
-
+			// Return null to indicate we could not determine is it private or not.
+			return array( 'is_private' => null );
 		} else {
-
-			$server_string = $result['headers']['server'];
-
 			$response_code = $result['response']['code'];
 
 			// I think 404 is valid when the directory does exist.
 			$private_response_codes = array( 301, 401, 403, 404 );
 
 			$is_url_admin_public_result['is_private'] = in_array( $response_code, $private_response_codes, true );
-
 		}
 
 		return $is_url_admin_public_result;
-	}
-
-	public function get_settings(): Private_Uploads_Settings_Interface {
-		return $this->settings;
 	}
 }
