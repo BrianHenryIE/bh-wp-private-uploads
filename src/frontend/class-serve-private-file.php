@@ -65,9 +65,11 @@ class Serve_Private_File {
 	/**
 	 * The heavy lifting of the plugin. This sets the output headers and writes the file to the user's browser.
 	 *
+	 * Ends in `die()`.
+	 *
 	 * @param string $file The requested filename.
 	 */
-	protected function send_private_file( $file ) {
+	protected function send_private_file( string $file ): void {
 
 		// Determine should the file be served.
 		// Default yes to administrator.
@@ -86,13 +88,13 @@ class Serve_Private_File {
 
 		if ( ! $should_serve_file ) {
 			// TODO: debug log the user.
-			status_header( '403' );
+			status_header( 403 );
 			die();
 		}
 
 		// Check the input: $file is a path such as 'foo/bar/abc.jpg'
 		// And strip any leading and trailing separators.
-		$file = trim( $this->sanitize_dir_name( $file ), '/' );
+		$file = trim( $this->sanitize_filepath( $file ), '/' );
 
 		$upload = wp_upload_dir();
 
@@ -149,23 +151,14 @@ class Serve_Private_File {
 	}
 
 	/**
-	 * Sanitize each part of a path name.
+	 * Sanitize each part of a file path.
 	 *
 	 * @see sanitize_file_name()
-	 * @since 0.1.2
 	 *
-	 * @param string $dir
-	 *
-	 * @return string
+	 * @param string $relative_filepath
+	 * @return string Without leading slash.
 	 */
-	protected function sanitize_dir_name( $dir ) {
-
-		$filenames     = explode( '/', $dir );
-		$new_filenames = array();
-		foreach ( $filenames as $fn ) {
-			$new_filenames[] = sanitize_file_name( $fn );
-		}
-
-		return implode( '/', $new_filenames );
+	protected function sanitize_filepath( string $relative_filepath ): string {
+		return implode( '/', array_map( 'sanitize_file_name', explode( '/', $relative_filepath ) ) );
 	}
 }
