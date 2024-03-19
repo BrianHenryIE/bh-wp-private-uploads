@@ -6,6 +6,16 @@ A library to easily create a WordPress uploads subdirectory whose contents canno
 
 ### Status
 
+TODO:
+
+1. Test API and serve private files classes
+2. Focus settings on the post type, not the plugin slug (maybe rename the settings interface to reflect this)
+3. Instantiate the hooks with API class as the parameter, not the Settings (i.e. avoid situation where wires could be crossed)
+4. Add documentation for the media upload UI
+5. Update this documentation to include post type object filter.
+5. Verify all test steps in this README
+6. Test with bh-wp-logger
+
 Some amount of PHPUnit, WPCS, PhpStan done, but lots to do.
 
 ### Intro
@@ -22,14 +32,10 @@ e.g.
 This library is not on Packagist yet, so first add this repo:
 
 `composer config repositories.brianhenryie/bh-wp-private-uploads git https://github.com/brianhenryie/bh-wp-private-uploads`
-
-The reason being it is using a fork of [wptrt/admin-notices](https://github.com/WPTT/admin-notices) because of [a race condition in Firefox](https://github.com/WPTT/admin-notices/issues/14). So also add that repo:
-
-`composer config repositories.wptrt/admin-notices git https://github.com/brianhenryie/admin-notices`
-
-Then require as normal:
-
+`composer config repositories.brianhenryie/bh-wp-logger git https://github.com/brianhenryie/bh-wp-logger`
 `composer require brianhenryie/bh-wp-private-uploads`
+
+The logger is only a dev requirement for the test plugin.
 
 The following code expects you're prefixing your library namespaces with a tool such as [brianhenryie/strauss](https://github.com/BrianHenryIE/strauss/).
 
