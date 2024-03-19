@@ -31,7 +31,7 @@ class Admin_Assets {
 
 		$js_absolute_path = realpath( dirname( __DIR__, 2 ) ) . '/assets/bh-wp-private-uploads-admin.js';
 
-		$plugin_dir = trailingslashit( constant('WP_PLUGIN_DIR') ) . plugin_basename( __FILE__ );
+		$plugin_dir = trailingslashit( constant( 'WP_PLUGIN_DIR' ) ) . plugin_basename( __FILE__ );
 
 		$js_relative_path = str_replace( $plugin_dir, '', $js_absolute_path );
 
