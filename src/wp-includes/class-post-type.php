@@ -25,23 +25,7 @@ class Post_Type {
 	public function register_post_type(): void {
 
 		$post_type_name = $this->settings->get_post_type_name();
-
-		require_once constant( 'ABSPATH' ) . 'wp-admin/includes/plugin.php';
-
-		$plugin_slug     = $this->settings->get_plugin_slug();
-		$plugins         = get_plugins();
-		$get_plugin_basename = function ( string $plugin_slug ) use ( $plugins ): ?string {
-			foreach ( $plugins as $plugin_basename => $plugin_data ) {
-				if ( explode( '/', $plugin_basename )[0] === $plugin_slug ) {
-					return $plugin_basename;
-				}
-			}
-			return null;
-		};
-		$plugin_basename = $get_plugin_basename( $plugin_slug );
-		$plugin_name     = is_null( $plugin_basename )
-				? $plugin_slug
-				: $plugins[ $plugin_basename ]['Name'];
+		$plugin_name    = $this->get_plugin_name_from_slug( $this->settings->get_plugin_slug() );
 
 		$post_type_config = array(
 			'public'                => false,
@@ -63,5 +47,29 @@ class Post_Type {
 			$post_type_name,
 			$post_type_config
 		);
+	}
+
+	protected function get_plugin_name_from_slug( string $plugin_slug ) {
+
+		require_once constant( 'ABSPATH' ) . 'wp-admin/includes/plugin.php';
+
+		$plugins         = get_plugins();
+		$plugin_basename = $this->get_plugin_basename( $plugins, $plugin_slug );
+		$plugin_name     = is_null( $plugin_basename )
+			? $plugin_slug
+			: $plugins[ $plugin_basename ]['Name'];
+
+		return $plugin_name;
+	}
+
+	protected function get_plugin_basename( array $plugins, string $plugin_slug ): ?string {
+
+		foreach ( $plugins as $plugin_basename => $plugin_data ) {
+			if ( explode( '/', $plugin_basename )[0] === $plugin_slug ) {
+				return $plugin_basename;
+			}
+		}
+
+		return null;
 	}
 }
