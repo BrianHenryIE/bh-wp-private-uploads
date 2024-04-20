@@ -18,13 +18,44 @@ trait Private_Uploads_Settings_Trait {
 	 */
 	public function get_post_type_name(): string {
 
-		$plugin_slug = $this->get_plugin_slug();
+		$plugin_snake = str_replace( '-', '_', $this->get_plugin_slug() );
 
-		if ( strlen( $plugin_slug ) > 12 ) {
-			return sanitize_key( substr( $plugin_slug, 0, 12 ) . '_private' );
+		if ( strlen( $plugin_snake ) > 12 ) {
+			return sanitize_key( substr( $plugin_snake, 0, 12 ) . '_private' );
 		}
 
 		return substr( sanitize_key( "{$this->get_plugin_slug()}_private_uploads" ), 0, 20 );
+	}
+
+	public function get_post_type_label(): string {
+		return sprintf(
+			"%s Uploads",
+			$this->get_plugin_name_from_slug($this->get_plugin_slug())
+		);
+	}
+
+	protected function get_plugin_name_from_slug( string $plugin_slug ) {
+
+		require_once constant( 'ABSPATH' ) . 'wp-admin/includes/plugin.php';
+
+		$plugins         = get_plugins();
+		$plugin_basename = $this->get_plugin_basename( $plugins, $plugin_slug );
+		$plugin_name     = is_null( $plugin_basename )
+			? $plugin_slug
+			: $plugins[ $plugin_basename ]['Name'];
+
+		return $plugin_name;
+	}
+
+	protected function get_plugin_basename( array $plugins, string $plugin_slug ): ?string {
+
+		foreach ( $plugins as $plugin_basename => $plugin_data ) {
+			if ( explode( '/', $plugin_basename )[0] === $plugin_slug ) {
+				return $plugin_basename;
+			}
+		}
+
+		return null;
 	}
 
 	/**
