@@ -9,12 +9,14 @@ namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin\API;
 
 use BrianHenryIE\WP_Logger\Logger_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
 use Psr\Log\LogLevel;
 
 /**
  * Plugin settings, and settings for the logger and private uploads libraries.
  */
 class Settings implements Settings_Interface, Logger_Settings_Interface, Private_Uploads_Settings_Interface {
+	use Private_Uploads_Settings_Trait;
 
 	/**
 	 * The plugin log level.
