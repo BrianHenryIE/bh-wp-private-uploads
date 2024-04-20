@@ -2,7 +2,7 @@
     "name": "brianhenryie/bh-wp-private-uploads",
     "description": "This is a short description of what plugin_title does.",
     "type": "library",
-    "license": "GPL-2.0+-or-later",
+    "license": "GPL-2.0-or-later",
     "authors": [
         {
             "name": "BrianHenryIE",
