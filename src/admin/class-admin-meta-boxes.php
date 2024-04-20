@@ -2,6 +2,7 @@
 /**
  * Add a file upload metabox admin pages.
  *
+ * TODO: References here should be to the post type name not the plugin slug.
  * TODO: The ids of the attachments should be submitted with the save/update page form and updated with the post id for new posts.
  *
  * @package brianhenryie/bh-wp-private-uploads

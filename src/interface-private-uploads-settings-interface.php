@@ -62,6 +62,12 @@ interface Private_Uploads_Settings_Interface {
 	public function get_post_type_name(): string;
 
 	/**
+	 * Friendly display name for the post type.
+	 * Used in the Media submenu.
+	 */
+	public function get_post_type_label(): string;
+
+	/**
 	 * The name for the private directory, on the filesystem as a wp-content/uploads subdirectory.
 	 *
 	 * I.e. `wp-content/uploads/subdirectory-name/`.

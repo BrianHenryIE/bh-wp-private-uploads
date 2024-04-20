@@ -1,6 +1,10 @@
 <?php
 /**
+ * Filter UI uploads when there is a `post_type=` parameter.
+ *
  * TODO: Should this be in the /admin/ folder?
+ *
+ * @package brianhenryie/bh-wp-private-uploads
  */
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
@@ -12,7 +16,9 @@ use WP_Query;
 use WP_Screen;
 
 /**
- *
+ * @see wp-admin/upload.php
+ * @see wp-admin/media-new.php
+ * @see wp-admin/async-upload.php
  */
 class Upload {
 
@@ -159,7 +165,7 @@ class Upload {
 	 *
 	 * TODO: This could be neater by breaking down the URL and building it back up again.
 	 *
-	 * Although individual attachment links usea template defined on the post type object, other links in the page
+	 * Although individual attachment links use a template defined on the post type object, other links in the page
 	 * should link internally and not to the default library.
 	 *
 	 * @hooked clean_url
