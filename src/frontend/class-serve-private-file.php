@@ -78,6 +78,8 @@ class Serve_Private_File {
 		/**
 		 * Allow filtering for other users.
 		 *
+		 * TODO: this should be using `$this->settings->get_post_type_label()`.
+		 *
 		 * @param bool $should_serve_file
 		 * @param string $file
 		 */
