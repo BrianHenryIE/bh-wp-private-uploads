@@ -4,20 +4,6 @@
 
 A library to easily create a WordPress uploads subdirectory whose contents cannot be publicly downloaded. Based on [Chris Dennis](https://github.com/StarsoftAnalysis) 's brilliant [Private Uploads](wordpress.org/plugins/private-uploads/) plugin. Adds convenience functions for uploading files to the protected directory, CLI and REST API commands, and displays an admin notice if the directory is public.
 
-### Status
-
-TODO:
-
-1. Test API and serve private files classes
-2. Focus settings on the post type, not the plugin slug (maybe rename the settings interface to reflect this)
-3. Instantiate the hooks with API class as the parameter, not the Settings (i.e. avoid situation where wires could be crossed)
-4. Add documentation for the media upload UI
-5. Update this documentation to include post type object filter.
-5. Verify all test steps in this README
-6. Test with bh-wp-logger
-
-Some amount of PHPUnit, WPCS, PhpStan done, but lots to do.
-
 ### Intro
 
 I've needed this in various plugins and libraries:
@@ -27,12 +13,22 @@ e.g.
 * [BH WP Mailboxes](https://github.com/BrianHenryIE/bh-wp-mailboxes) needs the "attachments" directory to be private
 * BH WC Auto Print Shipping Labels & Receipts needs its PDF directory to be private
 
+The main feature is that it regularly runs a HTTP request to confirm the directory is protected. If it's not, it displays an admin notice.
+
+Then, it allows admins to download all files from that directory and has a filter to allow other users to access the files.
+
+It duplicates the Media/attachment UI, and metaboxes can be added to custom post types for uploading files.
+
+It's far from polished, but there's a lot going on that's not mentioned in this README.
+
+NB: Expect breaking changes with every release until v1.0.0.
+
+If you decide to use this, I'm happy to jump on a call to talk about the direction of the library and how it can be improved.
+
+The main feature in-progress is to allow files to be tied to a specific user, and to allow broader permissions based on the parent post. Specifically to enable GDPR-compliant auto-deletion.
+
 ### Install
 
-This library is not on Packagist yet, so first add this repo:
-
-`composer config repositories.brianhenryie/bh-wp-private-uploads git https://github.com/brianhenryie/bh-wp-private-uploads`
-`composer config repositories.brianhenryie/bh-wp-logger git https://github.com/brianhenryie/bh-wp-logger`
 `composer require brianhenryie/bh-wp-private-uploads`
 
 The logger is only a dev requirement for the test plugin.
@@ -166,7 +162,20 @@ To quickly test the URL is private with cURL:
 curl -o /dev/null --silent --head --write-out '%{http_code}\n' http://localhost:8080/bh-wp-private-uploads/wp-content/uploads/private/private.txt
 ```
 
-### TODO
+
+### Status
+
+TODO:
+
+1. Test API and serve private files classes
+2. Focus settings on the post type, not the plugin slug (maybe rename the settings interface to reflect this)
+3. Instantiate the hooks with API class as the parameter, not the Settings (i.e. avoid situation where wires could be crossed)
+4. Add documentation for the media upload UI
+5. Update this documentation to include post type object filter.
+5. Verify all test steps in this README
+6. Test with bh-wp-logger
+
+Some amount of PHPUnit, WPCS, PhpStan done, but lots to do.
 
 * User level permissions per file. (custom post type with filepath/url as GUID)
 * Acceptance tests: https://github.com/gamajo/codeception-redirects
