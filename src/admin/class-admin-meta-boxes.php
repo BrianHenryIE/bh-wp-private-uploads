@@ -47,9 +47,17 @@ class Admin_Meta_Boxes {
 	 * @hooked add_meta_boxes
 	 *
 	 * @param string  $post_type The registered CPT type for this edit screen.
-	 * @param WP_Post $post The actual post instance that is about to be displayed.
+	 * @param WP_Post|WC_Order|mixed $post The actual post instance that is about to be displayed.
 	 */
-	public function add_meta_box( string $post_type, WP_Post $post ): void {
+	public function add_meta_box( string $post_type, $post ): void {
+
+        /**
+         * This is added to quickly fix an issue and can be removed after thorough testing.
+         * @see https://github.com/BrianHenryIE/bh-wp-autologin-urls/issues/23
+         */
+        if( ! ( $post instanceof WP_Post ) ) {
+            return;
+        }
 
 		if ( ! in_array( $post_type, array_keys( $this->settings->get_meta_box_settings() ) ) ) {
 			return;
