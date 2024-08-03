@@ -32,10 +32,10 @@ use BrianHenryIE\WP_Logger\Logger;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
-	die;
+	return;
 }
 
-require_once plugin_dir_path( __FILE__ ) . 'autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 define( 'BH_WP_PRIVATE_UPLOADS_TEST_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_TEST_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -56,7 +56,6 @@ function instantiate_bh_wp_private_uploads(): API {
 	$logger = Logger::instance( $settings );
 	$api    = new API( $settings, $logger );
 
-	new BH_WP_Private_Uploads_Test_Plugin( $api, $settings, $logger );
 
 	return $api;
 }
@@ -75,3 +74,22 @@ add_filter(
 		return preg_replace( "/(.*$plugin_slug)(.*\/$plugin_slug)(\/.*)/", '$1$3', $url );
 	}
 );
+
+// TODO: move to bh-wp-logger
+//add_filter( 'register_post_type_args', '\BrianHenryIE\WP_Private_Uploads_Test_Plugin\configure_my_private_uploads_post_type_logs', 10, 2 );
+function configure_my_private_uploads_post_type_logs( array $args, string $post_type ): array {
+//	$args['show_in_menu'] = true;
+	if ( 'bh-wp-privat_private' !== $post_type ) {
+		return $args;
+	}
+	// $args['description'] = 'Private uploads for my-plugin';    // Description as shown ... ? TODO: where is it shown?
+	$args['show_in_menu'] = false;          // Should the admin menu Media submenu be displayed?
+	// $args['label'] = 'My-plugin Files';    // The name for the admin menu Media submenu item.
+	$args['show_in_rest'] = false;          // Default is true.
+	// $args['rest_namespace'] = 'my-plugin/v1'; // Default is `plugin-slug/v1`.
+	// $args['rest_base'] = 'uploads';        // Default is `uploads`.
+	// $args['taxonomies'] = array();         // E.g. `category`, `post_tag`.
+	// $args['delete_with_user'] = true;      // Delete all posts of this type authored by a user when that user is deleted.
+	// ...
+	return $args;
+}
