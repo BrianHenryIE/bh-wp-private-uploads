@@ -6,7 +6,7 @@ parameters:
     excludePaths:
         - test-plugin/vendor/*
     bootstrapFiles:
-        - test-plugin/autoload.php
+#        - test-plugin/autoload.php
         - phpstanbootstrap.php
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
     scanDirectories:
