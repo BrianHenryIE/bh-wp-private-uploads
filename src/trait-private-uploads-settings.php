@@ -29,8 +29,8 @@ trait Private_Uploads_Settings_Trait {
 
 	public function get_post_type_label(): string {
 		return sprintf(
-			"%s Uploads",
-			$this->get_plugin_name_from_slug($this->get_plugin_slug())
+			'%s Uploads',
+			$this->get_plugin_name_from_slug( $this->get_plugin_slug() )
 		);
 	}
 

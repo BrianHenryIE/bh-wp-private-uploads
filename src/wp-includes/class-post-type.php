@@ -51,5 +51,4 @@ class Post_Type {
 			$post_type_config
 		);
 	}
-
 }
