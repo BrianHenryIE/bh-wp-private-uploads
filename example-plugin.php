@@ -12,7 +12,7 @@
  * @package    brianhenryie/bh-wp-private-uploads
  *
  * @wordpress-plugin
- * Plugin Name:       Private Uploads Test Plugin
+ * Plugin Name:       Private Uploads Example Plugin
  * Plugin URI:        http://github.com/BrianHenryIE/bh-wp-private-uploads/
  * Description:       PHP proxy for files stored in `wp-content/uploads`.
  * Version:           3.0.0
@@ -21,17 +21,16 @@
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       bh-wp-private-uploads
- * Domain Path:       /languages
  */
 
 namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
 use BrianHenryIE\WP_Logger\Logger_Settings_Interface;
+use BrianHenryIE\WP_Logger\Logger_Settings_Trait;
 use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
-use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\API;
+use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
 use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\Settings;
-use BrianHenryIE\WP_Logger\Logger;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -48,7 +47,8 @@ define( 'BH_WP_PRIVATE_UPLOADS_TEST_PLUGIN_BASENAME', plugin_basename( __FILE__ 
 
 
 $settings = new class() implements Logger_Settings_Interface, Private_Uploads_Settings_Interface {
-	use \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
+	use Private_Uploads_Settings_Trait;
+	use Logger_Settings_Trait;
 
 	/**
 	 * The plugin log level.
@@ -176,12 +176,6 @@ class Example_Plugin extends \BrianHenryIE\WP_Private_Uploads\API\API {
 	}
 }
 
-
-/**
- * The core plugin class that is used to define internationalization,
- * admin-specific hooks, and frontend-facing site hooks.
- */
-$GLOBALS['bh_wp_private_uploads_test_plugin'] = instantiate_bh_wp_private_uploads();
 
 // Fix the symlinks in symlinks in symlinks.
 add_filter(
