@@ -196,7 +196,7 @@ class API implements API_Interface {
 	 * @throws Exception When PHP fails to create the directory.
 	 */
 	public function create_directory(): array {
-		$dir = WP_CONTENT_DIR . '/uploads/' . $this->settings->get_uploads_subdirectory_name();
+		$dir = constant( 'WP_CONTENT_DIR' ) . '/uploads/' . $this->settings->get_uploads_subdirectory_name();
 
 		if ( file_exists( $dir ) ) {
 			return array(
