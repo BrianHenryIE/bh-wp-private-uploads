@@ -28,9 +28,8 @@ namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 use BrianHenryIE\WP_Logger\Logger_Settings_Interface;
 use BrianHenryIE\WP_Logger\Logger_Settings_Trait;
 use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
-use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface as Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
-use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\Settings;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -40,13 +39,13 @@ if ( ! defined( 'WPINC' ) ) {
 	return;
 }
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 define( 'BH_WP_PRIVATE_UPLOADS_TEST_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_TEST_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 
-$settings = new class() implements Logger_Settings_Interface, Private_Uploads_Settings_Interface {
+$settings = new class() implements Logger_Settings_Interface, Settings_Interface {
 	use Private_Uploads_Settings_Trait;
 	use Logger_Settings_Trait;
 
@@ -152,7 +151,7 @@ $settings = new class() implements Logger_Settings_Interface, Private_Uploads_Se
 class Example_Plugin extends \BrianHenryIE\WP_Private_Uploads\API\API {
 	use LoggerAwareTrait;
 
-	public function __construct( Settings $settings, LoggerInterface $logger ) {
+	public function __construct( Settings_Interface $settings, LoggerInterface $logger ) {
 
 		parent::__construct( $settings, $logger );
 

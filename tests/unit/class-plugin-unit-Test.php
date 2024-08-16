@@ -9,7 +9,7 @@
 namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
 use BrianHenryIE\WP_Logger\Logger;
-use BrianHenryIE\WP_Private_Uploads_Test_Plugin\API\API;
+use BrianHenryIE\WP_Private_Uploads\API\API;
 
 /**
  * Class Plugin_WP_Mock_Test
@@ -48,7 +48,7 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 			function ( $setting, $logger ) {}
 		);
 
-		$plugin_root_dir = dirname( __DIR__, 2 ) . '/test-plugin';
+		$plugin_root_dir = dirname( __DIR__, 2 );
 
 		\WP_Mock::userFunction(
 			'plugin_dir_path',
@@ -70,7 +70,7 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 
 		ob_start();
 
-		include $plugin_root_dir . '/bh-wp-private-uploads-test-plugin.php';
+		include $plugin_root_dir . '/example-plugin.php';
 
 		$printed_output = ob_get_contents();
 

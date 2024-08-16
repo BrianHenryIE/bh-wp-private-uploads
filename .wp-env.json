@@ -1,0 +1,30 @@
+{
+  "env": {
+    "development": {
+      "config": {
+        "DISALLOW_FILE_EDIT": false
+      }
+    },
+    "tests": {
+      "mysqlPort": 63306
+    }
+  },
+  "lifecycleScripts": {
+    "afterStart": "bash 'tests/wp-env/initialize-external.sh'"
+  },
+  "mappings": {
+    "docs": "./docs",
+    "openapi": "./openapi",
+    "setup": "./tests/wp-env",
+    "wp-cli.yml": "./wp-cli.wp-env.yml",
+    "wp-content/plugins/debug-log-manager": "./wp-content/plugins/debug-log-manager",
+    "wp-content/plugins/document-generator-for-openapi": "./wp-content/plugins/document-generator-for-openapi",
+    "wp-content/plugins/example-plugin": ".",
+    "wp-content/plugins/monkeyman-rewrite-analyzer": "./wp-content/plugins/monkeyman-rewrite-analyzer",
+    "wp-content/plugins/query-monitor": "./wp-content/plugins/query-monitor",
+    "wp-content/plugins/woocommerce": "./wp-content/plugins/woocommerce",
+    "wp-content/plugins/wp-rest-api-log": "./wp-content/plugins/wp-rest-api-log",
+    "wp-content/themes": "./wp-content/themes"
+  },
+  "phpVersion": "7.4"
+}

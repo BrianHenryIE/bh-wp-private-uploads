@@ -1,0 +1,37 @@
+{
+  "name": "bh-wp-private-uploads",
+  "version": "1.0.0",
+  "description": "WordPress plugin library for handling private uploads",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "wp-scripts build",
+    "wp-env": "wp-env start",
+    "check-engines": "wp-scripts check-engines",
+    "check-licenses": "wp-scripts check-licenses",
+    "format": "wp-scripts format",
+    "lint:css": "wp-scripts lint-style",
+    "lint:js": "wp-scripts lint-js",
+    "lint:md:docs": "wp-scripts lint-md-docs",
+    "lint:pkg-json": "wp-scripts lint-pkg-json",
+    "packages-update": "wp-scripts packages-update",
+    "plugin-zip": "wp-scripts plugin-zip",
+    "start": "wp-scripts start",
+    "test:e2e": "wp-scripts test-e2e",
+    "test:unit": "wp-scripts test-unit-js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPL-2.0+",
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.12.12",
+    "@wordpress/e2e-test-utils-playwright": "^0.26.0",
+    "@wordpress/env": "^10.1.0",
+    "@wordpress/scripts": "^26.17"
+  },
+  "dependencies": {
+    "@wordpress/components": "^25.12.0"
+  }
+}
