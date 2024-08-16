@@ -1,8 +1,7 @@
 <?php
 /**
- * Add a file upload metabox admin pages.
+ * Add a file upload metabox to a post type admin ui edit screen
  *
- * TODO: References here should be to the post type name not the plugin slug.
  * TODO: The ids of the attachments should be submitted with the save/update page form and updated with the post id for new posts.
  *
  * @package brianhenryie/bh-wp-private-uploads
@@ -14,6 +13,7 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use WP_Post;
+use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 
 class Admin_Meta_Boxes {
 	use LoggerAwareTrait;
@@ -88,7 +88,10 @@ class Admin_Meta_Boxes {
 
 		wp_enqueue_media();
 
-		$handle = "{$this->settings->get_plugin_slug()}-private-uploads-media-library-js";
+		$handle = sprintf(
+			'%s-private-uploads-media-library-js',
+			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
+		);
 
 		wp_enqueue_script( $handle );
 
@@ -113,10 +116,10 @@ class Admin_Meta_Boxes {
 
 		$ajax_data_json = wp_json_encode( $ajax_data, JSON_PRETTY_PRINT );
 
-		$plugin_snake = str_replace( '-', '_', $this->settings->get_plugin_slug() );
-		$plugin_slug  = $this->settings->get_plugin_slug();
+		$post_type_name = $this->settings->get_post_type_name();
 
-		$var_name = $plugin_snake . '_private_uploads_media_library_data';
+		$selector_prefix = str_underscores_to_hyphens( $post_type_name );
+		$var_name        = $post_type_name . '_private_uploads_media_library_data';
 
 		$script = <<<EOD
 var $var_name = $ajax_data_json;
@@ -126,9 +129,7 @@ var $var_name = $ajax_data_json;
 
 	jQuery( document ).ready( function( $ ) {
 
-		var plugin_slug = '$plugin_slug';
-		
-		var selector = '.' + plugin_slug + '-private-media-library';
+		var selector = '.' + '$selector_prefix' + '-private-media-library';
 
 		registerPrivateUploadsMediaLibrary( 
 		    selector, 

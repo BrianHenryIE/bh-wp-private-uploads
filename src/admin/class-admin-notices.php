@@ -13,6 +13,7 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use WPTRT\AdminNotices\Notices;
+use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 
 class Admin_Notices extends Notices {
 
@@ -44,12 +45,15 @@ class Admin_Notices extends Notices {
 			return;
 		}
 
-		$notice_id = $this->settings->get_plugin_slug() . '-private-uploads-url-is-public';
+		$notice_id = sprintf(
+			'%s-private-uploads-url-is-public',
+			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
+		);
 
 		$title   = '';
 		$href    = '<a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a>';
 		$content = sprintf( __( 'Private uploads directory at %s is publicly accessible.', 'bh-wp-private-uploads' ), $href );
-		$content = apply_filters( 'bh_wp_private_uploads_url_is_public_warning_' . $this->settings->get_plugin_slug(), $content, $url );
+		$content = apply_filters( 'bh_wp_private_uploads_url_is_public_warning_' . $this->settings->get_post_type_name(), $content, $url );
 
 		// ID must be globally unique because it is the css id that will be used.
 		$this->add(
@@ -70,7 +74,7 @@ class Admin_Notices extends Notices {
 	 * I.e. when the dismissed option is created, schedule a cron job to delete it in a week.
 	 * If the directory is correctly inaccessible, the notice will never appear.
 	 *
-	 * @hooked update_option_wptrt_notice_dismissed_<plugin-slug>-private-uploads-public-url
+	 * @hooked update_option_wptrt_notice_dismissed_<posttype-name>_private_uploads_public_url
 	 * @see update_option()
 	 *
 	 * @param mixed  $old_value The old option value.
@@ -79,7 +83,7 @@ class Admin_Notices extends Notices {
 	 */
 	public function on_dismiss( $old_value, $value, string $option ): void {
 
-		$hook = "{$this->settings->get_plugin_slug()}_unsnooze_dismissed_private_uploads_notice";
+		$hook = "{$this->settings->get_post_type_name()}_unsnooze_dismissed_private_uploads_notice";
 
 		wp_schedule_single_event( time() + WEEK_IN_SECONDS, $hook );
 	}

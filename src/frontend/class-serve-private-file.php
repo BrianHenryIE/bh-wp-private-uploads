@@ -18,6 +18,7 @@ namespace BrianHenryIE\WP_Private_Uploads\Frontend;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 
 class Serve_Private_File {
 	use LoggerAwareTrait;
@@ -37,9 +38,12 @@ class Serve_Private_File {
 	 * @return void Either returns quickly or outputs the file and `die()`s.
 	 */
 	public function init(): void {
-		// $folder = $this->request_value( $this->settings->get_plugin_slug() . '-private-uploads-folder' );
+		// $folder = $this->request_value( $this->settings->get_post_type_name() . '-private-uploads-folder' );
 
-		$file_key = $this->settings->get_plugin_slug() . '-private-uploads-file';
+		$file_key = sprintf(
+			'%s-private-uploads-file',
+			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
+		);
 
 		if ( ! isset( $_REQUEST[ $file_key ] ) ) {
 			return;
@@ -78,12 +82,12 @@ class Serve_Private_File {
 		/**
 		 * Allow filtering for other users.
 		 *
-		 * TODO: this should be using `$this->settings->get_post_type_label()`.
+		 * @hooked "bh_wp_private_uploads_{post_type_name}_allow"
 		 *
 		 * @param bool $should_serve_file
 		 * @param string $file
 		 */
-		$should_serve_file = apply_filters( "bh_wp_private_uploads_{$this->settings->get_plugin_slug()}_allow", $should_serve_file, $file );
+		$should_serve_file = apply_filters( "bh_wp_private_uploads_{$this->settings->get_post_type_name()}_allow", $should_serve_file, $file );
 
 		// If the user is logged in and should not have access, return a 403.
 		// If they are not logged in (401) redirect to the login screen.

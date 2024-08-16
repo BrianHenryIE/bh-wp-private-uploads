@@ -10,12 +10,13 @@ namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 
 class WP_Rewrite {
 	use LoggerAwareTrait;
 
 	/**
-	 * @uses Private_Uploads_Settings_Interface::get_plugin_slug()
+	 * @uses Private_Uploads_Settings_Interface::get_post_type_name()
 	 */
 	protected Private_Uploads_Settings_Interface $settings;
 
@@ -42,7 +43,10 @@ class WP_Rewrite {
 		// TODO: Maybe this should be `.+` instead of `.*` – then it will only redirect for files and subfolders.
 		// i.e. admins get a ~"no such file" message when browsing to the folder rather than a file.
 		$regex = "{$relative_path}(.*)$";
-		$query = "index.php?{$this->settings->get_plugin_slug()}-private-uploads-file=$1";
+		$query = sprintf(
+			'index.php?%s-private-uploads-file=$1',
+			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
+		);
 
 		/** @var \WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;

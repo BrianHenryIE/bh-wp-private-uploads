@@ -22,7 +22,7 @@ class API implements API_Interface {
 	/**
 	 *
 	 * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
-	 * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_plugin_slug()
+	 * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_post_type_name()
 	 *
 	 * @var Private_Uploads_Settings_Interface
 	 */
@@ -179,11 +179,10 @@ class API implements API_Interface {
 	 * @return string
 	 */
 	protected function get_is_private_transient_name(): string {
-		// Don't share transients between plugins in case schema changes.
-		$plugin_slug = sanitize_key( $this->settings->get_plugin_slug() );
-		// Sanitize this with a view to allowing private subdirs.
-		$subdirectory = sanitize_key( $this->settings->get_uploads_subdirectory_name() );
-		return "{$plugin_slug}_private_uploads_{$subdirectory}_is_private";
+		return sprintf(
+			'bh_wp_private_uploads_%s_is_private',
+			$this->settings->get_post_type_name()
+		);
 	}
 
 	/**

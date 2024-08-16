@@ -59,7 +59,7 @@ class Cron {
 	 */
 	public function register_cron_job(): void {
 
-		$cron_hook = "private_uploads_check_url_{$this->settings->get_plugin_slug()}";
+		$cron_hook = "private_uploads_check_url_{$this->settings->get_post_type_name()}";
 
 		if ( false === wp_get_scheduled_event( $cron_hook ) ) {
 			wp_schedule_event( time(), 'hourly', $cron_hook );
@@ -88,7 +88,10 @@ class Cron {
 	 */
 	public function unsnooze_dismissed_notice(): void {
 
-		$delete_dismissed_notice_option_name = "wptrt_notice_dismissed_{$this->settings->get_plugin_slug()}-private-uploads-public-url";
+		$delete_dismissed_notice_option_name = sprintf(
+			'wptrt_notice_dismissed_%s_private_uploads_public_url',
+			$this->settings->get_post_type_name()
+		);
 
 		// TODO: Move into API and add CLI command.
 		delete_option( $delete_dismissed_notice_option_name );

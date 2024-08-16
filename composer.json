@@ -29,6 +29,9 @@
         "classmap": [
             "src/",
             "assets/"
+        ],
+        "files": [
+            "src/functions.php"
         ]
     },
     "autoload-dev": {

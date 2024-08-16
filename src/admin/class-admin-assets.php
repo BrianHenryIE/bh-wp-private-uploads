@@ -9,6 +9,7 @@
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 
 class Admin_Assets {
 
@@ -25,7 +26,10 @@ class Admin_Assets {
 	 */
 	public function register_script(): void {
 
-		$handle = "{$this->settings->get_plugin_slug()}-private-uploads-media-library-js";
+		$handle = sprintf(
+			'%s-private-uploads-media-library-js',
+			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
+		);
 
 		$version = '1.0.0';
 

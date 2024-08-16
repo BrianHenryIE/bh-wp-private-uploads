@@ -49,7 +49,7 @@ interface Private_Uploads_Settings_Interface {
 	 *
 	 * A custom post type is needed for tracking the owners of files, and for the REST API.
 	 *
-	 * Recommended to change this to something more specific to your plugin, otherwise the concatenation and truncating
+	 * Recommended to change this to something more specific to your feature, otherwise the concatenation and truncating
 	 * results in a post type name that is not very readable.
 	 *
 	 * "Must not exceed 20 characters and may only contain lowercase alphanumeric characters, dashes, and underscores. See sanitize_key()."
@@ -98,6 +98,11 @@ interface Private_Uploads_Settings_Interface {
 	 * @see Private_Uploads_Settings_Trait::get_cli_base()
 	 */
 	public function get_cli_base(): ?string;
+
+	/**
+	 * When specified, the REST API will be enabled for this post type. It behaves like an attachment.
+	 */
+	public function get_rest_base(): ?string;
 
 	/**
 	 * Array of meta box settings, keyed by the post type where the meta box should be added. Default empty.
