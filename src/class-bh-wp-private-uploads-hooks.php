@@ -149,16 +149,9 @@ class BH_WP_Private_Uploads_Hooks {
 			return;
 		}
 
-		if ( ! class_exists( WP_CLI::class ) ) {
-			return;
-		}
-
 		$cli = new CLI( $this->api, $this->logger );
 
-		$cli_base = $this->settings->get_cli_base();
-
-		// E.g. `wp plugin-slug download`.
-		WP_CLI::add_command( "{$cli_base} download", array( $cli, 'download_url' ) );
+		add_action( 'cli_init', array( $cli, 'register_cli_commands' ) );
 	}
 
 	/**
