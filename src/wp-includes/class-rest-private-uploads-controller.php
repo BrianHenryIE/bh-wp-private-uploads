@@ -50,6 +50,8 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 * @see WP_REST_Attachments_Controller::register_routes()
 	 *
 	 * @see register_rest_route()
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
 
@@ -57,6 +59,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		parent::register_routes();
 
 		// Register an "upload_item" route that uploads to private uploads but does not create an attachment/post.
+		// Defaults to plugin-slug/v1/plugin-slug-uploads or plugin-slug/v1/post-type-name
 		register_rest_route(
 			$this->namespace,
 			'/' . $this->rest_base . '/', // TODO: trailing slash?
@@ -75,8 +78,6 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 * * set the parent post
 	 *
 	 * @param WP_REST_Request $request
-	 *
-	 * @return void
 	 */
 	protected function add_set_private_uploads_filters( WP_REST_Request $request ): void {
 

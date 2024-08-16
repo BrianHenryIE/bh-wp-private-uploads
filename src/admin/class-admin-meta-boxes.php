@@ -237,7 +237,7 @@ EOD;
 		}
 
 		echo '<p>';
-		// TODO test-plugin
+		// TODO example-plugin
 		echo '<button class="button bh-wp-private-uploads-test-plugin-private-media-library">' . $select_files_text . '</button>';
 		echo '<button class="button bh-wp-private-uploads-test-plugin-private-media-library remove-files" style="display: none">' . $remove_files_text . '</button>';
 		echo '</p>';

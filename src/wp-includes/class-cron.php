@@ -51,9 +51,6 @@ class Cron {
 	}
 
 	/**
-	 * Schedule a daily cron job to delete old logs, just after midnight.
-	 *
-	 * Does not schedule the cleanup if it is a WooCommerce logger (since WooCommerce handles that itself).
 	 *
 	 * @hooked init
 	 */
