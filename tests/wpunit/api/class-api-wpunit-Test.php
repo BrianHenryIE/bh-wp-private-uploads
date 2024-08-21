@@ -11,16 +11,83 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 	/**
+	 * When there is no private uploads directory we don't really care if it's "public", since there's nothing to protect.
+	 *
+	 * @covers ::check_and_update_is_url_private
+	 */
+	public function test_url_is_public_folder_missing(): void {
+
+		$test_uploads_directory_name = uniqid( __FUNCTION__ );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
+			)
+		);
+
+		$dir = sprintf(
+			'%s/uploads/%s/',
+			constant( 'WP_CONTENT_DIR' ),
+			$test_uploads_directory_name
+		);
+
+		assert( ! is_dir( $dir ) );
+
+		$logger = new ColorLogger();
+
+		$api = new API( $settings, $logger );
+
+		$result = $api->check_and_update_is_url_private();
+
+		$this->assertNull( $result );
+	}
+
+
+	/**
+	 * When the directory is empty we don't really care if it's "public", since there's nothing to protect.
+	 *
+	 * @covers ::check_and_update_is_url_private
+	 */
+	public function test_url_is_public_file_missing(): void {
+
+		$test_uploads_directory_name = uniqid( __FUNCTION__ );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
+			)
+		);
+
+		$dir = sprintf(
+			'%s/uploads/%s/',
+			constant( 'WP_CONTENT_DIR' ),
+			$test_uploads_directory_name
+		);
+
+		@mkdir( $dir, 0777, true );
+
+		assert( is_dir( $dir ) );
+		assert( 2 === count( scandir( $dir ) ) );
+
+		$logger = new ColorLogger();
+
+		$api = new API( $settings, $logger );
+
+		$result = $api->check_and_update_is_url_private();
+
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * If an error is returned when checking the URL, log the error.
 	 *
-	 * @covers ::check_url
+	 * @covers ::check_and_update_is_url_private
 	 */
 	public function test_check_url_wp_error(): void {
 
-		$this->markTestSkipped();
-
-		$test_uploads_directory_name = 'test-dir';
-		$url                         = 'http://localhost:8080/bh-wp-private-uploads/' . $test_uploads_directory_name;
+		$test_uploads_directory_name = uniqid( __FUNCTION__ );
 
 		$settings = $this->makeEmpty(
 			Private_Uploads_Settings_Interface::class,
@@ -29,6 +96,19 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 				'get_plugin_slug'               => 'test_check_url_wp_error',
 			)
 		);
+
+		$dir = sprintf(
+			'%s/uploads/%s/',
+			constant( 'WP_CONTENT_DIR' ),
+			$test_uploads_directory_name
+		);
+
+		@mkdir( $dir, 0777, true );
+
+		file_put_contents( "{$dir}index.php", '<?php', 0777 );
+
+		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
+		assert( file_exists( "{$dir}index.php" ) );
 
 		$logger = new ColorLogger();
 		$api    = new API( $settings, $logger );
@@ -40,139 +120,108 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 			}
 		);
 
-		$reflection = new \ReflectionClass( API::class );
-		$method     = $reflection->getMethod( 'check_url' );
-		$method->setAccessible( true );
+		$api->check_and_update_is_url_private();
 
-		$result = $method->invokeArgs( $api, array( $url ) );
+		$this->assertTrue( $logger->hasInfoRecords() );
 
-		$this->assertTrue( $logger->hasError( 'test_check_url_wp_error' ) );
-	}
-
-	/**
-	 * @covers ::is_url_private
-	 */
-	public function test_is_url_protected_false(): void {
-
-		add_filter(
-			'site_url',
-			function () {
-				return 'http://localhost:8080/bh-wp-private-uploads';
-			}
-		);
-
-		$test_uploads_directory_name = 'test-private-dir';
-
-		$settings = $this->makeEmpty(
-			Private_Uploads_Settings_Interface::class,
-			array(
-				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
-				'get_plugin_slug'               => 'test_is_url_protected_false',
-			)
-		);
-
-		delete_transient( "bh_wp_private_uploads_{$settings->get_uploads_subdirectory_name()}_is_private" );
-
-		@mkdir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name );
-
-		$logger = new ColorLogger();
-
-		$api = new API( $settings, $logger );
-
-		$htaccess_file = WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name . '/.htaccess';
-		if ( file_exists( $htaccess_file ) ) {
-			unlink( $htaccess_file );
-		}
-
-		$url = WP_CONTENT_URL . '/uploads/' . $test_uploads_directory_name;
-
-		$reflection = new \ReflectionClass( API::class );
-		$method     = $reflection->getMethod( 'is_url_private' );
-		$method->setAccessible( true );
-
-		$result = $method->invokeArgs( $api, array( $url ) );
-
-		$is_private = $result['is_private'];
-
-		$this->assertFalse( $is_private );
-	}
-
-	/**
-	 * I'm not sure if .hataccess is respected during unit tests.
-	 *
-	 * @uses get_site_url()
-	 * @covers ::add_protecting_htaccess
-	 */
-	public function test_is_url_protected_true(): void {
-
-		$this->markTestSkipped( 'Change of approach makes this test redundant.' );
-
-		add_filter(
-			'site_url',
-			function () {
-				return 'http://localhost:8080/bh-wp-private-uploads/';
-			}
-		);
-
-		$test_uploads_directory_name = 'test-private-dir';
-
-		$settings = $this->makeEmpty(
-			Private_Uploads_Settings_Interface::class,
-			array(
-				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
-			)
-		);
-
-		delete_transient( "bh_wp_private_uploads_{$settings->get_uploads_subdirectory_name()}_is_private" );
-
-		@mkdir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name );
-
-		$logger = new ColorLogger();
-
-		$api = new API( $settings, $logger );
-
-		$reflection = new \ReflectionClass( API::class );
-		$method     = $reflection->getMethod( 'add_protecting_htaccess' );
-		$method->setAccessible( true );
-
-		$method->invokeArgs( $api, array() );
-
-		$result = $api->check_and_update_is_url_private();
-
-		$this->assertTrue( $result['is_private'] );
+		unlink( $dir . 'index.php' );
+		rmdir( $dir );
 	}
 
 	/**
 	 * @covers ::check_and_update_is_url_private
 	 */
-	public function test_url_is_public_folder_missing(): void {
+	public function test_is_url_protected_false(): void {
 
-		add_filter(
-			'site_url',
-			function () {
-				return 'http://localhost:8080/bh-wp-private-uploads/';
-			}
-		);
-
-		$test_uploads_directory_name = 'test-private-dir-does-not-exist';
+		$test_uploads_directory_name = uniqid( __FUNCTION__ );
 
 		$settings = $this->makeEmpty(
 			Private_Uploads_Settings_Interface::class,
 			array(
 				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
+				'get_plugin_slug'               => 'test_check_url_wp_error',
 			)
 		);
 
-		delete_transient( "bh_wp_private_uploads_{$settings->get_uploads_subdirectory_name()}_is_private" );
+		$dir = sprintf(
+			'%s/uploads/%s/',
+			constant( 'WP_CONTENT_DIR' ),
+			$test_uploads_directory_name
+		);
 
-		assert( ! file_exists( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
+		@mkdir( $dir, 0777, true );
+
+		file_put_contents( "{$dir}index.php", '<?php', 0777 );
+
+		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
+		assert( file_exists( "{$dir}index.php" ) );
 
 		$logger = new ColorLogger();
+		$api    = new API( $settings, $logger );
 
-		$api = new API( $settings, $logger );
+		add_filter(
+			'pre_http_request',
+			function () {
+				return array(
+					'body'     => '',
+					'response' => array(
+						'code' => 200,
+					),
+				);
+			}
+		);
 
 		$result = $api->check_and_update_is_url_private();
 
-		$this->assertNull( $result['is_private'] );
+		$this->assertFalse( $result->is_private() );
+	}
+
+	/**
+	 *
+	 * @covers ::check_and_update_is_url_private
+	 */
+	public function test_is_url_protected_true(): void {
+
+		$test_uploads_directory_name = uniqid( __FUNCTION__ );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
+				'get_plugin_slug'               => 'test_check_url_wp_error',
+			)
+		);
+
+		$dir = sprintf(
+			'%s/uploads/%s/',
+			constant( 'WP_CONTENT_DIR' ),
+			$test_uploads_directory_name
+		);
+
+		@mkdir( $dir, 0777, true );
+
+		file_put_contents( "{$dir}index.php", '<?php', 0777 );
+
+		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
+		assert( file_exists( "{$dir}index.php" ) );
+
+		$logger = new ColorLogger();
+		$api    = new API( $settings, $logger );
+
+		add_filter(
+			'pre_http_request',
+			function () {
+				return array(
+					'body'     => '',
+					'response' => array(
+						'code' => 403,
+					),
+				);
+			}
+		);
+
+		$result = $api->check_and_update_is_url_private();
+
+		$this->assertTrue( $result->is_private() );
 	}
 }

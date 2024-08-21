@@ -2,6 +2,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads;
 
+use BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result;
 use DateTimeInterface;
 
 interface API_Interface {
@@ -33,11 +34,9 @@ interface API_Interface {
 	 * Run a HTTP request against the private uploads folder to determine is it publicly accessible.
 	 * Store the value in a transient for 15 minutes.
 	 *
-	 * Should be run on admin-init and on cron.
-	 *
-	 * @return array{url:string, is_private:bool, http_response_code?:int}
+	 * Should be run on cron.
 	 */
-	public function check_and_update_is_url_private(): array;
+	public function check_and_update_is_url_private(): ?Is_Private_Result;
 
 	/**
 	 * @return array{dir:string|null,message:string}

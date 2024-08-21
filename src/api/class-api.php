@@ -8,6 +8,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\API;
 
+use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use DateTimeImmutable;
@@ -15,6 +16,8 @@ use DateTimeInterface;
 use Exception;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Throwable;
 
 class API implements API_Interface {
 	use LoggerAwareTrait;
@@ -34,8 +37,8 @@ class API implements API_Interface {
 	 * @param Private_Uploads_Settings_Interface $settings
 	 * @param LoggerInterface                    $logger
 	 */
-	public function __construct( Private_Uploads_Settings_Interface $settings, LoggerInterface $logger ) {
-		$this->setLogger( $logger );
+	public function __construct( Private_Uploads_Settings_Interface $settings, ?LoggerInterface $logger = null ) {
+		$this->setLogger( $logger ?? new NullLogger() );
 		$this->settings = $settings;
 	}
 
@@ -186,6 +189,8 @@ class API implements API_Interface {
 	}
 
 	/**
+	 * TODO: does this maybe happen automatically when the first file is moved?
+	 *
 	 * @hooked init
 	 *
 	 * TODO: Don't run this every time.
@@ -218,103 +223,131 @@ class API implements API_Interface {
 	}
 
 	/**
-	 * Check is the URL public, if not add a .htaccess to try make it private.
+	 * @hooked admin_init
 	 *
-	 * Run a `wp_remote_get()` on the directory that should be private to verify the webserver is properly configured.
-	 * Save the result in a transient with the value 'public' or 'protected'.
-	 *
-	 * Run on admin_init, store the transient for 15 minutes, delete on .htaccess write.
-	 *
-	 * It should be a pretty fast HTTP request anyway, since its target is itself.
-	 *
-	 * @return array{url:string, is_private:bool|null, http_response_code?:int}
+	 * @used-by Admin_Notices::admin_notices()
 	 */
-	public function check_and_update_is_url_private(): array {
+	public function get_last_checked_is_url_private(): ?Is_Private_Result {
 
 		$transient_name = $this->get_is_private_transient_name();
 
-		/**
-		 * Null suggests the last check failed.
-		 *
-		 * @var false|array{is_private:bool|null, url:string} $transient_value
-		 */
-		$transient_value = get_transient( $transient_name );
+		try {
+			/**
+			 * @var false|Is_Private_Result $transient_value
+			 */
+			$transient_value = get_transient( $transient_name );
 
-		if ( ! empty( $transient_value )
-			&& is_array( $transient_value )
-			&& isset( $transient_value['is_private'] ) ) {
-			return $transient_value;
+			if ( $transient_value instanceof Is_Private_Result ) {
+				return $transient_value;
+			}
+		} catch ( Throwable $throwable ) {
+			// If the transient class is modified, deserializing the old value will fail.
+			delete_transient( $transient_name );
 		}
 
-		$is_url_private_result = array();
+		// Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
+		wp_schedule_single_event(
+			time(),
+			'private_uploads_check_url_' . $this->settings->get_post_type_name()
+		);
 
-		// NB: Browsing to the folder could result in 403 while browsing to a particular filename might not.
-		$url                          = WP_CONTENT_URL . '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/';
-		$is_url_private_result['url'] = $url;
+		return null;
+	}
 
-		$file = WP_CONTENT_DIR . '/uploads/' . $this->settings->get_uploads_subdirectory_name();
+	/**
+	 * Check is the URL public, store the result in a transient. Return null if undetermined.
+	 *
+	 * Runs a `wp_remote_get()` on the directory that should be private to verify the webserver is properly configured.
+	 *
+	 * It should be a pretty fast HTTP request since its target is itself.
+	 *
+	 * Pings the local private upload dir's url and returns an object indicating is it private and the HTTP response code.
+	 *
+	 * Changing this to always run on cron so users never misinterpret 403 as an error. It was appearing in Query
+	 * Monitor and highlighted red, but 403 is the desired HTTP response code.
+	 *
+	 * @used-by Cron::check_is_url_public()
+	 */
+	public function check_and_update_is_url_private(): ?Is_Private_Result {
+
+		$dir = sprintf(
+			'%s/uploads/%s/',
+			constant( 'WP_CONTENT_DIR' ),
+			$this->settings->get_uploads_subdirectory_name()
+		);
 
 		// If the folder does not exist, it does not exist to be private or public, so return null.
-		if ( ! file_exists( $file ) ) {
-			$is_url_private_result['is_private'] = null;
-			return $is_url_private_result;
+		if ( ! is_dir( $dir ) ) {
+			delete_transient( $this->get_is_private_transient_name() );
+			return null;
 		}
 
-		$dir   = WP_CONTENT_DIR . '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/';
-		$files = scandir( $dir ) ?: array();
+		// NB: Browsing to the folder could request_response in 403 while browsing to a particular filename might not.
+		$url = sprintf(
+			'%s/uploads/%s/',
+			constant( 'WP_CONTENT_URL' ),
+			$this->settings->get_uploads_subdirectory_name()
+		);
 
-		// What to do when the directory is empty?
+		// Get the directory listing, except for `.` and `..`.
+		$files = array_diff( scandir( $dir ) ?: array(), array( '..', '.' ) );
+
+		// When the directory is empty, we can't check if it is private or not.
+		if ( empty( $files ) ) {
+			delete_transient( $this->get_is_private_transient_name() );
+			return null;
+		}
 
 		foreach ( $files as $file ) {
-			// This could be a folder or "." or "..".
-			if ( is_file( $file ) ) {
-				$url = $url . $file;
+			if ( is_readable( "{$dir}{$file}" ) ) {
+				$url = "{$url}{$file}";
 				break;
 			}
 		}
 
-		$is_url_private_result = $this->is_url_private( $url );
-
-		// Expiration should match cron job schedule (minus length of time to execute?).
-		set_transient( $transient_name, $is_url_private_result, HOUR_IN_SECONDS - 60 );
-
-		return $is_url_private_result;
-	}
-
-	/**
-	 * Ping the local private upload dir's url and return the HTTP response code and server string.
-	 *
-	 * @param string $url
-	 *
-	 * @return array{url:string, is_private:bool|null, http_response_code?:int}
-	 */
-	protected function is_url_private( string $url ): array {
-
-		$is_url_private_result               = array();
-		$is_url_private_result['url']        = $url;
-		$is_url_private_result['is_private'] = null;
-
 		// Had tried zero redirections but hadn't worked well.
-		$args = array(
-			'timeout' => 2,
-		);
 		// TODO: wp_remote_head()
-		$result = wp_remote_get( $url, $args );
+		$request_response = wp_remote_get(
+			$url,
+			array(
+				'timeout' => 2,
+			)
+		);
 
-		if ( is_wp_error( $result ) ) {
+		if ( is_wp_error( $request_response ) ) {
 			// This error seems to happen occasionally (intermittently).
-			// $this->logger->error( $result->get_error_message(), array( 'error' => $result ) );
+			$this->logger->info(
+				sprintf(
+					'Checking private uploads folder %s failed with error %s',
+					$this->settings->get_uploads_subdirectory_name(),
+					$request_response->get_error_message()
+				),
+				array( 'error' => $request_response )
+			);
 
-		} else {
-
-			$response_code = $result['response']['code'];
-
-			// I think 404 is valid when the directory does exist.
-			$private_response_codes = array( 301, 302, 401, 403, 404 );
-
-			$is_url_private_result['is_private'] = in_array( $response_code, $private_response_codes, true );
-
+			return null;
 		}
+
+		$is_private = in_array(
+			wp_remote_retrieve_response_code( $request_response ),
+			// I think 404 is valid when the directory does exist.
+			array( 301, 302, 401, 403, 404 ),
+			true
+		);
+
+		$is_url_private_result = new Is_Private_Result(
+			$url,
+			$is_private,
+			(int) wp_remote_retrieve_response_code( $request_response ),
+			new DateTimeImmutable()
+		);
+
+		// Expiration slightly longer than cron schedule – i.e. the transient should always be present.
+		set_transient(
+			$this->get_is_private_transient_name(),
+			$is_url_private_result,
+			constant( 'HOUR_IN_SECONDS' ) + 60
+		);
 
 		return $is_url_private_result;
 	}
