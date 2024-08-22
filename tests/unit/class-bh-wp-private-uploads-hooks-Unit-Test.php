@@ -17,6 +17,7 @@ use BrianHenryIE\ColorLogger\ColorLogger;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
 use BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Media;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type;
@@ -144,7 +145,20 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 	 */
 	public function test_define_cli_hooks(): void {
 
-		$this->markTestIncomplete( 'Might need WPUnit to test this.' );
+		\WP_Mock::expectActionAdded(
+			'cli_init',
+			array( new AnyInstance( CLI::class ), 'register_commands' )
+		);
+
+		$logger   = new ColorLogger();
+		$api      = self::makeEmpty( API_Interface::class );
+		$settings = self::makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_cli_base' => Expected::atLeastOnce( 'test_cli_base' ),
+			)
+		);
+		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
 	}
 
 	/**

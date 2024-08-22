@@ -149,9 +149,9 @@ class BH_WP_Private_Uploads_Hooks {
 			return;
 		}
 
-		$cli = new CLI( $this->api, $this->logger );
+		$cli = new CLI( $this->api, $this->settings, $this->logger );
 
-		add_action( 'cli_init', array( $cli, 'register_cli_commands' ) );
+		add_action( 'cli_init', array( $cli, 'register_commands' ) );
 	}
 
 	/**
