@@ -67,7 +67,7 @@ class Cron {
 	/**
 	 * Handle the cron job.
 	 *
-	 * @hooked private_uploads_check_url_{plugin-slug}
+	 * @hooked private_uploads_check_url_{post_type_name}
 	 */
 	public function check_is_url_public(): void {
 		$action = current_action();
@@ -81,7 +81,7 @@ class Cron {
 	 * should not be dismissed forever.
 	 *
 	 * @see Admin_Notices::on_dismiss()
-	 * @hooked <plugin_slug>_unsnooze_dismissed_private_uploads_notice
+	 * @hooked private_uploads_unsnooze_dismissed_notice_{post_type_name}
 	 */
 	public function unsnooze_dismissed_notice(): void {
 

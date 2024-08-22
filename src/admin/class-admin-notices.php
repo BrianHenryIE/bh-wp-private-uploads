@@ -83,7 +83,7 @@ class Admin_Notices extends Notices {
 	 */
 	public function on_dismiss( $old_value, $value, string $option ): void {
 
-		$hook = "{$this->settings->get_post_type_name()}_unsnooze_dismissed_private_uploads_notice";
+		$hook = "private_uploads_unsnooze_dismissed_notice_{$this->settings->get_post_type_name()}";
 
 		wp_schedule_single_event( time() + WEEK_IN_SECONDS, $hook );
 	}

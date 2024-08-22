@@ -114,12 +114,17 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 	public function test_define_cron_job_hooks(): void {
 
 		\WP_Mock::expectActionAdded(
-			'private_uploads_check_url_test-plugin',
+			'init',
+			array( new AnyInstance( Cron::class ), 'register_cron_job' )
+		);
+
+		\WP_Mock::expectActionAdded(
+			'private_uploads_check_url_test_post_type',
 			array( new AnyInstance( Cron::class ), 'check_is_url_public' )
 		);
 
 		\WP_Mock::expectActionAdded(
-			'test-plugin_unsnooze_dismissed_private_uploads_notice',
+			'private_uploads_unsnooze_dismissed_notice_test_post_type',
 			array( new AnyInstance( Cron::class ), 'unsnooze_dismissed_notice' )
 		);
 
@@ -128,7 +133,7 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 		$settings = self::makeEmpty(
 			Private_Uploads_Settings_Interface::class,
 			array(
-				'get_plugin_slug' => Expected::atLeastOnce( 'test-plugin' ),
+				'get_post_type_name' => Expected::atLeastOnce( 'test_post_type' ),
 			)
 		);
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
