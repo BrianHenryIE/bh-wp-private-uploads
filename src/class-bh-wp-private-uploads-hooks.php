@@ -59,9 +59,9 @@ class BH_WP_Private_Uploads_Hooks {
 	 *
 	 * @since    1.0.0
 	 */
-	public function __construct( API_Interface $api, Private_Uploads_Settings_Interface $settings, LoggerInterface $logger ) {
+	public function __construct( API_Interface $api, Private_Uploads_Settings_Interface $settings, ?LoggerInterface $logger = null ) {
 
-		$this->logger   = $logger;
+		$this->logger   = $logger ?? new \Psr\Log\NullLogger();
 		$this->settings = $settings;
 		$this->api      = $api;
 
