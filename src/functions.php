@@ -1,6 +1,8 @@
 <?php
 /**
- * Not intended to be public functions. Do nor rely on this API.
+ * Not intended to be public functions. Do not rely on this API.
+ *
+ * @package brianhenryie/bh-wp-private-uploads
  */
 
 namespace BrianHenryIE\WP_Private_Uploads;

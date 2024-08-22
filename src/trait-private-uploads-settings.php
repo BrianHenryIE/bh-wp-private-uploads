@@ -45,7 +45,7 @@ trait Private_Uploads_Settings_Trait {
 	public function get_post_type_label(): string {
 
 		if ( str_underscores_to_hyphens( $this->get_post_type_name() ) === $this->get_plugin_slug() ) {
-			$label = $this->get_plugin_name_from_slug( $this->get_plugin_slug() );
+			$label = get_plugin_name_from_slug( $this->get_plugin_slug() );
 		} else {
 			$label = str_underscores_to_title_case( $this->get_post_type_name() );
 		}
