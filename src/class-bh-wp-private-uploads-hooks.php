@@ -191,6 +191,6 @@ class BH_WP_Private_Uploads_Hooks {
 
 		add_action( 'admin_menu', array( $admin_menu_hooks, 'add_private_media_library_menu' ) );
 		add_filter( 'submenu_file', array( $admin_menu_hooks, 'highlight_menu' ), 10, 2 );
-		add_filter( 'admin_menu', array( $admin_menu_hooks, 'remove_top_level_menu' ), 1000 );
+		add_action( 'admin_menu', array( $admin_menu_hooks, 'remove_top_level_menu' ), 1000 );
 	}
 }
