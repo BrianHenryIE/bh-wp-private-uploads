@@ -10,7 +10,7 @@
     }
   },
   "lifecycleScripts": {
-    "afterStart": "bash 'tests/wp-env/initialize-external.sh'"
+    "afterStart": "bash 'tests/_wp-env/initialize-external.sh'"
   },
   "mappings": {
     "docs": "./docs",
