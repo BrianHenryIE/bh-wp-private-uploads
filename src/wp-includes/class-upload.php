@@ -190,7 +190,7 @@ class Upload {
 			return $url;
 		}
 
-		return add_query_arg( array( 'post_type', $post_type ), $url );
+		return add_query_arg( array( 'post_type' => $post_type ), $url );
 	}
 
 	/**
