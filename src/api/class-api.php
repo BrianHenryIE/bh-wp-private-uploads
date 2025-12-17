@@ -53,7 +53,7 @@ class API implements API_Interface {
 	 *               On failure, returns `$overrides['upload_error_handler']( &$file, $message )`
 	 *               or `array( 'error' => $message )`.
 	 */
-	public function download_remote_file_to_private_uploads( string $file_url, string $filename = null, ?DateTimeInterface $datetime = null ): array {
+	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): array {
 		$tmp_file = download_url( $file_url );
 
 		if ( is_wp_error( $tmp_file ) ) {
