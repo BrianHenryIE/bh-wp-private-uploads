@@ -16,10 +16,14 @@
 namespace BrianHenryIE\WP_Private_Uploads\Frontend;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 
+/**
+ * @see WP_Rewrite::register_rewrite_rule()
+ */
 class Serve_Private_File {
 	use LoggerAwareTrait;
 
