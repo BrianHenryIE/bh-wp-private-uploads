@@ -39,12 +39,12 @@
   },
   "homepage": "https://github.com/BrianHenryIE/bh-wp-private-uploads#readme",
   "devDependencies": {
-    "@playwright/test": "^1.46.1",
+    "@playwright/test": "^1.58.2",
     "@types/node": "^20.12.12",
-    "@wordpress/e2e-test-utils-playwright": "^0.26.0",
-    "@wordpress/env": "^10.1.0",
-    "@wordpress/scripts": "^26.17",
-    "lint-staged": "^16.2"
+    "@wordpress/e2e-test-utils-playwright": "^1.39.0",
+    "@wordpress/env": "^10.39.0",
+    "@wordpress/scripts": "^31.4.0",
+    "lint-staged": "^16.2.7"
   },
   "dependencies": {
     "@wordpress/components": "^25.12.0"
