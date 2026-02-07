@@ -6,7 +6,7 @@
       }
     },
     "tests": {
-      "mysqlPort": 63306
+      "mysqlPort": 33066
     }
   },
   "lifecycleScripts": {
