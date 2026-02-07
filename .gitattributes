@@ -26,3 +26,7 @@
 /README.md              export-ignore
 /wp-cli.wp-env.yml      export-ignore
 /wp-cli.yml             export-ignore
+/playwright.config.ts   export-ignore
+
+# When merging into a branch, ignore the coverage percentage, that should be re-calculated immediately anyway.
+/.github/coverage.svg merge=ours
