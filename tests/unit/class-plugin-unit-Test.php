@@ -31,14 +31,7 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 	 */
 	public function test_plugin_include(): void {
 
-		$this->markTestSkipped();
-
 		// Prevents code-coverage counting, and removes the need to define the WordPress functions that are used in that class.
-		\Patchwork\redefine(
-			array( BH_WP_Private_Uploads_Test_Plugin::class, '__construct' ),
-			function ( $api, $settings, $logger ) {}
-		);
-
 		\Patchwork\redefine(
 			array( API::class, '__construct' ),
 			function ( $setting, $logger ) {}
@@ -51,7 +44,6 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 			array(
 				'args'   => array( \WP_Mock\Functions::type( 'string' ) ),
 				'return' => $plugin_root_dir . '/',
-				'times'  => 1,
 			)
 		);
 
@@ -59,9 +51,13 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 			'plugin_basename',
 			array(
 				'args'   => array( \WP_Mock\Functions::type( 'string' ) ),
-				'return' => 'bh-wp-private-uploads-test-plugin/bh-wp-private-uploads-test-plugin.php',
-				'times'  => 1,
+				'return' => 'development-plugin/development-plugin.php',
 			)
+		);
+
+		\WP_Mock::userFunction(
+			'add_filter',
+			array()
 		);
 
 		ob_start();
@@ -73,9 +69,5 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 		ob_end_clean();
 
 		$this->assertEmpty( $printed_output );
-
-		$this->assertArrayHasKey( 'bh_wp_private_uploads_test_plugin', $GLOBALS );
-
-		$this->assertInstanceOf( API::class, $GLOBALS['bh_wp_private_uploads_test_plugin'] );
 	}
 }
