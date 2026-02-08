@@ -66,6 +66,7 @@
         "alleyinteractive/wordpress-autoloader": "^1.1",
         "antecedent/patchwork": "^2.1",
         "brianhenryie/color-logger": "*",
+        "brianhenryie/php-codecoverage-markdown": "^0.1.0",
         "cweagans/composer-patches": "*",
         "dealerdirect/phpcodesniffer-composer-installer": "*",
         "johnpbloch/wordpress": "*",
