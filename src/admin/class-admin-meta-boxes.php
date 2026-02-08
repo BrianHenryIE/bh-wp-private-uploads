@@ -157,7 +157,7 @@ EOD;
 	 *
 	 * @see Admin_Order_UI::add_meta_box()
 	 *
-	 * @param WP_Post                                                         $post The post object being displayed on the admin edit screen.
+	 * @param WP_Post                                                              $post The post object being displayed on the admin edit screen.
 	 * @param array{id:string,title:string,callback:callable,args:array|null}|null $box The arguments used when registering this box (see above).
 	 */
 	public function print_meta_box( WP_Post $post, ?array $box = null ): void {

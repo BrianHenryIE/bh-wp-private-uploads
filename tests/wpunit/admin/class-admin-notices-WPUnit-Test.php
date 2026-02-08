@@ -19,7 +19,7 @@ class Admin_Notices_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 	 * @covers ::admin_notices
 	 */
 	public function test_admin_notices_adds_notice_when_url_not_private(): void {
-		$logger   = new ColorLogger();
+		$logger = new ColorLogger();
 
 		$is_private_result = new Is_Private_Result(
 			'http://example.com/wp-content/uploads/private',
@@ -28,7 +28,7 @@ class Admin_Notices_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 			new DateTimeImmutable()
 		);
 
-		$api = $this->makeEmpty(
+		$api      = $this->makeEmpty(
 			API_Interface::class,
 			array(
 				'check_and_update_is_url_private' => Expected::once( $is_private_result ),
