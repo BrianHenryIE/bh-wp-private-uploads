@@ -40,9 +40,11 @@ cache
 
 node_modules
 scratch
-src/strauss/
-wp-content/
 wordpress
+wp-content/*
+!wp-content/mu-plugins/
+wp-content/mu-plugins/*
+!wp-content/mu-plugins/*.php
 /vendor/
 
 *.zip
@@ -58,7 +60,20 @@ xdebug.sh
 7.4linux.sh
 DOCKER_ENV
 docker_tag
+
+# Build artifacts
+vendor-prefixed
+dist-archive
+*.min.*
+*.pot
+
+# Test artifacts
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+.phpunit.result.cache
+patches.lock.json
+
+# Claude Code
+.claude/settings.local.json

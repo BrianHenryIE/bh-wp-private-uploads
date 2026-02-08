@@ -16,7 +16,7 @@
 /composer.lock          export-ignore
 /CONTRIBUTING.md        export-ignore
 /package.json           export-ignore
-/example-plugin.php     export-ignore
+/development-plugin     export-ignore
 /package-lock.json      export-ignore
 /patchwork.json         export-ignore
 /phpcs.xml              export-ignore
@@ -26,3 +26,7 @@
 /README.md              export-ignore
 /wp-cli.wp-env.yml      export-ignore
 /wp-cli.yml             export-ignore
+/playwright.config.ts   export-ignore
+
+# When merging into a branch, ignore the coverage percentage, that should be re-calculated immediately anyway.
+/.github/coverage.svg merge=ours

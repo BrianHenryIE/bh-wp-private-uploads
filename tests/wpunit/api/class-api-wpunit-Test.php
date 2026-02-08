@@ -115,9 +115,7 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 		add_filter(
 			'pre_http_request',
-			function () {
-				return new \WP_Error( '1', 'test_check_url_wp_error' );
-			}
+			fn() => new \WP_Error( '1', 'test_check_url_wp_error' )
 		);
 
 		$api->check_and_update_is_url_private();
@@ -161,14 +159,12 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 		add_filter(
 			'pre_http_request',
-			function () {
-				return array(
+			fn() => array(
 					'body'     => '',
 					'response' => array(
 						'code' => 200,
 					),
-				);
-			}
+				)
 		);
 
 		$result = $api->check_and_update_is_url_private();
@@ -210,14 +206,12 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 		add_filter(
 			'pre_http_request',
-			function () {
-				return array(
+			fn() => array(
 					'body'     => '',
 					'response' => array(
 						'code' => 403,
 					),
-				);
-			}
+				)
 		);
 
 		$result = $api->check_and_update_is_url_private();

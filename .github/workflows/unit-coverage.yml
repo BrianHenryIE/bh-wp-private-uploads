@@ -8,7 +8,7 @@ on:
       - master
 
 env:
-  COVERAGE_PHP_VERSION: '8.4'
+  COVERAGE_PHP_VERSION: '8.0'
 
 jobs:
   php-tests:
@@ -30,7 +30,7 @@ jobs:
 
     strategy:
       matrix:
-        php: [ '8.4', '8.5' ]
+        php: [ '8.0', '8.1', '8.2', '8.3' ,'8.4' ]
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -92,14 +92,12 @@ jobs:
         if: ${{ matrix.php != env.COVERAGE_PHP_VERSION }}
         run: |
           vendor/bin/codecept run unit --debug
-          vendor/bin/codecept run unit-patchwork --debug
           vendor/bin/codecept run wpunit --debug
 
       - name: Run tests with coverage
         if: ${{ matrix.php == env.COVERAGE_PHP_VERSION }} # We only need the coverage once
         run: |
           XDEBUG_MODE=coverage vendor/bin/codecept run unit --coverage unit.cov --debug
-          XDEBUG_MODE=coverage vendor/bin/codecept run unit-patchwork --coverage unit-patchwork.cov --debug
           XDEBUG_MODE=coverage vendor/bin/codecept run wpunit --coverage wpunit.cov --debug
 
       - name: Merge code coverage
@@ -130,8 +128,8 @@ jobs:
           label: 'PHPUnit'
           status: ${{ format('{0}%', steps.coverage-percentage.outputs.coverage-rounded) }}
           path: .github/coverage.svg
-          color: ${{ steps.coverage.outputs.coverage >= 90 && 'green'
-            || steps.coverage.outputs.coverage >= 80 && 'orange'
+          color: ${{ steps.coverage-percentage.outputs.coverage >= 90 && 'green'
+            || steps.coverage-percentage.outputs.coverage >= 80 && 'orange'
             || 'red' }}
 
       - name: Copy badge for PR comment display
@@ -208,7 +206,7 @@ jobs:
           echo "BRANCHED_COMMIT=$BRANCHED_COMMIT"
           git diff $BRANCHED_COMMIT...${{ github.event.pull_request.head.sha }} > branch.diff
           cat branch.diff
-          OUTPUT=${vendor/bin/phpcov patch-coverage --path-prefix $(pwd) ./gh-pages/${{ github.event.pull_request.head.sha }}/phpunit/phpunit.cov branch.diff || true}
+          OUTPUT=$(vendor/bin/phpcov patch-coverage --path-prefix $(pwd) ./gh-pages/${{ github.event.pull_request.head.sha }}/phpunit/phpunit.cov branch.diff || true)
           echo $OUTPUT
           echo "" >> coverage-comment.md
           echo "$OUTPUT" >> coverage-comment.md

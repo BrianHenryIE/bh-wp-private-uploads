@@ -61,7 +61,7 @@ class API implements API_Interface {
 			return array( 'error' => "Failed `download_url( {$file_url} )` in " . __NAMESPACE__ . ' Private Uploads API.' );
 		}
 
-		$filename = $filename ?? basename( $file_url );
+		$filename ??= basename( $file_url );
 
 		$result = $this->move_file_to_private_uploads( $tmp_file, $filename, $datetime );
 
@@ -368,9 +368,7 @@ class API implements API_Interface {
 
 		$args['cookies'] = array_filter(
 			$_COOKIE,
-			function ( $value, $key ) {
-				return false !== strpos( $key, 'WordPress' );
-			},
+			fn($value, $key) => false !== strpos( $key, 'WordPress' ),
 			ARRAY_FILTER_USE_BOTH
 		);
 

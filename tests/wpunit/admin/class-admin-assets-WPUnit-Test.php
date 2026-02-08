@@ -17,7 +17,7 @@ class Admin_Assets_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 		$settings = self::makeEmpty(
 			Private_Uploads_Settings_Interface::class,
 			array(
-				'get_plugin_slug' => 'test',
+				'get_post_type_name' => 'test',
 			)
 		);
 

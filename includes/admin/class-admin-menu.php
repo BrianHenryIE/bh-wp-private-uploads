@@ -97,7 +97,7 @@ class Admin_Menu {
 			return $submenu_file;
 		}
 
-		if ( isset( $_SERVER['REQUEST_URI'] ) && false !== strpos( $url, sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ) {
+		if ( isset( $_SERVER['REQUEST_URI'] ) && false !== strpos( $url, (string) sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ) {
 			return $url;
 		}
 

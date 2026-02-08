@@ -8,30 +8,58 @@
   "scripts": {
     "build": "wp-scripts build",
     "wp-env": "wp-env start",
+    "start": "wp-scripts start",
+    "lint": "npm run lint:js && npm run lint:css",
+    "lint:fix": "npm run lint:js:fix && npm run lint:css:fix",
+    "lint:js": "wp-scripts lint-js",
+    "lint:js:fix": "wp-scripts lint-js --fix",
+    "lint:css": "wp-scripts lint-style",
+    "lint:css:fix": "wp-scripts lint-style --fix",
+    "format": "wp-scripts format",
+    "format:js": "wp-scripts format-js",
     "check-engines": "wp-scripts check-engines",
     "check-licenses": "wp-scripts check-licenses",
-    "format": "wp-scripts format",
-    "lint:css": "wp-scripts lint-style",
-    "lint:js": "wp-scripts lint-js",
     "lint:md:docs": "wp-scripts lint-md-docs",
     "lint:pkg-json": "wp-scripts lint-pkg-json",
     "packages-update": "wp-scripts packages-update",
     "plugin-zip": "wp-scripts plugin-zip",
-    "start": "wp-scripts start",
     "test:e2e": "wp-scripts test-e2e",
-    "test:unit": "wp-scripts test-unit-js"
+    "test:unit": "wp-scripts test-unit-js",
+    "lint:staged": "lint-staged"
   },
   "keywords": [],
-  "author": "",
+  "author": "BrianHenryIE",
   "license": "GPL-2.0+",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrianHenryIE/bh-wp-private-uploads.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BrianHenryIE/bh-wp-private-uploads/issues"
+  },
+  "homepage": "https://github.com/BrianHenryIE/bh-wp-private-uploads#readme",
   "devDependencies": {
-    "@playwright/test": "^1.46.1",
+    "@playwright/test": "^1.58.2",
     "@types/node": "^20.12.12",
-    "@wordpress/e2e-test-utils-playwright": "^0.26.0",
-    "@wordpress/env": "^10.1.0",
-    "@wordpress/scripts": "^26.17"
+    "@wordpress/e2e-test-utils-playwright": "^1.39.0",
+    "@wordpress/env": "^10.39.0",
+    "@wordpress/scripts": "^31.4.0",
+    "dotenv": "^17.2",
+    "lint-staged": "^16.2.7"
   },
   "dependencies": {
     "@wordpress/components": "^25.12.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "wp-scripts lint-js --fix",
+      "wp-scripts format-js"
+    ],
+    "*.{css,scss,sass}": [
+      "wp-scripts lint-style --fix"
+    ],
+    "*.{json,yml,yaml,md}": [
+      "wp-scripts format"
+    ]
   }
 }

@@ -43,7 +43,7 @@ class Private_Uploads extends API implements API_Interface {
 
 		if ( ! is_null( $settings ) ) {
 
-			$logger = $logger ?? new NullLogger();
+			$logger ??= new NullLogger();
 
 			self::$instance = new self( $settings, $logger );
 
