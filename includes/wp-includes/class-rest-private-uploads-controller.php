@@ -102,9 +102,9 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		 *     @type string       $baseurl URL path without subdir.
 		 *     @type string|false $error   False or error message.
 		 * }
-		 * @return array $uploads
+		 * @return array{path:string,url:string,subdir:string,basedir:string,baseurl:string,error:string|false} $uploads
 		 */
-		$private_path = function ( $uploads ) use ( $uploads_subdirectory_name ) {
+		$private_path = function ( array $uploads ) use ( $uploads_subdirectory_name ): array {
 
 			// Use private uploads dir.
 			$uploads['basedir'] = "{$uploads['basedir']}/{$uploads_subdirectory_name}";
@@ -131,7 +131,13 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		$post_type = $this->post_type;
 		add_filter(
 			'wp_insert_attachment_data',
-			function ( $data, $postarr, $unsanitized_postarr ) use ( $post_type, $request ) {
+			/**
+			 * @param array<string,mixed> $data
+			 * @param array<string,mixed> $postarr
+			 * @param array<string,mixed> $unsanitized_postarr
+			 * @return array<string,mixed>
+			 */
+			function ( array $data, array $postarr, array $unsanitized_postarr ) use ( $post_type, $request ): array {
 				$data['post_type'] = $post_type;
 
 				if ( ! empty( $request->get_param( 'post_author' ) ) ) {

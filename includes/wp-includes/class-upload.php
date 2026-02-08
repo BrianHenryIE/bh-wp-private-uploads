@@ -68,10 +68,12 @@ class Upload {
 		global $current_screen;
 		$current_screen = $current_screen_object;
 
+		/** @var array<string,\WP_Post_Type> $wp_post_types */
 		global $wp_post_types;
 		$post_type_object = get_post_type_object( $post_type );
-
-		$wp_post_types['attachment'] = $post_type_object;
+		if ( null !== $post_type_object ) {
+			$wp_post_types['attachment'] = $post_type_object;
+		}
 	}
 
 	/**
