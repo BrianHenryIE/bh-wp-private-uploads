@@ -11,7 +11,7 @@ test('upload file', async ({ page }) => {
 
   await page.fill( 'input[name="log"]', "admin" );
   await page.fill( 'input[name="pwd"]', "password" );
-  await page.click( 'text=Log In' );
+  await page.locator( '#loginform' ).getByText( 'Log In' ).click();
 
   await page.waitForLoadState( 'networkidle' );
 
