@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for /home/runner/work/bh-wp-private-uploads/bh-wp-private-uploads/src</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="_css/bootstrap.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="_css/nv.d3.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="_css/style.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="index.html">/home/runner/work/bh-wp-private-uploads/bh-wp-private-uploads/src</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Classes</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="classCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="classComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="admin/class-admin-menu.php.html#16">BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="admin/class-admin-meta-boxes.php.html#18">BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-is-private-result.php.html#8">BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="frontend/class-serve-private-file.php.html#27">BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-cli.php.html#15">BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-cron.php.html#21">BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#19">BrianHenryIE\WP_Private_Uploads\WP_Includes\Media</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-post-type.php.html#14">BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#23">BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-wp-rewrite.php.html#15">BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-api.php.html#22">BrianHenryIE\WP_Private_Uploads\API\API</a></td><td class="text-right">37%</td></tr>
+       <tr><td><a href="class-bh-wp-private-uploads-hooks.php.html#41">BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks</a></td><td class="text-right">84%</td></tr>
+       <tr><td><a href="admin/class-admin-notices.php.html#18">BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices</a></td><td class="text-right">86%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="wp-includes/class-upload.php.html#23">BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload</a></td><td class="text-right">600</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#19">BrianHenryIE\WP_Private_Uploads\WP_Includes\Media</a></td><td class="text-right">380</td></tr>
+       <tr><td><a href="frontend/class-serve-private-file.php.html#27">BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File</a></td><td class="text-right">240</td></tr>
+       <tr><td><a href="api/class-api.php.html#22">BrianHenryIE\WP_Private_Uploads\API\API</a></td><td class="text-right">202</td></tr>
+       <tr><td><a href="admin/class-admin-menu.php.html#16">BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu</a></td><td class="text-right">90</td></tr>
+       <tr><td><a href="admin/class-admin-meta-boxes.php.html#18">BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes</a></td><td class="text-right">90</td></tr>
+       <tr><td><a href="wp-includes/class-cron.php.html#21">BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron</a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="wp-includes/class-cli.php.html#15">BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI</a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="class-bh-wp-private-uploads-hooks.php.html#41">BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks</a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="wp-includes/class-post-type.php.html#14">BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type</a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="admin/class-admin-notices.php.html#18">BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices</a></td><td class="text-right">5</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Methods</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="methodCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="methodComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="admin/class-admin-assets.php.html#18"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="admin/class-admin-menu.php.html#27"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="admin/class-admin-menu.php.html#51"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu::add_private_media_library_menu">add_private_media_library_menu</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="admin/class-admin-menu.php.html#83"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu::highlight_menu">highlight_menu</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="admin/class-admin-menu.php.html#114"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu::remove_top_level_menu">remove_top_level_menu</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="admin/class-admin-meta-boxes.php.html#38"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="admin/class-admin-meta-boxes.php.html#52"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes::add_meta_box">add_meta_box</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="admin/class-admin-meta-boxes.php.html#85"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes::enqueue_scripts">enqueue_scripts</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="admin/class-admin-meta-boxes.php.html#163"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes::print_meta_box">print_meta_box</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="admin/class-admin-notices.php.html#88"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices::on_dismiss">on_dismiss</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-api.php.html#40"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-api.php.html#56"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::download_remote_file_to_private_uploads">download_remote_file_to_private_uploads</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-api.php.html#94"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::move_file_to_private_uploads">move_file_to_private_uploads</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-api.php.html#184"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::get_is_private_transient_name">get_is_private_transient_name</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-api.php.html#202"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::create_directory">create_directory</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-api.php.html#230"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::get_last_checked_is_url_private">get_last_checked_is_url_private</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-api.php.html#363"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::is_url_public_for_admin">is_url_public_for_admin</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-is-private-result.php.html#18"><abbr title="BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-is-private-result.php.html#30"><abbr title="BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result::get_last_checked">get_last_checked</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-is-private-result.php.html#34"><abbr title="BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result::get_url">get_url</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-is-private-result.php.html#38"><abbr title="BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result::is_private">is_private</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="api/class-is-private-result.php.html#42"><abbr title="BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result::get_http_response_code">get_http_response_code</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="class-bh-wp-private-uploads-hooks.php.html#182"><abbr title="BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks::define_meta_box_hooks">define_meta_box_hooks</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="class-bh-wp-private-uploads-hooks.php.html#188"><abbr title="BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks::define_admin_menu_hooks">define_admin_menu_hooks</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="frontend/class-serve-private-file.php.html#32"><abbr title="BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="frontend/class-serve-private-file.php.html#44"><abbr title="BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File::init">init</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="frontend/class-serve-private-file.php.html#69"><abbr title="BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File::request_value">request_value</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="frontend/class-serve-private-file.php.html#80"><abbr title="BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File::send_private_file">send_private_file</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="frontend/class-serve-private-file.php.html#171"><abbr title="BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File::sanitize_filepath">sanitize_filepath</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-cli.php.html#23"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-cli.php.html#32"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI::register_commands">register_commands</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-cli.php.html#46"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI::download_url">download_url</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-cron.php.html#46"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-cron.php.html#57"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron::register_cron_job">register_cron_job</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-cron.php.html#72"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron::check_is_url_public">check_is_url_public</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-cron.php.html#86"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron::unsnooze_dismissed_notice">unsnooze_dismissed_notice</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#36"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#48"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::on_query_attachments">on_query_attachments</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#70"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::on_upload_attachment">on_upload_attachment</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#110"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::set_query_post_type_to_cpt">set_query_post_type_to_cpt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#124"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::change_post_type_to_attachment">change_post_type_to_attachment</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#140"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::change_post_type_to_attachment_in_cache">change_post_type_to_attachment_in_cache</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#162"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::prepare_attachment_for_js">prepare_attachment_for_js</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#192"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::set_post_type_on_insert_attachment">set_post_type_on_insert_attachment</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#218"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::set_uploads_subdirectory">set_uploads_subdirectory</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-post-type.php.html#18"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-post-type.php.html#32"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type::register_post_type">register_post_type</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#27"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#64"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::current_screen">current_screen</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#88"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::query">query</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#106"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::wp">wp</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#129"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::pre_get_posts">pre_get_posts</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#149"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::the_posts">the_posts</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#178"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::clean_url">clean_url</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#202"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::admin_init">admin_init</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#233"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::manage_upload_columns">manage_upload_columns</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-wp-rewrite.php.html#29"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="wp-includes/class-wp-rewrite.php.html#37"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite::register_rewrite_rule">register_rewrite_rule</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="class-bh-wp-private-uploads-hooks.php.html#146"><abbr title="BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks::define_cli_hooks">define_cli_hooks</abbr></a></td><td class="text-right">75%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="frontend/class-serve-private-file.php.html#80"><abbr title="BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File::send_private_file">send_private_file</abbr></a></td><td class="text-right">90</td></tr>
+       <tr><td><a href="api/class-api.php.html#94"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::move_file_to_private_uploads">move_file_to_private_uploads</abbr></a></td><td class="text-right">56</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#27"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::__construct">__construct</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="admin/class-admin-menu.php.html#83"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu::highlight_menu">highlight_menu</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#70"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::on_upload_attachment">on_upload_attachment</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#178"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::clean_url">clean_url</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="admin/class-admin-meta-boxes.php.html#163"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes::print_meta_box">print_meta_box</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="admin/class-admin-meta-boxes.php.html#52"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes::add_meta_box">add_meta_box</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="api/class-api.php.html#56"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::download_remote_file_to_private_uploads">download_remote_file_to_private_uploads</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="api/class-api.php.html#202"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::create_directory">create_directory</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="api/class-api.php.html#230"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::get_last_checked_is_url_private">get_last_checked_is_url_private</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#48"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::on_query_attachments">on_query_attachments</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#162"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::prepare_attachment_for_js">prepare_attachment_for_js</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#149"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::the_posts">the_posts</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#202"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::admin_init">admin_init</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="admin/class-admin-menu.php.html#51"><abbr title="BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu::add_private_media_library_menu">add_private_media_library_menu</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="api/class-api.php.html#363"><abbr title="BrianHenryIE\WP_Private_Uploads\API\API::is_url_public_for_admin">is_url_public_for_admin</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="frontend/class-serve-private-file.php.html#44"><abbr title="BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File::init">init</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="frontend/class-serve-private-file.php.html#69"><abbr title="BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File::request_value">request_value</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="wp-includes/class-cli.php.html#46"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI::download_url">download_url</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="wp-includes/class-cron.php.html#57"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron::register_cron_job">register_cron_job</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#124"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::change_post_type_to_attachment">change_post_type_to_attachment</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="wp-includes/class-media.php.html#140"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::change_post_type_to_attachment_in_cache">change_post_type_to_attachment_in_cache</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="wp-includes/class-post-type.php.html#32"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type::register_post_type">register_post_type</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#88"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::query">query</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="wp-includes/class-upload.php.html#129"><abbr title="BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload::pre_get_posts">pre_get_posts</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="class-bh-wp-private-uploads-hooks.php.html#146"><abbr title="BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks::define_cli_hooks">define_cli_hooks</abbr></a></td><td class="text-right">2</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 9.2.32</a> using <a href="https://secure.php.net/" target="_top">PHP 8.0.30</a> at Sun Feb 8 3:12:30 UTC 2026.</small>
+    </p>
+   </footer>
+  </div>
+  <script src="_js/jquery.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="_js/d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="_js/nv.d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script type="text/javascript">
+$(document).ready(function() {
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#classCoverageDistribution svg')
+      .datum(getCoverageDistributionData([10,0,0,0,1,0,0,0,0,2,1,0], "Class Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#methodCoverageDistribution svg')
+      .datum(getCoverageDistributionData([58,0,0,0,0,0,0,0,1,0,1,11], "Method Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getCoverageDistributionData(data, label) {
+    var labels = [
+      '0%',
+      '0-10%',
+      '10-20%',
+      '20-30%',
+      '30-40%',
+      '40-50%',
+      '50-60%',
+      '60-70%',
+      '70-80%',
+      '80-90%',
+      '90-100%',
+      '100%'
+    ];
+    var values = [];
+    $.each(labels, function(key) {
+      values.push({x: labels[key], y: data[key]});
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Cyclomatic Complexity');
+
+    d3.select('#classComplexity svg')
+      .datum(getComplexityData([[94.11764705882352,2,"<a href=\"admin\/class-admin-assets.php.html#14\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Assets<\/a>"],[0,9,"<a href=\"admin\/class-admin-menu.php.html#16\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Menu<\/a>"],[0,9,"<a href=\"admin\/class-admin-meta-boxes.php.html#18\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Meta_Boxes<\/a>"],[86.20689655172413,5,"<a href=\"admin\/class-admin-notices.php.html#18\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Notices<\/a>"],[37.76223776223776,27,"<a href=\"api\/class-api.php.html#22\">BrianHenryIE\\WP_Private_Uploads\\API\\API<\/a>"],[0,5,"<a href=\"api\/class-is-private-result.php.html#8\">BrianHenryIE\\WP_Private_Uploads\\API\\Is_Private_Result<\/a>"],[84.0909090909091,12,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#41\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks<\/a>"],[0,15,"<a href=\"frontend\/class-serve-private-file.php.html#27\">BrianHenryIE\\WP_Private_Uploads\\Frontend\\Serve_Private_File<\/a>"],[0,4,"<a href=\"wp-includes\/class-cli.php.html#15\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\CLI<\/a>"],[0,5,"<a href=\"wp-includes\/class-cron.php.html#21\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Cron<\/a>"],[0,19,"<a href=\"wp-includes\/class-media.php.html#19\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Media<\/a>"],[0,3,"<a href=\"wp-includes\/class-post-type.php.html#14\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Post_Type<\/a>"],[0,24,"<a href=\"wp-includes\/class-upload.php.html#23\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Upload<\/a>"],[0,2,"<a href=\"wp-includes\/class-wp-rewrite.php.html#15\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\WP_Rewrite<\/a>"]], 'Class Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Method Complexity');
+
+    d3.select('#methodComplexity svg')
+      .datum(getComplexityData([[0,1,"<a href=\"admin\/class-admin-assets.php.html#18\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Assets::__construct<\/a>"],[100,1,"<a href=\"admin\/class-admin-assets.php.html#27\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Assets::register_script<\/a>"],[0,1,"<a href=\"admin\/class-admin-menu.php.html#27\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Menu::__construct<\/a>"],[0,2,"<a href=\"admin\/class-admin-menu.php.html#51\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Menu::add_private_media_library_menu<\/a>"],[0,5,"<a href=\"admin\/class-admin-menu.php.html#83\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Menu::highlight_menu<\/a>"],[0,1,"<a href=\"admin\/class-admin-menu.php.html#114\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Menu::remove_top_level_menu<\/a>"],[0,1,"<a href=\"admin\/class-admin-meta-boxes.php.html#38\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Meta_Boxes::__construct<\/a>"],[0,3,"<a href=\"admin\/class-admin-meta-boxes.php.html#52\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Meta_Boxes::add_meta_box<\/a>"],[0,1,"<a href=\"admin\/class-admin-meta-boxes.php.html#85\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Meta_Boxes::enqueue_scripts<\/a>"],[0,4,"<a href=\"admin\/class-admin-meta-boxes.php.html#163\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Meta_Boxes::print_meta_box<\/a>"],[100,1,"<a href=\"admin\/class-admin-notices.php.html#26\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Notices::__construct<\/a>"],[91.66666666666666,3,"<a href=\"admin\/class-admin-notices.php.html#35\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Notices::admin_notices<\/a>"],[0,1,"<a href=\"admin\/class-admin-notices.php.html#88\">BrianHenryIE\\WP_Private_Uploads\\Admin\\Admin_Notices::on_dismiss<\/a>"],[0,1,"<a href=\"api\/class-api.php.html#40\">BrianHenryIE\\WP_Private_Uploads\\API\\API::__construct<\/a>"],[0,3,"<a href=\"api\/class-api.php.html#56\">BrianHenryIE\\WP_Private_Uploads\\API\\API::download_remote_file_to_private_uploads<\/a>"],[0,7,"<a href=\"api\/class-api.php.html#94\">BrianHenryIE\\WP_Private_Uploads\\API\\API::move_file_to_private_uploads<\/a>"],[0,1,"<a href=\"api\/class-api.php.html#184\">BrianHenryIE\\WP_Private_Uploads\\API\\API::get_is_private_transient_name<\/a>"],[0,3,"<a href=\"api\/class-api.php.html#202\">BrianHenryIE\\WP_Private_Uploads\\API\\API::create_directory<\/a>"],[0,3,"<a href=\"api\/class-api.php.html#230\">BrianHenryIE\\WP_Private_Uploads\\API\\API::get_last_checked_is_url_private<\/a>"],[100,7,"<a href=\"api\/class-api.php.html#271\">BrianHenryIE\\WP_Private_Uploads\\API\\API::check_and_update_is_url_private<\/a>"],[0,2,"<a href=\"api\/class-api.php.html#363\">BrianHenryIE\\WP_Private_Uploads\\API\\API::is_url_public_for_admin<\/a>"],[0,1,"<a href=\"api\/class-is-private-result.php.html#18\">BrianHenryIE\\WP_Private_Uploads\\API\\Is_Private_Result::__construct<\/a>"],[0,1,"<a href=\"api\/class-is-private-result.php.html#30\">BrianHenryIE\\WP_Private_Uploads\\API\\Is_Private_Result::get_last_checked<\/a>"],[0,1,"<a href=\"api\/class-is-private-result.php.html#34\">BrianHenryIE\\WP_Private_Uploads\\API\\Is_Private_Result::get_url<\/a>"],[0,1,"<a href=\"api\/class-is-private-result.php.html#38\">BrianHenryIE\\WP_Private_Uploads\\API\\Is_Private_Result::is_private<\/a>"],[0,1,"<a href=\"api\/class-is-private-result.php.html#42\">BrianHenryIE\\WP_Private_Uploads\\API\\Is_Private_Result::get_http_response_code<\/a>"],[100,1,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#62\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::__construct<\/a>"],[100,1,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#83\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::define_api_hooks<\/a>"],[100,1,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#92\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::define_post_hooks<\/a>"],[100,1,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#104\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::define_admin_notices_hooks<\/a>"],[100,1,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#119\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::define_frontend_hooks<\/a>"],[100,1,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#129\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::define_cron_job_hooks<\/a>"],[75,2,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#146\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::define_cli_hooks<\/a>"],[100,1,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#160\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::define_rewrite_hooks<\/a>"],[100,1,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#170\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::define_media_library_hooks<\/a>"],[0,1,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#182\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::define_meta_box_hooks<\/a>"],[0,1,"<a href=\"class-bh-wp-private-uploads-hooks.php.html#188\">BrianHenryIE\\WP_Private_Uploads\\BH_WP_Private_Uploads_Hooks::define_admin_menu_hooks<\/a>"],[0,1,"<a href=\"frontend\/class-serve-private-file.php.html#32\">BrianHenryIE\\WP_Private_Uploads\\Frontend\\Serve_Private_File::__construct<\/a>"],[0,2,"<a href=\"frontend\/class-serve-private-file.php.html#44\">BrianHenryIE\\WP_Private_Uploads\\Frontend\\Serve_Private_File::init<\/a>"],[0,2,"<a href=\"frontend\/class-serve-private-file.php.html#69\">BrianHenryIE\\WP_Private_Uploads\\Frontend\\Serve_Private_File::request_value<\/a>"],[0,9,"<a href=\"frontend\/class-serve-private-file.php.html#80\">BrianHenryIE\\WP_Private_Uploads\\Frontend\\Serve_Private_File::send_private_file<\/a>"],[0,1,"<a href=\"frontend\/class-serve-private-file.php.html#171\">BrianHenryIE\\WP_Private_Uploads\\Frontend\\Serve_Private_File::sanitize_filepath<\/a>"],[0,1,"<a href=\"wp-includes\/class-cli.php.html#23\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\CLI::__construct<\/a>"],[0,1,"<a href=\"wp-includes\/class-cli.php.html#32\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\CLI::register_commands<\/a>"],[0,2,"<a href=\"wp-includes\/class-cli.php.html#46\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\CLI::download_url<\/a>"],[0,1,"<a href=\"wp-includes\/class-cron.php.html#46\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Cron::__construct<\/a>"],[0,2,"<a href=\"wp-includes\/class-cron.php.html#57\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Cron::register_cron_job<\/a>"],[0,1,"<a href=\"wp-includes\/class-cron.php.html#72\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Cron::check_is_url_public<\/a>"],[0,1,"<a href=\"wp-includes\/class-cron.php.html#86\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Cron::unsnooze_dismissed_notice<\/a>"],[0,1,"<a href=\"wp-includes\/class-media.php.html#36\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Media::__construct<\/a>"],[0,3,"<a href=\"wp-includes\/class-media.php.html#48\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Media::on_query_attachments<\/a>"],[0,5,"<a href=\"wp-includes\/class-media.php.html#70\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Media::on_upload_attachment<\/a>"],[0,1,"<a href=\"wp-includes\/class-media.php.html#110\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Media::set_query_post_type_to_cpt<\/a>"],[0,2,"<a href=\"wp-includes\/class-media.php.html#124\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Media::change_post_type_to_attachment<\/a>"],[0,2,"<a href=\"wp-includes\/class-media.php.html#140\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Media::change_post_type_to_attachment_in_cache<\/a>"],[0,3,"<a href=\"wp-includes\/class-media.php.html#162\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Media::prepare_attachment_for_js<\/a>"],[0,1,"<a href=\"wp-includes\/class-media.php.html#192\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Media::set_post_type_on_insert_attachment<\/a>"],[0,1,"<a href=\"wp-includes\/class-media.php.html#218\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Media::set_uploads_subdirectory<\/a>"],[0,1,"<a href=\"wp-includes\/class-post-type.php.html#18\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Post_Type::__construct<\/a>"],[0,2,"<a href=\"wp-includes\/class-post-type.php.html#32\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Post_Type::register_post_type<\/a>"],[0,6,"<a href=\"wp-includes\/class-upload.php.html#27\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Upload::__construct<\/a>"],[0,1,"<a href=\"wp-includes\/class-upload.php.html#64\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Upload::current_screen<\/a>"],[0,2,"<a href=\"wp-includes\/class-upload.php.html#88\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Upload::query<\/a>"],[0,1,"<a href=\"wp-includes\/class-upload.php.html#106\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Upload::wp<\/a>"],[0,2,"<a href=\"wp-includes\/class-upload.php.html#129\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Upload::pre_get_posts<\/a>"],[0,3,"<a href=\"wp-includes\/class-upload.php.html#149\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Upload::the_posts<\/a>"],[0,5,"<a href=\"wp-includes\/class-upload.php.html#178\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Upload::clean_url<\/a>"],[0,3,"<a href=\"wp-includes\/class-upload.php.html#202\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Upload::admin_init<\/a>"],[0,1,"<a href=\"wp-includes\/class-upload.php.html#233\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\Upload::manage_upload_columns<\/a>"],[0,1,"<a href=\"wp-includes\/class-wp-rewrite.php.html#29\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\WP_Rewrite::__construct<\/a>"],[0,1,"<a href=\"wp-includes\/class-wp-rewrite.php.html#37\">BrianHenryIE\\WP_Private_Uploads\\WP_Includes\\WP_Rewrite::register_rewrite_rule<\/a>"]], 'Method Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getComplexityData(data, label) {
+    var values = [];
+    $.each(data, function(key) {
+      var value = Math.round(data[key][0]*100) / 100;
+      values.push({
+        x: value,
+        y: data[key][1],
+        class: data[key][2],
+        size: 0.05,
+        shape: 'diamond'
+      });
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+});
+  </script>
+ </body>
+</html>
