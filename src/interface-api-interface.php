@@ -16,7 +16,7 @@ interface API_Interface {
 	 *
 	 * @return array{file?:string,url?:string,type?:string,error?:string}
 	 */
-	public function download_remote_file_to_private_uploads( string $file_url, string $filename = null, ?DateTimeInterface $datetime = null ): array;
+	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): array;
 
 	/**
 	 * Given a local file, move the file to the private uploads directory.
