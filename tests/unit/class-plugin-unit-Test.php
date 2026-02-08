@@ -70,7 +70,7 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 
 		ob_start();
 
-		include $plugin_root_dir . '/example-plugin.php';
+		include $plugin_root_dir . '/development-plugin/example-plugin.php';
 
 		$printed_output = ob_get_contents();
 
