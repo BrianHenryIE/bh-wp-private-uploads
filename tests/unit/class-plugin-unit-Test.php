@@ -8,7 +8,6 @@
 
 namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
-use BrianHenryIE\WP_Logger\Logger;
 use BrianHenryIE\WP_Private_Uploads\API\API;
 
 /**
@@ -38,11 +37,6 @@ class Plugin_Unit_Test extends \Codeception\Test\Unit {
 		\Patchwork\redefine(
 			array( BH_WP_Private_Uploads_Test_Plugin::class, '__construct' ),
 			function ( $api, $settings, $logger ) {}
-		);
-
-		\Patchwork\redefine(
-			array( Logger::class, '__construct' ),
-			function ( $setting ) {}
 		);
 
 		\Patchwork\redefine(
