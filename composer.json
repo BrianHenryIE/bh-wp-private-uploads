@@ -1,6 +1,6 @@
 {
     "name": "brianhenryie/bh-wp-private-uploads",
-    "description": "This is a short description of what plugin_title does.",
+    "description": "WordPress library for serving private/protected file uploads.",
     "type": "library",
     "license": "GPL-2.0-or-later",
     "authors": [
