@@ -205,26 +205,29 @@ EOD;
 			 */
 			$image_src_array = wp_get_attachment_image_src( $upload_post->ID, 'thumbnail' );
 
+			if ( false !== $image_src_array ) {
 				add_thickbox();
 
-				/** @var string $image_src */
-				$image_src = $image_src_array[0];
-
-				/** @var string $image_href */
+				$image_src  = $image_src_array[0];
 				$image_href = wp_get_attachment_url( $upload_post->ID );
 
-			?>
+				if ( false !== $image_href ) {
+					?>
 				<a href="<?php echo esc_url( $image_href ); ?>?width=900&height=800" class="thickbox">
 					<img class="image-preview-private" style="width: 100%; height: auto;" src="<?php echo esc_url( $image_src ); ?>"/>
 				</a>
-				<?php
+					<?php
+				}
+			}
 		}
 
 		if ( ! empty( $private_uploads ) ) {
 			echo '<ul>';
 			foreach ( $private_uploads as $upload_post ) {
 				$non_image_attachment_href = wp_get_attachment_url( $upload_post->ID );
-				echo '<li><a href="' . esc_url( $non_image_attachment_href ) . '">' . $upload_post->post_title . '</a></li>';
+				if ( false !== $non_image_attachment_href ) {
+					echo '<li><a href="' . esc_url( $non_image_attachment_href ) . '">' . esc_html( $upload_post->post_title ) . '</a></li>';
+				}
 			}
 			echo '</ul>';
 
