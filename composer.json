@@ -65,7 +65,6 @@
         "10up/wp_mock": "^1.0",
         "alleyinteractive/wordpress-autoloader": "^1.1",
         "antecedent/patchwork": "^2.1",
-        "brianhenryie/bh-wp-logger": "dev-master",
         "brianhenryie/color-logger": "*",
         "cweagans/composer-patches": "*",
         "dealerdirect/phpcodesniffer-composer-installer": "*",
@@ -88,11 +87,6 @@
         "wpackagist-plugin/woocommerce": "*",
         "wpackagist-plugin/wp-rest-api-log": "*",
         "wpackagist-theme/twentytwenty": "*"
-    },
-    "extra": {
-      "branch-alias": {
-        "dev-update": "0.1.x-dev"
-      }
     },
     "scripts": {
         "post-install-cmd": [
