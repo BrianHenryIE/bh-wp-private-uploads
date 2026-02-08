@@ -2,7 +2,7 @@
 /**
  * Rector rules to automatically refactor code to modern syntax.
  *
- * @package brianhenryie/bh-wp-bitcoin-gateway
+ * @package brianhenryie/bh-wp-private-uploads
  */
 
 declare(strict_types=1);
