@@ -16,7 +16,7 @@
 /composer.lock          export-ignore
 /CONTRIBUTING.md        export-ignore
 /package.json           export-ignore
-/example-plugin.php     export-ignore
+/development-plugin     export-ignore
 /package-lock.json      export-ignore
 /patchwork.json         export-ignore
 /phpcs.xml              export-ignore
