@@ -150,9 +150,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		if ( ! empty( $request->get_param( 'post_parent' ) ) ) {
 			add_filter(
 				'wp_insert_post_parent',
-				function () use ( $request ) {
-					return $request->get_param( 'post_parent' );
-				}
+				fn() => $request->get_param( 'post_parent' )
 			);
 		}
 	}
