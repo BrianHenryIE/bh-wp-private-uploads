@@ -30,12 +30,10 @@ class Admin_Menu {
 		add_action(
 			"registered_post_type_{$settings->get_post_type_name()}",
 			function () {
-				/**
-				 * This will always work, or we have bigger problems.
-				 *
-				 * @var WP_Post_Type
-				 */
-				$this->post_type = get_post_type_object( $this->settings->get_post_type_name() );
+				$post_type = get_post_type_object( $this->settings->get_post_type_name() );
+				if ( null !== $post_type ) {
+					$this->post_type = $post_type;
+				}
 			}
 		);
 	}
@@ -92,12 +90,13 @@ class Admin_Menu {
 		// This isn't POSTed data, it's just a URL.
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		if ( ! isset( $_GET['post_type'] )
+			|| ! is_string( $_GET['post_type'] )
 			|| $this->settings->get_post_type_name() !== sanitize_key( $_GET['post_type'] )
 		) {
 			return $submenu_file;
 		}
 
-		if ( isset( $_SERVER['REQUEST_URI'] ) && false !== strpos( $url, (string) sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ) {
+		if ( isset( $_SERVER['REQUEST_URI'] ) && is_string( $_SERVER['REQUEST_URI'] ) && false !== strpos( $url, sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ) {
 			return $url;
 		}
 

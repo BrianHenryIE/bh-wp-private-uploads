@@ -142,7 +142,7 @@ class Example_Plugin extends \BrianHenryIE\WP_Private_Uploads\API\API {
 	 * @return array{is_private:bool}
 	 */
 	public function get_is_url_public_for_admin(): array {
-		$url = WP_CONTENT_URL . '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/';
+		$url = content_url( '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/' );
 		return $this->is_url_public_for_admin( $url );
 	}
 
@@ -150,8 +150,8 @@ class Example_Plugin extends \BrianHenryIE\WP_Private_Uploads\API\API {
 	 * @return array{url:string, is_private:bool|null, http_response_code?:int}
 	 */
 	public function get_is_url_private(): array {
-		$url = WP_CONTENT_URL . '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/';
-		return $this->is_url_private( $url );
+		$url = content_url( '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/' );
+		return $this->check_is_url_private( $url );
 	}
 }
 

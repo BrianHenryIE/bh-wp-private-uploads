@@ -36,11 +36,9 @@ class Upload {
 		if ( ! in_array( $pagenow, array( 'upload.php', 'media-new.php', 'async-upload.php' ) ) ) {
 			return;
 		}
-		if ( !
-				( isset( $_GET['post_type'] ) && $post_type === sanitize_key( $_GET['post_type'] ) )
-				||
-				( isset( $_SERVER['HTTP_REFERER'] ) && false !== strpos( $_SERVER['HTTP_REFERER'], 'post_type=' . $post_type ) )
-			) {
+		$get_post_type = isset( $_GET['post_type'] ) && is_string( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : '';
+		$http_referer  = isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
+		if ( ! ( $post_type === $get_post_type || false !== strpos( $http_referer, 'post_type=' . $post_type ) ) ) {
 			return;
 		}
 
@@ -208,6 +206,9 @@ class Upload {
 			return;
 		}
 
+		if ( ! isset( $_POST['attachment_id'] ) || ! is_numeric( $_POST['attachment_id'] ) ) {
+			return;
+		}
 		$post_id = (int) $_POST['attachment_id'];
 
 		$post = get_post( $post_id );

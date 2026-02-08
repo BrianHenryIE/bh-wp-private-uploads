@@ -67,7 +67,10 @@ class Serve_Private_File {
 	 * @return string
 	 */
 	protected function request_value( $key ) {
-		return isset( $_REQUEST[ $key ] ) ? trim( wp_unslash( $_REQUEST[ $key ] ) ) : '';
+		if ( ! isset( $_REQUEST[ $key ] ) || ! is_string( $_REQUEST[ $key ] ) ) {
+			return '';
+		}
+		return trim( wp_unslash( $_REQUEST[ $key ] ) );
 	}
 
 	/**
@@ -135,7 +138,7 @@ class Serve_Private_File {
 		// Add timing headers.
 		$date_format        = 'D, d M Y H:i:s T';  // RFC2616 date format for HTTP.
 		$last_modified_unix = filemtime( $path );
-		$last_modified      = gmdate( $date_format, filemtime( $path ) );
+		$last_modified      = false !== $last_modified_unix ? gmdate( $date_format, $last_modified_unix ) : gmdate( $date_format );
 		$etag               = md5( $last_modified );
 		header( "Last-Modified: $last_modified" );
 		header( 'ETag: "' . $etag . '"' );

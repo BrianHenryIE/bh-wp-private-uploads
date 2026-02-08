@@ -86,6 +86,10 @@ class Admin_Meta_Boxes {
 
 		$post = $this->current_post;
 
+		if ( null === $post ) {
+			return;
+		}
+
 		wp_enqueue_media();
 
 		$handle = sprintf(
