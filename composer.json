@@ -90,15 +90,10 @@
     },
     "scripts": {
         "post-install-cmd": [
-            "@create-symlinks",
             "@sync-composer-wpenv"
         ],
         "post-update-cmd": [
-            "@create-symlinks",
             "@sync-composer-wpenv"
-        ],
-        "create-symlinks": [
-            "Kporras07\\ComposerSymlinks\\ScriptHandler::createSymlinks"
         ],
         "test": [
             "codecept run unit",
