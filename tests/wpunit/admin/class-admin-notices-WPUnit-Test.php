@@ -3,9 +3,11 @@
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
 use BrianHenryIE\ColorLogger\ColorLogger;
+use BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Codeception\Stub\Expected;
+use DateTimeImmutable;
 
 /**
  * @coversDefaultClass  \BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices
@@ -18,21 +20,24 @@ class Admin_Notices_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 	 */
 	public function test_admin_notices_adds_notice_when_url_not_private(): void {
 		$logger   = new ColorLogger();
-		$api      = $this->makeEmpty(
+
+		$is_private_result = new Is_Private_Result(
+			'http://example.com/wp-content/uploads/private',
+			false,
+			200,
+			new DateTimeImmutable()
+		);
+
+		$api = $this->makeEmpty(
 			API_Interface::class,
 			array(
-				'check_and_update_is_url_private' => Expected::once(
-					array(
-						'url'        => 'http://example.com/wp-content/uploads/private',
-						'is_private' => false,
-					)
-				),
+				'check_and_update_is_url_private' => Expected::once( $is_private_result ),
 			)
 		);
 		$settings = $this->makeEmpty(
 			Private_Uploads_Settings_Interface::class,
 			array(
-				'get_plugin_slug' => Expected::atLeastOnce( 'test-plugin' ),
+				'get_post_type_name' => Expected::atLeastOnce( 'test-plugin' ),
 			)
 		);
 
