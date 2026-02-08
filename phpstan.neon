@@ -2,11 +2,11 @@ parameters:
     level: 8
     paths:
         - includes
-        - test-plugin
+        - development-plugin
     excludePaths:
-        - test-plugin/vendor/*
+        - development-plugin/vendor/*
     bootstrapFiles:
-#        - test-plugin/autoload.php
+#        - development-plugin/autoload.php
         - phpstanbootstrap.php
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
     scanDirectories:
