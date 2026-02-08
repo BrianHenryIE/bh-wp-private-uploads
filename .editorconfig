@@ -15,7 +15,7 @@ trim_trailing_whitespace = true
 indent_style = tab
 indent_size = 4
 
-# JavaScript/TypeScript - spaces (common in modern JS)
+# JavaScript/TypeScript - tabs (WordPress coding standards)
 [*.{js,ts,jsx,tsx}]
 indent_style = tab
 indent_size = 4
