@@ -21,7 +21,7 @@
     "../setup": "./tests/_wp-env",
     "wp-content/plugins/debug-log-manager": "./wp-content/plugins/debug-log-manager",
     "wp-content/plugins/development-plugin": "./development-plugin",
-    "wp-content/plugins/development-plugin/src": "./src",
+    "wp-content/plugins/development-plugin/includes": "./includes",
     "wp-content/plugins/development-plugin/vendor": "./vendor",
     "wp-content/plugins/document-generator-for-openapi": "./wp-content/plugins/document-generator-for-openapi",
     "wp-content/plugins/monkeyman-rewrite-analyzer": "./wp-content/plugins/monkeyman-rewrite-analyzer",

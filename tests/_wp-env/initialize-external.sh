@@ -16,7 +16,7 @@ echo "Detected OS: $OS_TYPE"
 # Function to build the plugin for Unix-based systems (Linux and macOS)
 build_plugin_unix() {
   # Uncomment the following lines if you need to use them
-  # vendor/bin/wp i18n make-pot src languages/$PLUGIN_SLUG.pot --domain=$PLUGIN_SLUG
+  # vendor/bin/wp i18n make-pot includes languages/$PLUGIN_SLUG.pot --domain=$PLUGIN_SLUG
   # vendor/bin/wp dist-archive . ./tests/e2e-pw/setup --plugin-dirname=$PLUGIN_SLUG --filename-format="{name}.latest"
 
   # Run the internal scripts which configure the environments:

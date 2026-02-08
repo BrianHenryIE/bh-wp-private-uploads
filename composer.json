@@ -33,11 +33,11 @@
     },
     "autoload": {
         "classmap": [
-            "src/",
+            "includes/",
             "assets/"
         ],
         "files": [
-            "src/functions.php"
+            "includes/functions.php"
         ]
     },
     "repositories": {
@@ -126,7 +126,7 @@
             "updated_files=$(echo $(git diff --name-only `git merge-base origin/master HEAD` | grep \\.php | tr '\\n' '\\0' | xargs -0 ls -1df 2>/dev/null)); if [ -n \"$updated_files\" ]; then phpcbf $(echo $updated_files); phpcs $(echo $updated_files); phpstan analyse $(echo $updated_files) --level max --memory-limit 1G; else echo \"No modified php files for phpstan.\"; fi;"
         ],
         "create-plugin-archive": [
-            "wp i18n make-pot src languages/$(basename \"$PWD\").pot --domain=$(basename \"$PWD\")",
+            "wp i18n make-pot includes languages/$(basename \"$PWD\").pot --domain=$(basename \"$PWD\")",
             "wp dist-archive development-plugin ./dist-archive --plugin-dirname=development-plugin --create-target-dir"
         ],
         "github-actions": [
