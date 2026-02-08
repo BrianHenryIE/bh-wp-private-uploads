@@ -12,7 +12,7 @@
  * @package    brianhenryie/bh-wp-private-uploads
  *
  * @wordpress-plugin
- * Plugin Name:       Private Uploads Example Plugin
+ * Plugin Name:       Private Uploads Development Plugin
  * Plugin URI:        http://github.com/BrianHenryIE/bh-wp-private-uploads/
  * Description:       PHP proxy for files stored in `wp-content/uploads`.
  * Version:           3.0.0
