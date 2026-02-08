@@ -19,6 +19,9 @@ use WP_REST_Attachments_Controller;
 use WP_REST_Controller;
 use WP_REST_Request;
 
+/**
+ * @phpstan-type Dependencies array{settings: Private_Uploads_Settings_Interface}
+ */
 class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 
 	protected Private_Uploads_Settings_Interface $settings;
@@ -26,17 +29,20 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	/**
 	 * Constructor
 	 *
-	 * Earlier we added the settings object to the post type object which is used here.
+	 * Earlier we added the dependencies array to the post type object which is used here.
 	 *
 	 * @see Post_Type
 	 * @param string $post_type_name
 	 */
 	public function __construct( $post_type_name ) {
 
-		/** @var WP_Post_Type $post_type_object */
 		$post_type_object = get_post_type_object( $post_type_name );
 
-		$this->settings = $post_type_object->settings;
+		if ( null !== $post_type_object && isset( $post_type_object->dependencies ) ) {
+			/** @var Dependencies $dependencies */
+			$dependencies   = $post_type_object->dependencies;
+			$this->settings = $dependencies['settings'];
+		}
 
 		parent::__construct( $post_type_name );
 	}
