@@ -25,14 +25,11 @@
 
 namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
-use BrianHenryIE\WP_Logger\Logger_Settings_Interface;
-use BrianHenryIE\WP_Logger\Logger_Settings_Trait;
 use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface as Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -45,26 +42,11 @@ define( 'BH_WP_PRIVATE_UPLOADS_TEST_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_TEST_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 
-$settings = new class() implements Logger_Settings_Interface, Settings_Interface {
+$settings = new class() implements Settings_Interface {
 	use Private_Uploads_Settings_Trait;
-	use Logger_Settings_Trait;
-
-	/**
-	 * The plugin log level.
-	 *
-	 * @see Logger_Settings_Interface::get_log_level()
-	 * @see LogLevel
-	 */
-	public function get_log_level(): string {
-		return LogLevel::DEBUG;
-	}
 
 	/**
 	 * For friendly display.
-	 *
-	 * @see Logger_Settings_Interface::get_plugin_name()
-	 *
-	 * @return string
 	 */
 	public function get_plugin_name(): string {
 		return 'Private Uploads Test Plugin';
@@ -72,8 +54,6 @@ $settings = new class() implements Logger_Settings_Interface, Settings_Interface
 
 	/**
 	 * The plugin basename, for adding the Logs link on plugins.php.
-	 *
-	 * @see Logger_Settings_Interface::get_plugin_basename()
 	 */
 	public function get_plugin_basename(): string {
 		return defined( 'BH_WP_PRIVATE_UPLOADS_TEST_PLUGIN_BASENAME' )
@@ -96,7 +76,6 @@ $settings = new class() implements Logger_Settings_Interface, Settings_Interface
 	 * The test plugin's slug as an identifier.
 	 *
 	 * @see Settings_Interface::get_plugin_slug()
-	 * @see Logger_Settings_Interface::get_plugin_slug()
 	 * @see Private_Uploads_Settings_Interface::get_plugin_slug()
 	 */
 	public function get_plugin_slug(): string {
@@ -174,16 +153,6 @@ class Example_Plugin extends \BrianHenryIE\WP_Private_Uploads\API\API {
 		return $this->is_url_private( $url );
 	}
 }
-
-
-// Fix the symlinks in symlinks in symlinks.
-add_filter(
-	'plugins_url',
-	function ( $url ): string {
-		$plugin_slug = 'bh-wp-private-uploads';
-		return preg_replace( "/(.*$plugin_slug)(.*\/$plugin_slug)(\/.*)/", '$1$3', $url );
-	}
-);
 
 // TODO: move to bh-wp-logger
 // add_filter( 'register_post_type_args', '\BrianHenryIE\WP_Private_Uploads_Test_Plugin\configure_my_private_uploads_post_type_logs', 10, 2 );
