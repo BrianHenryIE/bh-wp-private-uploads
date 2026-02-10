@@ -123,6 +123,7 @@ $settings = new class() implements Settings_Interface {
 	public function get_meta_box_settings(): array {
 		return array(
 			'shop_order' => array(),
+			'page'       => array(),
 		);
 	}
 };
