@@ -54,6 +54,8 @@ class Serve_Private_File {
 		);
 
 		/**
+		 * If the file key is not set, the request is not relevant to us.
+		 *
 		 * PHPCS: This is a URL for a file, idempotent, not data being sent and saved.
 		 *
 		 * TODO: is there a global WordPress request object we can query rather than the PHP server globals directly?
@@ -64,30 +66,10 @@ class Serve_Private_File {
 			return;
 		}
 
-		// If the file key is set, we definitely want to handle the request.
-
 		// This is empty when requesting the folder itself.
-		$file = $this->get_sanitized_request_value( $file_key );
+		$file = trim( sanitize_text_field( wp_unslash( $_REQUEST[ $file_key ] ) ) );
 
 		$this->send_private_file( $file );
-	}
-
-	/**
-	 * Get a sanitized request variable or return an empty string if not set.
-	 *
-	 * TODO: Can we change this to never return an empty string. Note above says it is empty when requesting the directory.
-	 *
-	 * @param string $key The GET/POST var name.
-	 *
-	 * PHPCS: This is a URL for a file, idempotent, not data being sent and saved.
-	 *
-	 * phpcs:disable WordPress.Security.NonceVerification.Recommended
-	 */
-	protected function get_sanitized_request_value( string $key ): string {
-		if ( ! isset( $_REQUEST[ $key ] ) || ! is_string( $_REQUEST[ $key ] ) ) {
-			return '';
-		}
-		return trim( sanitize_text_field( wp_unslash( $_REQUEST[ $key ] ) ) );
 	}
 
 	/**
