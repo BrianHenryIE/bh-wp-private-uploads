@@ -120,7 +120,7 @@ class Admin_Menu {
 
 		if ( isset( $_SERVER['REQUEST_URI'] )
 			&& is_string( $_SERVER['REQUEST_URI'] )
-			&& false !== strpos( $url, sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) )
+			&& str_contains( $url, sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) )
 		) {
 			return $url;
 		}
