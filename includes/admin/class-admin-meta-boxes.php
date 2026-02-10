@@ -12,27 +12,34 @@ namespace BrianHenryIE\WP_Private_Uploads\Admin;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use WC_Order;
 use WP_Post;
 use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 
+/**
+ * @see assets/bh-wp-private-uploads-admin.js
+ */
 class Admin_Meta_Boxes {
 	use LoggerAwareTrait;
 
 	/**
 	 * The plugin's settings.
 	 *
-	 * @uses Settings_Interface::get_plugin_basename()
-	 * @uses Settings_Interface::get_plugin_version()
-	 * @uses Settings_Interface::get_post_type_name()
+	 * @uses Private_Uploads_Settings_Interface::get_plugin_basename()
+	 * @uses Private_Uploads_Settings_Interface::get_plugin_version()
+	 * @uses Private_Uploads_Settings_Interface::get_post_type_name()
 	 */
 	protected Private_Uploads_Settings_Interface $settings;
 
+	/**
+	 * The post currently being displayed in the admin UI.
+	 */
 	protected ?WP_Post $current_post = null;
 
 	/**
 	 * Constructor
 	 *
-	 * @param Private_Uploads_Settings_Interface $settings
+	 * @param Private_Uploads_Settings_Interface $settings The private uploads settings.
 	 * @param LoggerInterface                    $logger A PSR logger.
 	 */
 	public function __construct( Private_Uploads_Settings_Interface $settings, LoggerInterface $logger ) {
@@ -60,7 +67,7 @@ class Admin_Meta_Boxes {
 			return;
 		}
 
-		if ( ! in_array( $post_type, array_keys( $this->settings->get_meta_box_settings() ) ) ) {
+		if ( ! in_array( $post_type, array_keys( $this->settings->get_meta_box_settings() ), true ) ) {
 			return;
 		}
 
@@ -99,21 +106,10 @@ class Admin_Meta_Boxes {
 
 		wp_enqueue_script( $handle );
 
-		$post_author = 0;
-
-		// $post_author = $post->post_author;
-		//
-		// $order = wc_get_order( $post->ID );
-		// if ( $order instanceof \WC_Order && 0 !== $order->get_customer_id() ) {
-		// $post_author = $order->get_customer_id();
-		// } else {
-		// $post_author = get_current_user_id();
-		// }
-
 		$ajax_data = array(
 			'private_attachment_post_type' => $this->settings->get_post_type_name(),
 			'post_id'                      => $post->ID,
-			'post_author'                  => $post_author,
+			'post_author'                  => $post->post_author,
 			'modal_title'                  => 'Private Uploads Media Upload',
 			'modal_text'                   => 'Use this item',
 		);
@@ -135,13 +131,13 @@ var $var_name = $ajax_data_json;
 
 		var selector = '.' + '$selector_prefix' + '-private-media-library';
 
-		registerPrivateUploadsMediaLibrary( 
-		    selector, 
-		    $var_name.private_attachment_post_type, 
-		    $var_name.post_id, 
+		registerPrivateUploadsMediaLibrary(
+		    selector,
+		    $var_name.private_attachment_post_type,
+		    $var_name.post_id,
 		    $var_name.post_author,
-		    $var_name.modal_title, 
-		    $var_name.modal_text 
+		    $var_name.modal_title,
+		    $var_name.modal_text
         );
 
 	});
@@ -159,10 +155,10 @@ EOD;
 	/**
 	 * HTML for the admin display of the private Media Upload modal
 	 *
-	 * @see Admin_Order_UI::add_meta_box()
+	 * @see self::add_meta_box()
 	 *
-	 * @param WP_Post                                                              $post The post object being displayed on the admin edit screen.
-	 * @param array{id:string,title:string,callback:callable,args:array|null}|null $box The arguments used when registering this box (see above).
+	 * @param WP_Post                                                                     $post The post object being displayed on the admin edit screen.
+	 * @param array{id:string,title:string,callback:callable,args:array<mixed>|null}|null $box The arguments used when registering this box (see above).
 	 */
 	public function print_meta_box( WP_Post $post, ?array $box = null ): void {
 
@@ -205,7 +201,7 @@ EOD;
 			 */
 			$image_src_array = wp_get_attachment_image_src( $upload_post->ID, 'thumbnail' );
 
-			if ( false !== $image_src_array ) {
+			if ( is_array( $image_src_array ) ) {
 				add_thickbox();
 
 				$image_src  = $image_src_array[0];
@@ -238,15 +234,15 @@ EOD;
 			// TODO: Thickbox.
 			echo '<img class="image-preview-private" style="width:100%; height:auto; display:none;"/>';
 
-			echo "<p>{$nothing_has_been_uploaded_message}</p>";
+			printf( '<p>%s</p>', esc_html( $nothing_has_been_uploaded_message ) );
 
 			echo '</div>';
 		}
 
 		echo '<p>';
-		// TODO example-plugin
-		echo '<button class="button bh-wp-private-uploads-test-plugin-private-media-library">' . $select_files_text . '</button>';
-		echo '<button class="button bh-wp-private-uploads-test-plugin-private-media-library remove-files" style="display: none">' . $remove_files_text . '</button>';
+		// TODO: add an E2E tested example implementation in development-plugin.
+		echo '<button class="button bh-wp-private-uploads-test-plugin-private-media-library">' . esc_html( $select_files_text ) . '</button>';
+		echo '<button class="button bh-wp-private-uploads-test-plugin-private-media-library remove-files" style="display: none">' . esc_html( $remove_files_text ) . '</button>';
 		echo '</p>';
 	}
 }

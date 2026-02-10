@@ -93,6 +93,8 @@ trait Private_Uploads_Settings_Trait {
 	 * Default does not add the upload meta box to any post types.
 	 *
 	 * @see Private_Uploads_Settings_Interface::get_meta_box_settings()
+	 *
+	 * @return array<string, array>|array{}
 	 */
 	public function get_meta_box_settings(): array {
 		return array();
