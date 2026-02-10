@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 // `npx wp-env install-path` . "WordPress/wp-content/uploads/private-media".
 // ls $(npx wp-env install-path)"/WordPress/wp-content/uploads/private-media"
 
-test('upload file', async ({ page }) => {
+test('upload file via admin menu page', async ({ page }) => {
 
   await page.goto( 'http://localhost:8888/wp-login.php', {
     waitUntil: 'networkidle',
