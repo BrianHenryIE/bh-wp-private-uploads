@@ -87,7 +87,7 @@ class Serve_Private_File {
 		if ( ! isset( $_REQUEST[ $key ] ) || ! is_string( $_REQUEST[ $key ] ) ) {
 			return '';
 		}
-		return trim( wp_unslash( sanitize_key( $_REQUEST[ $key ] ) ) );
+		return trim( wp_unslash( sanitize_text_field( $_REQUEST[ $key ] ) ) );
 	}
 
 	/**
