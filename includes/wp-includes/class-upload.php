@@ -40,9 +40,11 @@ class Upload {
 		if ( ! in_array( $pagenow, array( 'upload.php', 'media-new.php', 'async-upload.php' ) ) ) {
 			return;
 		}
-		$get_post_type = isset( $_GET['post_type'] ) && is_string( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : '';
+		$request_post_type = isset( $_REQUEST['post_type'] ) && is_string( $_REQUEST['post_type'] )
+			? sanitize_key( $_REQUEST['post_type'] )
+			: '';
 		$http_referer  = isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
-		if ( ! ( $post_type === $get_post_type || false !== strpos( $http_referer, 'post_type=' . $post_type ) ) ) {
+		if ( ! ( $post_type === $request_post_type || false !== strpos( $http_referer, 'post_type=' . $post_type ) ) ) {
 			return;
 		}
 
