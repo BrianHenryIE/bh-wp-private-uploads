@@ -60,6 +60,7 @@ class Admin_Notices extends Notices {
 		$content = apply_filters( 'bh_wp_private_uploads_url_is_public_warning_' . $this->settings->get_post_type_name(), $content, $url );
 
 		if ( ! is_string( $content ) ) {
+			$this->logger->warning( 'Filtered message value was not a string' );
 			return;
 		}
 
