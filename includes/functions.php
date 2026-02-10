@@ -11,7 +11,7 @@ function get_plugin_name_from_slug( string $plugin_slug ): string {
 
 	require_once constant( 'ABSPATH' ) . 'wp-admin/includes/plugin.php';
 
-	/** @var array<string,array{Name:string,PluginURI:string,Version:string,Description:string,Author:string,AuthorURI:string,TextDomain:string,DomainPath:string,Network:bool,RequiresWP:string,RequiresPHP:string,UpdateURI:string}> $plugins */
+	/** @var array<string,array{Name:string,PluginURI?:string,Version?:string,Description?:string,Author?:string,AuthorURI?:string,TextDomain?:string,DomainPath?:string,Network?:bool,RequiresWP?:string,RequiresPHP?:string,UpdateURI?:string}> $plugins */
 	$plugins         = get_plugins();
 	$plugin_basename = get_plugin_basename( $plugins, $plugin_slug );
 	$plugin_name     = is_null( $plugin_basename )
@@ -47,6 +47,13 @@ function str_underscores_to_title_case( string $string ): string {
 	return ucwords( str_replace( '_', ' ', $string ) );
 }
 
-function str_hyphens_to_title_case( string $string ): string {
-	return ucwords( str_replace( '-', ' ', $string ) );
+/**
+ * Given "a-plugin-slug" returns "A Plugin Slug".
+ *
+ * NB: does not do 100% perfect title case, e.g. "masters-of-the-universe" returns "Masters Of The Universe".
+ *
+ * @param string $kebab_string A kebab-case string.
+ */
+function str_hyphens_to_title_case( string $kebab_string ): string {
+	return ucwords( str_replace( '-', ' ', $kebab_string ) );
 }
