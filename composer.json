@@ -40,6 +40,11 @@
             "includes/functions.php"
         ]
     },
+    "autoload-dev": {
+        "classmap": [
+            "development-plugin/"
+        ]
+    },
     "repositories": {
         "outlandishideas/wpackagist": {
             "type": "composer",

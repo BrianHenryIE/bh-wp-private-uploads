@@ -42,7 +42,6 @@ require_once __DIR__ . '/../vendor/autoload.php';
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
-
 $settings = new class() implements Settings_Interface {
 	use Private_Uploads_Settings_Trait;
 
@@ -128,53 +127,29 @@ $settings = new class() implements Settings_Interface {
 	}
 };
 
-class Example_Plugin extends \BrianHenryIE\WP_Private_Uploads\API\API {
-	use LoggerAwareTrait;
-
-	public function __construct( Settings_Interface $settings, LoggerInterface $logger ) {
-
-		parent::__construct( $settings, $logger );
-
-		new BH_WP_Private_Uploads_Hooks( $this, $settings, $logger );
-	}
-
-	/**
-	 * @return array{is_private:bool}
-	 */
-	public function get_is_url_public_for_admin(): array {
-		$url = content_url( '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/' );
-		return $this->is_url_public_for_admin( $url );
-	}
-
-	/**
-	 * @return array{url:string, is_private:bool|null, http_response_code?:int}
-	 */
-	public function get_is_url_private(): array {
-		$url = content_url( '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/' );
-		return $this->check_is_url_private( $url );
-	}
-}
-
-$e = new Example_Plugin( $settings, new NullLogger() );
+$e = new Example_Private_Uploads( $settings, new NullLogger() );
 
 // TODO: move to bh-wp-logger
- add_filter( 'register_post_type_args', function ( array $args, string $post_type ) use ($settings): array {
-	// $args['show_in_menu'] = true;
+add_filter(
+	'register_post_type_args',
+	function ( array $args, string $post_type ) use ( $settings ): array {
+		// $args['show_in_menu'] = true;
 
-
-
-//	if ( 'bh-wp-privat_private' !== $post_type ) {
-	if ( $settings->get_post_type_name() !== $post_type ) {
+		// if ( 'bh-wp-privat_private' !== $post_type ) {
+		if ( $settings->get_post_type_name() !== $post_type ) {
+				return $args;
+		}
+		// $args['description'] = 'Private uploads for my-plugin';    // Description as shown ... ? TODO: where is it shown?
+		$args['show_in_menu'] = true;          // Should the admin menu Media submenu be displayed?
+		// $args['label'] = 'My-plugin Files';    // The name for the admin menu Media submenu item.
+		$args['show_in_rest'] = false;          // Default is true.
+		// $args['rest_namespace'] = 'my-plugin/v1'; // Default is `plugin-slug/v1`.
+		// $args['rest_base'] = 'uploads';        // Default is `uploads`.
+		// $args['taxonomies'] = array();         // E.g. `category`, `post_tag`.
+		// $args['delete_with_user'] = true;      // Delete all posts of this type authored by a user when that user is deleted.
+		// ...
 		return $args;
-	}
-	// $args['description'] = 'Private uploads for my-plugin';    // Description as shown ... ? TODO: where is it shown?
-	$args['show_in_menu'] = true;          // Should the admin menu Media submenu be displayed?
-	// $args['label'] = 'My-plugin Files';    // The name for the admin menu Media submenu item.
-	$args['show_in_rest'] = false;          // Default is true.
-	// $args['rest_namespace'] = 'my-plugin/v1'; // Default is `plugin-slug/v1`.
-	// $args['rest_base'] = 'uploads';        // Default is `uploads`.
-	// $args['taxonomies'] = array();         // E.g. `category`, `post_tag`.
-	// $args['delete_with_user'] = true;      // Delete all posts of this type authored by a user when that user is deleted.
-	// ...
-	return $args;
-}, 10, 2 );
+	},
+	10,
+	2
+);
