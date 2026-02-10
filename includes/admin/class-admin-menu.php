@@ -23,7 +23,7 @@ class Admin_Menu {
 	/**
 	 * The WordPress registered post type object reference.
 	 */
-	protected WP_Post_Type $post_type;
+	protected ?WP_Post_Type $post_type = null;
 
 	/**
 	 * Constructor
@@ -71,7 +71,7 @@ class Admin_Menu {
 	public function add_private_media_library_menu(): void {
 
 		// If the plugin is not configured to add a submenu, don't add one.
-		if ( ! $this->post_type->show_in_menu ) {
+		if ( ! $this->post_type?->show_in_menu ) {
 			return;
 		}
 
