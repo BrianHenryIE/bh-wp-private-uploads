@@ -87,7 +87,7 @@ class Serve_Private_File {
 		if ( ! isset( $_REQUEST[ $key ] ) || ! is_string( $_REQUEST[ $key ] ) ) {
 			return '';
 		}
-		return trim( wp_unslash( sanitize_text_field( $_REQUEST[ $key ] ) ) );
+		return trim( sanitize_text_field( wp_unslash( $_REQUEST[ $key ] ) ) );
 	}
 
 	/**
@@ -169,8 +169,9 @@ class Serve_Private_File {
 		header( 'Expires: ' . gmdate( $date_format, time() + HOUR_IN_SECONDS ) ); // an arbitrary hour from now.
 
 		// Support for caching.
-		$client_etag              = $this->get_sanitized_request_value( 'HTTP_IF_NONE_MATCH' );
-		$client_if_mod_since      = $this->get_sanitized_request_value( 'HTTP_IF_MODIFIED_SINCE' );
+		$client_etag = sanitize_text_field( wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] ?? '' ) );
+		// Example: "If-Modified-Since: Wed, 21 Oct 2015 07:28:00 GMT".
+		$client_if_mod_since      = sanitize_text_field( wp_unslash( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? '' ) );
 		$client_if_mod_since_unix = strtotime( $client_if_mod_since );
 
 		if ( $etag === $client_etag ||
