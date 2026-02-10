@@ -67,7 +67,7 @@ class Upload {
 
 		$post_type        = $this->settings->get_post_type_name();
 		$post_type_object = get_post_type_object( $post_type );
-		if ( null !== $post_type_object ) {
+		if ( is_null( $post_type_object ) ) {
 			return;
 		}
 
