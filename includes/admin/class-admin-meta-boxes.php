@@ -225,17 +225,21 @@ EOD;
 		}
 
 		echo '<ul class="private-media-library-post-attachments">';
-		echo '</ul>';
 		if ( ! empty( $private_uploads ) ) {
 			foreach ( $private_uploads as $upload_post ) {
-				$non_image_attachment_href = wp_get_attachment_url( $upload_post->ID );
-				if ( false !== $non_image_attachment_href ) {
-					echo '<li><a href="' . esc_url( $non_image_attachment_href ) . '">' . esc_html( $upload_post->post_title ) . '</a></li>';
+				// Change post_type to 'attachment' so wp_get_attachment_url works correctly
+				$upload_post->post_type = 'attachment';
+				wp_cache_set( $upload_post->ID, $upload_post, 'posts' );
+
+				$attachment_href = wp_get_attachment_url( $upload_post->ID );
+				if ( false !== $attachment_href ) {
+					echo '<li><a href="' . esc_url( $attachment_href ) . '">' . esc_html( $upload_post->post_title ) . '</a></li>';
 				}
 			}
+		}
+		echo '</ul>';
 
-		} else {
-
+		if ( empty( $private_uploads ) ) {
 			echo '<div class="no-uploads-yet">';
 
 			// TODO: Thickbox.
