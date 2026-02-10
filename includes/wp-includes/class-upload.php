@@ -197,6 +197,7 @@ class Upload {
 			return $url;
 		}
 
+		// TODO: DO NOT DO THIS for the real menu links.
 		return add_query_arg( array( 'post_type' => $post_type ), $url );
 	}
 

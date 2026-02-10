@@ -61,7 +61,11 @@ class Media {
 
 
 	/**
+	 * Hook into the upload process to handle private uploads.
 	 *
+	 * This is triggered via:
+	 * 1. async-upload.php with post_type in referer (legacy uploader)
+	 * 2. admin-ajax.php with post_type in POST data (plupload/modern uploader)
 	 *
 	 * @hooked admin_init
 	 * @see wp_ajax_upload_attachment()
@@ -69,26 +73,21 @@ class Media {
 	 */
 	public function on_upload_attachment(): void {
 
-		// if ( ! isset( $_POST['action'] ) ) {
-		// return;
-		// }
-		//
-		// if ( ! check_ajax_referer( 'media-form', false, false ) ) {
-		// return;
-		// }
-		//
-		// if ( 'upload-attachment' !== $_POST['action'] ) {
-		// return;
-		// }
-
 		global $pagenow;
 
-		if ( !
-			( 'async-upload.php' === $pagenow
-		&&
-				false !== strpos( $_SERVER['HTTP_REFERER'], 'post_type=' . $this->settings->get_post_type_name() ) )
-			||
-			( isset( $_POST['post_type'] ) && $this->settings->get_post_type_name() === $_POST['post_type'] ) ) {
+		$post_type = $this->settings->get_post_type_name();
+
+		// Check if this is our private upload via POST parameter (modern uploader via admin-ajax.php)
+		// The JS sets: window.wp.Uploader.defaults.multipart_params.post_type = private_attachment_post_type
+		$is_private_upload_via_post = isset( $_POST['post_type'] ) && $post_type === $_POST['post_type'];
+
+		// Check if this is our private upload via async-upload.php with referer containing post_type
+		$http_referer = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
+		$is_private_upload_via_referer = 'async-upload.php' === $pagenow
+			&& false !== strpos( $http_referer, 'post_type=' . $post_type );
+
+		// Only continue if this is one of our private uploads
+		if ( ! $is_private_upload_via_post && ! $is_private_upload_via_referer ) {
 			return;
 		}
 
