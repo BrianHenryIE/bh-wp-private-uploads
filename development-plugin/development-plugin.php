@@ -25,11 +25,8 @@
 
 namespace BrianHenryIE\WP_Private_Uploads_Development_Plugin;
 
-use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
-use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface as Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
-use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 // If this file is called directly, abort.
@@ -42,7 +39,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
-$settings = new class() implements Settings_Interface {
+$settings = new class() implements Private_Uploads_Settings_Interface {
 	use Private_Uploads_Settings_Trait;
 
 	/**
@@ -118,7 +115,7 @@ $settings = new class() implements Settings_Interface {
 	 *
 	 * @see Private_Uploads_Settings_Interface::get_meta_box_settings()
 	 *
-	 * @return array<string,array>
+	 * @return array<string,array<mixed>>
 	 */
 	public function get_meta_box_settings(): array {
 		return array(
@@ -130,7 +127,6 @@ $settings = new class() implements Settings_Interface {
 
 $e = new Example_Private_Uploads( $settings, new NullLogger() );
 
-// TODO: move to bh-wp-logger
 add_filter(
 	'register_post_type_args',
 	function ( array $args, string $post_type ) use ( $settings ): array {
