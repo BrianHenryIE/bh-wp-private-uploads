@@ -153,3 +153,30 @@ add_filter(
 	10,
 	2
 );
+
+
+/**
+ * Because the relative filepaths mapped inside Docker, we need to fix the plugin urls.
+ *
+ * `assets`, `include`, `vendor` are mapped to the wp-content/plugins directory, not the development-plugin subdir.
+ *
+ * @see .wp-env.json
+ *
+ * "http://localhost:8888/wp-content/plugins/includes/admin/assets/bh-wp-private-uploads-admin.js?ver=1.0.0"
+ * should be
+ * "http://localhost:8888/wp-content/plugins/assets/bh-wp-private-uploads-admin.js?ver=1.0.0"
+ *
+ * @see plugins_url()
+ */
+add_filter(
+	'plugins_url',
+	function ( string $url, string $_path, string $_plugin ): string {
+
+		/** @phpstan-ignore-next-line phpstanWP.wpConstant.fetch */
+		$url = str_replace( WP_PLUGIN_URL . '/includes/admin', WP_PLUGIN_URL . '/', $url );
+
+		return $url;
+	},
+	10,
+	3
+);

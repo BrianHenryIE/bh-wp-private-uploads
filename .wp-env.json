@@ -21,6 +21,7 @@
     "../setup": "./tests/_wp-env",
     "wp-content/plugins/debug-log-manager": "./wp-content/plugins/debug-log-manager",
     "wp-content/plugins/development-plugin": "./development-plugin",
+    "wp-content/plugins/assets": "./assets",
     "wp-content/plugins/includes": "./includes",
     "wp-content/plugins/vendor": "./vendor",
     "wp-content/plugins/document-generator-for-openapi": "./wp-content/plugins/document-generator-for-openapi",
