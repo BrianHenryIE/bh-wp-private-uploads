@@ -164,7 +164,7 @@ class Media {
 		if ( false !== strpos( $attachment->guid, $post_type ) ) {
 
 			foreach ( $response['sizes'] as $name => $size ) {
-				$response['sizes'][ $name ]['url'] = str_replace( WP_CONTENT_URL . '/uploads', WP_CONTENT_URL . '/uploads/' . $this->settings->get_uploads_subdirectory_name(), $response['sizes'][ $name ]['url'] );
+				$response['sizes'][ $name ]['url'] = str_replace( content_url( '/uploads' ), content_url( '/uploads/' . $this->settings->get_uploads_subdirectory_name() ), $response['sizes'][ $name ]['url'] );
 			}
 		}
 

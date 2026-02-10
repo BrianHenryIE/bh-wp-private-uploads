@@ -59,6 +59,11 @@ class Admin_Notices extends Notices {
 		$content = sprintf( __( 'Private uploads directory at %s is publicly accessible.', 'bh-wp-private-uploads' ), $href );
 		$content = apply_filters( 'bh_wp_private_uploads_url_is_public_warning_' . $this->settings->get_post_type_name(), $content, $url );
 
+		if ( ! is_string( $content ) ) {
+			$this->logger->warning( 'Filtered message value was not a string' );
+			return;
+		}
+
 		// ID must be globally unique because it is the css id that will be used.
 		$this->add(
 			$notice_id,

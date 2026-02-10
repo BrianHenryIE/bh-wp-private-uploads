@@ -138,9 +138,9 @@ class API implements API_Interface {
 		 *     @type string       $baseurl URL path without subdir.
 		 *     @type string|false $error   False or error message.
 		 * }
-		 * @return array $uploads
+		 * @return array{path:string,url:string,subdir:string,basedir:string,baseurl:string,error:string|false} $uploads
 		 */
-		$private_path = function ( $uploads ) use ( $yyyymm, $private_directory_name ) {
+		$private_path = function ( array $uploads ) use ( $yyyymm, $private_directory_name ): array {
 
 			// Use private uploads dir.
 
@@ -368,7 +368,7 @@ class API implements API_Interface {
 
 		$args['cookies'] = array_filter(
 			$_COOKIE,
-			fn($value, $key) => false !== strpos( $key, 'WordPress' ),
+			fn( $value, $key ) => false !== strpos( $key, 'WordPress' ),
 			ARRAY_FILTER_USE_BOTH
 		);
 

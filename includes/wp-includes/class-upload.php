@@ -16,18 +16,22 @@ use WP_Query;
 use WP_Screen;
 
 /**
+ * Enables having a custom attachment post type by modifying cache entries.
+ *
  * @see wp-admin/upload.php
  * @see wp-admin/media-new.php
  * @see wp-admin/async-upload.php
  */
 class Upload {
 
-	protected Private_Uploads_Settings_Interface $settings;
-
-	public function __construct( Private_Uploads_Settings_Interface $settings ) {
-
-		$this->settings = $settings;
-
+	/**
+	 * Constructor.
+	 *
+	 * @param Private_Uploads_Settings_Interface $settings
+	 */
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings
+	) {
 		global $pagenow;
 		$post_type = $settings->get_post_type_name();
 		// &post_type=test_plugin_private
@@ -36,11 +40,9 @@ class Upload {
 		if ( ! in_array( $pagenow, array( 'upload.php', 'media-new.php', 'async-upload.php' ) ) ) {
 			return;
 		}
-		if ( !
-				( isset( $_GET['post_type'] ) && $post_type === sanitize_key( $_GET['post_type'] ) )
-				||
-				( isset( $_SERVER['HTTP_REFERER'] ) && false !== strpos( $_SERVER['HTTP_REFERER'], 'post_type=' . $post_type ) )
-			) {
+		$get_post_type = isset( $_GET['post_type'] ) && is_string( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : '';
+		$http_referer  = isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
+		if ( ! ( $post_type === $get_post_type || false !== strpos( $http_referer, 'post_type=' . $post_type ) ) ) {
 			return;
 		}
 
@@ -63,16 +65,19 @@ class Upload {
 	 */
 	public function current_screen( WP_Screen $current_screen_object ): void {
 
-		$post_type = $this->settings->get_post_type_name();
+		$post_type        = $this->settings->get_post_type_name();
+		$post_type_object = get_post_type_object( $post_type );
+		if ( is_null( $post_type_object ) ) {
+			return;
+		}
 
 		$current_screen_object->post_type = $post_type;
 
 		global $current_screen;
 		$current_screen = $current_screen_object;
 
+		/** @var array<string,\WP_Post_Type> $wp_post_types */
 		global $wp_post_types;
-		$post_type_object = get_post_type_object( $post_type );
-
 		$wp_post_types['attachment'] = $post_type_object;
 	}
 
@@ -208,6 +213,9 @@ class Upload {
 			return;
 		}
 
+		if ( ! isset( $_POST['attachment_id'] ) || ! is_numeric( $_POST['attachment_id'] ) ) {
+			return;
+		}
 		$post_id = (int) $_POST['attachment_id'];
 
 		$post = get_post( $post_id );

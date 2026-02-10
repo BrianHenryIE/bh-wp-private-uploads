@@ -47,7 +47,7 @@ class Post_Type {
 			'show_in_menu'       => false, // Should the admin menu Media submenu be displayed?
 			'show_in_rest'       => true,
 			'_edit_link'         => "post.php?post=%d&post_type={$post_type_name}",
-			'settings'           => $this->settings, // Seems we can arbitrary set data on a post type and access it later.
+			'dependencies'       => array( 'settings' => $this->settings ), // Arbitrary data accessible via post type object.
 		);
 
 		if ( ! is_null( $this->settings->get_rest_base() ) ) {

@@ -40,6 +40,11 @@
             "includes/functions.php"
         ]
     },
+    "autoload-dev": {
+        "classmap": [
+            "development-plugin/"
+        ]
+    },
     "repositories": {
         "outlandishideas/wpackagist": {
             "type": "composer",
@@ -55,7 +60,7 @@
         }
     },
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "ext-fileinfo": "*",
         "psr/log": "^1.0.0",
         "wptrt/admin-notices": "^1.0"
