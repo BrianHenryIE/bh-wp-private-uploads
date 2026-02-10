@@ -33,6 +33,10 @@ class CLI {
 
 		$cli_base = $this->settings->get_cli_base();
 
+		if ( is_null( $cli_base ) ) {
+			return;
+		}
+
 		// E.g. `wp plugin-slug download http://example.com/file.txt`.
 		WP_CLI::add_command( "{$cli_base} download", array( $this, 'download_url' ) );
 	}
