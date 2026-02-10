@@ -101,7 +101,7 @@ class Admin_Meta_Boxes {
 
 		$handle = sprintf(
 			'%s-private-uploads-media-library-js',
-			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
+			$this->settings->get_plugin_slug()
 		);
 
 		wp_enqueue_script( $handle );
@@ -240,9 +240,22 @@ EOD;
 		}
 
 		echo '<p>';
+
+		$selector_prefix = str_underscores_to_hyphens( $this->settings->get_post_type_name() );
+
 		// TODO: add an E2E tested example implementation in development-plugin.
-		echo '<button class="button bh-wp-private-uploads-test-plugin-private-media-library">' . esc_html( $select_files_text ) . '</button>';
-		echo '<button class="button bh-wp-private-uploads-test-plugin-private-media-library remove-files" style="display: none">' . esc_html( $remove_files_text ) . '</button>';
+		printf(
+			'<button class="button %s-private-media-library">%s</button>',
+			esc_attr( $selector_prefix ),
+			esc_html( $select_files_text )
+		);
+		if ( ! empty( $private_uploads ) ) {
+			printf(
+				'<button class="button %s-private-media-library remove-files">%s</button>',
+				esc_attr( $selector_prefix ),
+				esc_html( $remove_files_text )
+			);
+		}
 		echo '</p>';
 	}
 }
