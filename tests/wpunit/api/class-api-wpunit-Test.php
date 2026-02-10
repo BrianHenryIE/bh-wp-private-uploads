@@ -160,11 +160,11 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 		add_filter(
 			'pre_http_request',
 			fn() => array(
-					'body'     => '',
-					'response' => array(
-						'code' => 200,
-					),
-				)
+				'body'     => '',
+				'response' => array(
+					'code' => 200,
+				),
+			)
 		);
 
 		$result = $api->check_and_update_is_url_private();
@@ -207,11 +207,11 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 		add_filter(
 			'pre_http_request',
 			fn() => array(
-					'body'     => '',
-					'response' => array(
-						'code' => 403,
-					),
-				)
+				'body'     => '',
+				'response' => array(
+					'code' => 403,
+				),
+			)
 		);
 
 		$result = $api->check_and_update_is_url_private();

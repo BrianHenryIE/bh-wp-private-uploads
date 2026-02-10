@@ -19,8 +19,8 @@ return RectorConfig::configure()
 			__DIR__ . '/development-plugin',
 			__DIR__ . '/tests/integration',
 			__DIR__ . '/tests/unit',
-//			__DIR__ . '/tests/unit-patchwork',
-			__DIR__ . '/tests/wpunit',
+			// __DIR__ . '/tests/unit-patchwork',
+											__DIR__ . '/tests/wpunit',
 		)
 	)
 	->withSkip(
