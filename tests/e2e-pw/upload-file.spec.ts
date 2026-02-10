@@ -18,7 +18,6 @@ test('upload file', async ({ page }) => {
   await page.goto('http://localhost:8888/wp-admin/media-new.php?post_type=private_media');
 
   await page.waitForSelector('#plupload-upload-ui');
-  await page.waitForTimeout(500);
 
   // Use setInputFiles on the hidden file input - most reliable cross-browser approach
   // WordPress plupload creates a file input inside the uploader div
@@ -26,10 +25,15 @@ test('upload file', async ({ page }) => {
   await fileInput.setInputFiles('./tests/_data/sample.pdf');
 
   // "Copy URL to clipboard" text indicates the upload was successful.
-  await expect(
-      page.locator( '.copy-attachment-url', {
-          hasText: /^Copy URL to clipboard$/,
-      } )
-  ).toBeVisible();
+  const copyToClipboard = page.locator('.copy-attachment-url', {
+	  hasText: /^Copy URL to clipboard$/,
+  });
 
+  await expect(copyToClipboard).toBeVisible();
+
+  const uploadedUrl = await copyToClipboard.getAttribute('data-clipboard-text');
+
+  // http://localhost:8888/wp-content/uploads/private-media/2026/02/sample-3.pdf
+  // wp-content\/uploads\/private-media\/\d{4}\/\d{2}\/sample(-\d+)?.pdf
+  expect(uploadedUrl.match(/wp-content\/uploads\/private-media\/\d{4}\/\d{2}\/sample(-\d+)?.pdf/))
 });
