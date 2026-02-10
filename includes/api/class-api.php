@@ -368,7 +368,7 @@ class API implements API_Interface {
 
 		$args['cookies'] = array_filter(
 			$_COOKIE,
-			fn($value, $key) => false !== strpos( $key, 'WordPress' ),
+			fn( $value, $key ) => false !== strpos( $key, 'WordPress' ),
 			ARRAY_FILTER_USE_BOTH
 		);
 
