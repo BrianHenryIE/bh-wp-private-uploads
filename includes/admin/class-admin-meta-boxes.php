@@ -192,6 +192,13 @@ EOD;
 			}
 		);
 
+		$selector_prefix = str_underscores_to_hyphens( $this->settings->get_post_type_name() );
+
+		printf(
+			'<div id="%s-private-media-library-meta-box-input">',
+			esc_attr( $selector_prefix )
+		);
+
 		if ( ! empty( $attachments_with_thumbnails ) ) {
 			$upload_post = $attachments_with_thumbnails[ array_key_first( $attachments_with_thumbnails ) ];
 			/**
@@ -217,15 +224,15 @@ EOD;
 			}
 		}
 
+		echo '<ul class="private-media-library-post-attachments">';
+		echo '</ul>';
 		if ( ! empty( $private_uploads ) ) {
-			echo '<ul>';
 			foreach ( $private_uploads as $upload_post ) {
 				$non_image_attachment_href = wp_get_attachment_url( $upload_post->ID );
 				if ( false !== $non_image_attachment_href ) {
 					echo '<li><a href="' . esc_url( $non_image_attachment_href ) . '">' . esc_html( $upload_post->post_title ) . '</a></li>';
 				}
 			}
-			echo '</ul>';
 
 		} else {
 
@@ -241,8 +248,6 @@ EOD;
 
 		echo '<p>';
 
-		$selector_prefix = str_underscores_to_hyphens( $this->settings->get_post_type_name() );
-
 		// TODO: add an E2E tested example implementation in development-plugin.
 		printf(
 			'<button class="button %s-private-media-library">%s</button>',
@@ -257,5 +262,6 @@ EOD;
 			);
 		}
 		echo '</p>';
+		echo '</div>';
 	}
 }
