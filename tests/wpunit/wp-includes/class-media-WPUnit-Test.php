@@ -182,4 +182,80 @@ class Media_WPUnit_Test extends WPTestCase {
 		$this->assertSame( '/var/www/html/wp-content/uploads/private-media', $result['path'] );
 		$this->assertSame( 'http://example.com/wp-content/uploads/private-media', $result['url'] );
 	}
+
+	/**
+	 * @covers ::set_post_type_on_insert_attachment
+	 */
+	public function test_sets_post_type_to_cpt(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name' => 'private_media',
+			)
+		);
+
+		$sut = new Media( $settings );
+
+		$data = array(
+			'post_type'   => 'attachment',
+			'post_title'  => 'sample.pdf',
+			'post_status' => 'inherit',
+		);
+
+		$result = $sut->set_post_type_on_insert_attachment( $data, array(), array(), false );
+
+		$this->assertSame( 'private_media', $result['post_type'] );
+	}
+
+	/**
+	 * @covers ::set_post_type_on_insert_attachment
+	 */
+	public function test_preserves_other_data_fields(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name' => 'private_media',
+			)
+		);
+
+		$sut = new Media( $settings );
+
+		$data = array(
+			'post_type'    => 'attachment',
+			'post_title'   => 'sample.pdf',
+			'post_status'  => 'inherit',
+			'post_content' => 'file description',
+		);
+
+		$result = $sut->set_post_type_on_insert_attachment( $data, array(), array(), false );
+
+		$this->assertSame( 'sample.pdf', $result['post_title'] );
+		$this->assertSame( 'inherit', $result['post_status'] );
+		$this->assertSame( 'file description', $result['post_content'] );
+	}
+
+	/**
+	 * @covers ::set_post_type_on_insert_attachment
+	 */
+	public function test_sets_post_type_on_update(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name' => 'private_media',
+			)
+		);
+
+		$sut = new Media( $settings );
+
+		$data = array(
+			'post_type' => 'attachment',
+		);
+
+		$result = $sut->set_post_type_on_insert_attachment( $data, array(), array(), true );
+
+		$this->assertSame( 'private_media', $result['post_type'] );
+	}
 }
