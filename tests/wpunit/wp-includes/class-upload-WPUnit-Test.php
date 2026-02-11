@@ -13,6 +13,7 @@ class Upload_WPUnit_Test extends WPTestCase {
 	/**
 	 * @dataProvider provider_clean_url
 	 * @covers ::clean_url
+	 * @covers ::request_uri_has_post_type
 	 */
 	public function test_clean_url( string $current_page_url, string $input_url, string $expected_url ): void {
 

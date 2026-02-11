@@ -189,8 +189,6 @@ class Upload {
 	/**
 	 * Update links inside the page to add the post type to the URLs.
 	 *
-	 * TODO: This could be neater by breaking down the URL and building it back up again.
-	 *
 	 * Although individual attachment links use a template defined on the post type object, other links in the page
 	 * should link internally and not to the default media library.
 	 *
@@ -200,16 +198,15 @@ class Upload {
 	 * @param string $url A link that has been passed through `esc_url()`.
 	 */
 	public function clean_url( string $url ): string {
+
 		$post_type = $this->settings->get_post_type_name();
 
 		// If we're not on a page that has it in its querystring, return.
-		$request_uri_query = wp_parse_url( sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_QUERY ) ?: '';
-		parse_str( $request_uri_query, $parts );
-		if ( ! isset( $parts['post_type'] ) || $parts['post_type'] !== $post_type ) {
+		if ( ! $this->request_uri_has_post_type( $post_type ) ) {
 			return $url;
 		}
 
-		// If it's already added, just return.
+		// If it's already added to the url, just return.
 		$query = wp_parse_url( $url, PHP_URL_QUERY );
 		if ( $query && str_contains( $query, 'post_type=' ) ) {
 			return $url;
@@ -225,6 +222,22 @@ class Upload {
 		}
 
 		return add_query_arg( array( 'post_type' => $post_type ), $url );
+	}
+
+	/**
+	 * Check is `post_type={x}` set in the request url.
+	 *
+	 * We need to remove and re-add the filter we're running inside to prevent infinite recursion.
+	 *
+	 * @param string $post_type The WP Post type key (name) to look for.
+	 */
+	protected function request_uri_has_post_type( string $post_type ): bool {
+		remove_filter( 'clean_url', array( $this, 'clean_url' ) );
+		$request_uri_query = wp_parse_url( sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_QUERY ) ?: '';
+		add_filter( 'clean_url', array( $this, 'clean_url' ) );
+		parse_str( $request_uri_query, $parts );
+
+		return isset( $parts['post_type'] ) && $parts['post_type'] === $post_type;
 	}
 
 	/**
