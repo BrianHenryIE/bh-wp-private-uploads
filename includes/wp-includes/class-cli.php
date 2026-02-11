@@ -102,16 +102,30 @@ class CLI {
 			$filtered_url = $head_response['http_response']->get_response_object()->url;
 		}
 
-		WP_CLI::log( 'Beginning download of  ' . $filtered_url );
+		// Don't print progress if the user wants a machine-readable format.
+		if ( 'table' === $assoc_args['format'] ) {
+			WP_CLI::log( 'Beginning download of  ' . $filtered_url );
+		}
 
 		// TODO: Return an immutable pojo.
 		// TODO: Add post_id to output.
 		$result = $this->api->download_remote_file_to_private_uploads( $filtered_url );
 
+		switch ( true ) {
+			case isset( $assoc_args['field'] ):
+				$fields = array( $assoc_args['field'] );
+				break;
+			case isset( $assoc_args['fields'] ):
+				$fields = $assoc_args['fields'];
+				break;
+			default:
+				$fields = array_keys( $result );
+		}
+
 		WP_CLI\Utils\format_items(
 			$assoc_args['format'] ?: 'table',
 			array( $result ),
-			$assoc_args['field'] ?: $assoc_args['fields'] ?: array_keys( $result )
+			$fields
 		);
 	}
 }
