@@ -81,7 +81,12 @@ class BH_WP_Private_Uploads_Hooks {
 	}
 
 	protected function define_api_hooks(): void {
-		add_action( 'init', array( $this->api, 'create_directory' ) );
+		add_action(
+			'init',
+			function (): void {
+				$this->api->create_directory();
+			}
+		);
 	}
 
 	/**
