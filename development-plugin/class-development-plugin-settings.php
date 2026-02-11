@@ -9,6 +9,9 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface as Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
 
+/**
+ * As an example.
+ */
 class Development_Plugin_Settings implements Private_Uploads_Settings_Interface {
 
 	use Private_Uploads_Settings_Trait;
@@ -24,9 +27,17 @@ class Development_Plugin_Settings implements Private_Uploads_Settings_Interface 
 	 * The plugin basename, for adding the Logs link on plugins.php.
 	 */
 	public function get_plugin_basename(): string {
-		return defined( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME' ) && is_string( constant( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME' ) )
-			? constant( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME' )
-			: 'development-plugin/development-plugin.php';
+		if ( ! defined( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME' ) ) {
+			return 'development-plugin/development-plugin.php';
+		}
+
+		$plugin_basename = constant( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME' );
+
+		if ( ! is_string( $plugin_basename ) ) {
+			return 'development-plugin/development-plugin.php';
+		}
+
+		return $plugin_basename;
 	}
 
 	/**
