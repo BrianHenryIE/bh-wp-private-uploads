@@ -10,6 +10,7 @@
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use WC_Order;
@@ -19,17 +20,8 @@ use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 /**
  * @see assets/bh-wp-private-uploads-admin.js
  */
-class Admin_Meta_Boxes {
+class Admin_Meta_Boxes implements LoggerAwareInterface {
 	use LoggerAwareTrait;
-
-	/**
-	 * The plugin's settings.
-	 *
-	 * @uses Private_Uploads_Settings_Interface::get_plugin_basename()
-	 * @uses Private_Uploads_Settings_Interface::get_plugin_version()
-	 * @uses Private_Uploads_Settings_Interface::get_post_type_name()
-	 */
-	protected Private_Uploads_Settings_Interface $settings;
 
 	/**
 	 * The post currently being displayed in the admin UI.
@@ -42,15 +34,19 @@ class Admin_Meta_Boxes {
 	 * @param Private_Uploads_Settings_Interface $settings The private uploads settings.
 	 * @param LoggerInterface                    $logger A PSR logger.
 	 */
-	public function __construct( Private_Uploads_Settings_Interface $settings, LoggerInterface $logger ) {
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings,
+		LoggerInterface $logger
+	) {
 		$this->setLogger( $logger );
-		$this->settings = $settings;
 	}
 
 	/**
-	 * If we're on a shop order page, register the metabox, enqueue the media library JavaScript, and enqueue the
-	 * post data that will be used by the JavaScript to set the post type, author and parent post.
+	 * If we're on a nominated page (i.e. configured in the settings, e.g. shop-order), register the metabox,
+	 * enqueue the media library JavaScript, and enqueue the post data that will be used by the JavaScript to
+	 * set the post type, author and parent post.
 	 *
+	 * @see wordpress/wp-admin/includes/meta-boxes.php
 	 * @hooked add_meta_boxes
 	 *
 	 * @param string                 $post_type The registered CPT type for this edit screen.
@@ -78,7 +74,9 @@ class Admin_Meta_Boxes {
 			'Private Uploads',
 			array( $this, 'print_meta_box' ),
 			$post_type,
-			'side'
+			'side',
+			'default',
+			$meta_box_settings
 		);
 
 		$this->current_post = $post;
