@@ -189,6 +189,9 @@ class BH_WP_Private_Uploads_Hooks {
 
 		$admin_menu_hooks = new Admin_Menu( $this->settings );
 
+		// This needs to run first for the other hooks to have any real effect.
+		add_action( 'registered_post_type', array( $admin_menu_hooks, 'get_registered_post_type_object' ), 10, 2 );
+
 		add_action( 'admin_menu', array( $admin_menu_hooks, 'add_private_media_library_menu' ) );
 		add_filter( 'submenu_file', array( $admin_menu_hooks, 'highlight_menu' ), 10, 2 );
 		add_action( 'admin_menu', array( $admin_menu_hooks, 'remove_top_level_menu' ), 1000 );

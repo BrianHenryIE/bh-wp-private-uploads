@@ -16,11 +16,6 @@ use WP_Post_Type;
 class Admin_Menu {
 
 	/**
-	 * The settings, mainly to compare the post type name (key).
-	 */
-	protected Private_Uploads_Settings_Interface $settings;
-
-	/**
 	 * The WordPress registered post type object reference.
 	 */
 	protected ?WP_Post_Type $post_type = null;
@@ -28,12 +23,11 @@ class Admin_Menu {
 	/**
 	 * Constructor
 	 *
-	 * @param Private_Uploads_Settings_Interface $settings To know whether to add a submenu, and the post type.
+	 * @param Private_Uploads_Settings_Interface $settings The settings, mainly to compare the post type name (key).
 	 */
-	public function __construct( Private_Uploads_Settings_Interface $settings ) {
-		$this->settings = $settings;
-
-		add_action( 'registered_post_type', array( $this, 'get_registered_post_type_object' ), 10, 2 );
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings
+	) {
 	}
 
 	/**
