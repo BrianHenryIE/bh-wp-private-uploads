@@ -203,7 +203,7 @@ jobs:
         if: ${{ matrix.php == env.COVERAGE_PHP_VERSION && github.event_name == 'pull_request' }}
         continue-on-error: true # phpcov can fail if there are no uncovered lines
         run: |
-          BRANCHED_COMMIT=$(git rev-list origin..HEAD | tail -n 1);
+          BRANCHED_COMMIT=$(git rev-list master..HEAD | tail -n 1);
           echo "BRANCHED_COMMIT=$BRANCHED_COMMIT"
           git diff $BRANCHED_COMMIT...${{ github.event.pull_request.head.sha }} > branch.diff
           cat branch.diff
