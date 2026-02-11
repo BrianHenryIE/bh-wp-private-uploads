@@ -101,7 +101,11 @@ class Media {
 					|| wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'query-attachments' );
 		}
 
-		return $this->settings->get_post_type_name() === sanitize_key( wp_unslash( $_POST['post_type'] ?? '' ) );
+		if ( ! isset( $_POST['post_type'] ) || ! is_string( $_POST['post_type'] ) ) {
+			return false;
+		}
+
+		return $this->settings->get_post_type_name() === sanitize_key( wp_unslash( $_POST['post_type'] ) );
 	}
 
 	/**
