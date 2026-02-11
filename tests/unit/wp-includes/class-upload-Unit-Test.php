@@ -74,9 +74,8 @@ class Upload_Unit_Test extends Unit {
 		global $pagenow;
 		$pagenow = 'upload.php';
 
-		\WP_Mock::userFunction( 'in_array' )->andReturnUsing( 'in_array' );
-		\WP_Mock::userFunction( 'sanitize_key' )->andReturnArg( 0 );
-		\WP_Mock::userFunction( 'wp_unslash' )->andReturnArg( 0 );
+		\WP_Mock::passthruFunction( 'sanitize_key' );
+		\WP_Mock::passthruFunction( 'wp_unslash' );
 
 		$settings = $this->makeEmpty(
 			\BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::class,
