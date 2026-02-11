@@ -39,9 +39,11 @@ class Upload {
 			return;
 		}
 
-		$request_post_type = isset( $_REQUEST['post_type'] ) && is_string( $_REQUEST['post_type'] )
-			? sanitize_key( $_REQUEST['post_type'] )
-			: '';
+		$request_post_type = ( function (): string {
+			return isset( $_REQUEST['post_type'] ) && is_string( $_REQUEST['post_type'] )
+				? sanitize_key( $_REQUEST['post_type'] )
+				: '';
+		} )();
 
 		$http_referer = ( function (): string {
 			return isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? sanitize_url( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
@@ -49,7 +51,7 @@ class Upload {
 
 		$post_type = $settings->get_post_type_name();
 
-		if ( ! ( $post_type === $request_post_type || ! str_contains( $http_referer, 'post_type=' . $post_type ) ) ) {
+		if ( ! ( $post_type === $request_post_type ) && ! str_contains( $http_referer, 'post_type=' . $post_type ) ) {
 			return;
 		}
 
@@ -69,6 +71,10 @@ class Upload {
 	 * @hooked current_screen
 	 *
 	 * @param WP_Screen $current_screen_object
+	 *
+	 * We'd prefer not to, but the only way to add a custom "attachment" involves messing with globals.
+	 *
+	 * phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
 	 */
 	public function current_screen( WP_Screen $current_screen_object ): void {
 
@@ -142,7 +148,7 @@ class Upload {
 	 */
 	public function pre_get_posts( WP_Query $wp_query ): void {
 
-		if ( $wp_query->query['post_type'] !== 'attachment' ) {
+		if ( 'attachment' !== $wp_query->query['post_type'] ) {
 			return;
 		}
 
@@ -153,10 +159,12 @@ class Upload {
 	 * As the posts are retrieved, change the post type in the cached posts from attachment to the private uploads
 	 * post type.
 	 *
+	 * TODO: This is the same logic as {@see Media::change_post_type_to_attachment()}.
+	 *
 	 * @hooked the_posts
 	 *
-	 * @param WP_Post[] $posts
-	 * @param WP_Query  $query
+	 * @param WP_Post[] $posts A list of posts to be sent to the frontend.
+	 * @param WP_Query  $query The original query that found those posts.
 	 *
 	 * @return WP_Post[]
 	 */
@@ -185,9 +193,7 @@ class Upload {
 	 * @hooked clean_url
 	 * @see esc_url
 	 *
-	 * @param $url
-	 *
-	 * @return string
+	 * @param string $url A link that has been passed through `esc_url()`.
 	 */
 	public function clean_url( string $url ): string {
 		$post_type = $this->settings->get_post_type_name();
@@ -211,6 +217,8 @@ class Upload {
 	/**
 	 * ???? I guess immediately after it's uploaded there's another request to fetch the details??
 	 *
+	 * When we're on async-upload the request looks like: `{fetch:3, attachment_id:int}`.
+	 *
 	 * When an attachment is uploaded, change the post type in the cache.
 	 *
 	 * The "Add Media File" menu, `media-new.php` POSTs new uploads from the "Upload New Media" drag and drop form
@@ -221,9 +229,6 @@ class Upload {
 	 * @hooked admin_init
 	 */
 	public function admin_init(): void {
-		// if we're on async-upload
-		// 'fetch' = 3
-		// 'attachment_id' = 67
 
 		if ( ! isset( $_POST['fetch'] ) ) {
 			return;
@@ -254,7 +259,7 @@ class Upload {
 	 *
 	 * The `cb` key in the arrays means "checkbox".
 	 *
-	 * @param array{cb:string,title:string,author:string,parent:string,comments:string,date:string} $columns The
+	 * @param array{cb:string,title:string,author:string,parent:string,comments:string,date:string} $columns The columns displayed on the Media > Library page.
 	 *
 	 * @return array{cb:string,title:string,author:string,parent:string,comments:string,date:string}
 	 */
