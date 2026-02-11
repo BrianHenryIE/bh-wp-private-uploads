@@ -10,6 +10,7 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 class Admin_Assets_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 	/**
+	 * @covers ::__construct
 	 * @covers ::register_script
 	 */
 	public function test_register_script(): void {
