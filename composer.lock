@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "14481d8082b13b108df59fcd1f5c4ea9",
+    "content-hash": "8ac17fe681ddb46d7e256444aea7c124",
     "packages": [
         {
             "name": "psr/log",
@@ -11105,15 +11105,15 @@
         },
         {
             "name": "wpackagist-plugin/woocommerce",
-            "version": "10.5.0",
+            "version": "10.5.1",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/woocommerce/",
-                "reference": "tags/10.5.0"
+                "reference": "tags/10.5.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/woocommerce.10.5.0.zip"
+                "url": "https://downloads.wordpress.org/plugin/woocommerce.10.5.1.zip"
             },
             "require": {
                 "composer/installers": "^1.0 || ^2.0"
@@ -11166,7 +11166,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "ext-fileinfo": "*"
     },
     "platform-dev": {
