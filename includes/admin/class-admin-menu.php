@@ -125,7 +125,7 @@ class Admin_Menu {
 	/**
 	 * Because we're using `show_in_menu`, it's also adding a top level menu. Let's delete that.
 	 *
-	 * TODO: redirect wp-admin/edit.php?post_type=test_plugin_private to the library.
+	 * TODO: redirect wp-admin/edit.php?post_type=test_plugin_private to the library. @see edit.php:26.
 	 *
 	 * @hooked admin_menu
 	 */
