@@ -12,3 +12,5 @@ $GLOBALS['plugin_basename']    = $plugin_name . '/' . $plugin_name_php;
 $GLOBALS['wordpress_root_dir'] = $project_root_dir . '/wordpress';
 
 define( 'WP_CONTENT_URL', $_ENV['TEST_SITE_WP_URL'] . '/wp-content' );
+
+define( 'WP_PHP_BINARY', PHP_BINARY );
