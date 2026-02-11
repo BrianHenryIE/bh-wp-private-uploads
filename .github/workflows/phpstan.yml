@@ -49,7 +49,7 @@ jobs:
         uses: tj-actions/changed-files@v47
         with:
           separator: ' '
-          files: 'includes/**.php'
+          files: 'includes/**/**.php'
 
       # On PRs, only fail for errors in modified files.
       - name: Run PHPStan to add annotations to the code (PR)
