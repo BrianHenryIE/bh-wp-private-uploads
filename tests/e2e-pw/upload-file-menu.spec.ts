@@ -1,21 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import {loginAsAdmin} from "./helpers/ui/login";
 
 // `npx wp-env install-path` . "WordPress/wp-content/uploads/private-media".
 // ls $(npx wp-env install-path)"/WordPress/wp-content/uploads/private-media"
 
-test('upload file via admin menu page', async ({ page }) => {
+test('upload file via admin menu page', async ({ page, admin }) => {
 
-  await page.goto( 'http://localhost:8888/wp-login.php', {
-    waitUntil: 'networkidle',
-  } );
+  await loginAsAdmin( page );
 
-  await page.fill( 'input[name="log"]', "admin" );
-  await page.fill( 'input[name="pwd"]', "password" );
-  await page.locator( '#loginform' ).getByText( 'Log In' ).click();
-
-  await page.waitForLoadState( 'networkidle' );
-
-  await page.goto('http://localhost:8888/wp-admin/media-new.php?post_type=private_media');
+  await admin.visitAdminPage('media-new.php', 'post_type=private_media');
 
   await page.waitForSelector('#plupload-upload-ui');
 

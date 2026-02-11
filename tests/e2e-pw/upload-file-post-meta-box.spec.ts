@@ -1,11 +1,22 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
+/**
+ * Internal dependencies
+ */
+import { loginAsAdmin } from './helpers/ui/login';
+
+
+
 test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
+
+	await loginAsAdmin( page );
 
 	const pageData = await requestUtils.createPage({
 		title: 'Test Private Upload Page ' + Date.now(),
-		status: 'draft',
+		status: 'publish',
 	});
+
+	console.log(JSON.stringify(pageData, null, 4));
 	await admin.editPost(pageData.id);
 
   // The Private Uploads panel is in the sidebar (Editor settings), not in Meta Boxes
@@ -43,7 +54,7 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
   const uploadTab = page.locator('.media-modal .media-menu-item:has-text("Upload files")');
   if (await uploadTab.isVisible()) {
     await uploadTab.click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(150);
   }
 
   // Find the file input inside the media modal's uploader
