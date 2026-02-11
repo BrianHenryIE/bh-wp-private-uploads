@@ -192,7 +192,7 @@ class Upload {
 	 * TODO: This could be neater by breaking down the URL and building it back up again.
 	 *
 	 * Although individual attachment links use a template defined on the post type object, other links in the page
-	 * should link internally and not to the default library.
+	 * should link internally and not to the default media library.
 	 *
 	 * @hooked clean_url
 	 * @see esc_url
@@ -202,19 +202,28 @@ class Upload {
 	public function clean_url( string $url ): string {
 		$post_type = $this->settings->get_post_type_name();
 
+		// If we're not on a page that has it in its querystring, return.
+		$request_uri_query = wp_parse_url( sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_QUERY ) ?: '';
+		parse_str( $request_uri_query, $parts );
+		if ( ! isset( $parts['post_type'] ) || $parts['post_type'] !== $post_type ) {
+			return $url;
+		}
+
 		// If it's already added, just return.
-		if ( false !== strpos( $url, 'post_type=' ) ) {
+		$query = wp_parse_url( $url, PHP_URL_QUERY );
+		if ( $query && str_contains( $query, 'post_type=' ) ) {
 			return $url;
 		}
 
-		if ( false === strpos( $url, '/upload.php' )
-			&& false === strpos( $url, '/media-new.php' )
-			&& false === strpos( $url, '/async-uploads.php' )
-		) {
+		// If it's not a media library URL, do not change it.
+		if ( ! in_array(
+			basename( wp_parse_url( $url, PHP_URL_PATH ) ?: '' ),
+			array( 'upload.php', 'media-new.php', 'async-uploads.php' ),
+			true
+		) ) {
 			return $url;
 		}
 
-		// TODO: DO NOT DO THIS for the real menu links.
 		return add_query_arg( array( 'post_type' => $post_type ), $url );
 	}
 

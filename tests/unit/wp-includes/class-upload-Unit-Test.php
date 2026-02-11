@@ -14,6 +14,7 @@
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
 use Codeception\Test\Unit;
+use WP_Mock;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload
@@ -21,11 +22,13 @@ use Codeception\Test\Unit;
 class Upload_Unit_Test extends Unit {
 
 	protected function setup(): void {
-		\WP_Mock::setUp();
+		parent::setup();
+		WP_Mock::setUp();
 	}
 
 	protected function tearDown(): void {
-		\WP_Mock::tearDown();
+		WP_Mock::tearDown();
+		parent::tearDown();
 	}
 
 	/**
@@ -36,8 +39,8 @@ class Upload_Unit_Test extends Unit {
 		global $pagenow;
 		$pagenow = 'upload.php';
 
-		\WP_Mock::passthruFunction( 'sanitize_key' );
-		\WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_key' );
+		WP_Mock::passthruFunction( 'wp_unslash' );
 
 		$settings = $this->makeEmpty(
 			\BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::class,
@@ -74,8 +77,8 @@ class Upload_Unit_Test extends Unit {
 		global $pagenow;
 		$pagenow = 'upload.php';
 
-		\WP_Mock::passthruFunction( 'sanitize_key' );
-		\WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_key' );
+		WP_Mock::passthruFunction( 'wp_unslash' );
 
 		$settings = $this->makeEmpty(
 			\BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::class,
