@@ -103,8 +103,6 @@ class Upload {
 
 	/**
 	 *
-	 * TODO: be more specific: post_type = 'attachment'
-	 *
 	 * @hooked query
 	 * @see wpdb::query()
 	 *
@@ -120,7 +118,7 @@ class Upload {
 			'/(post_type\s*=\s*)([\'"])(attachment)([\'"])/',
 			'$1$2' . sanitize_key( $this->settings->get_post_type_name() ) . '$4',
 			$query
-		);
+		) ?? $query; // TODO: log if thus happens.
 	}
 
 	/**
