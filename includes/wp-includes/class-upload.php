@@ -12,6 +12,7 @@ namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use WP;
 use WP_Post;
+use WP_Post_Type;
 use WP_Query;
 use WP_Screen;
 
@@ -32,20 +33,22 @@ class Upload {
 	public function __construct(
 		protected Private_Uploads_Settings_Interface $settings
 	) {
+		/** @var string $pagenow */
 		global $pagenow;
-		$post_type = $settings->get_post_type_name();
-		// &post_type=test_plugin_private
-		// ?post_type=test_plugin_private
-
 		if ( ! in_array( $pagenow, array( 'upload.php', 'media-new.php', 'async-upload.php' ) ) ) {
 			return;
 		}
+
 		$request_post_type = isset( $_REQUEST['post_type'] ) && is_string( $_REQUEST['post_type'] )
 			? sanitize_key( $_REQUEST['post_type'] )
 			: '';
-		$http_referer      = ( function (): bool {
+
+		$http_referer = ( function (): bool {
 			return isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? sanitize_url( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
 		} )();
+
+		$post_type = $settings->get_post_type_name();
+
 		if ( ! ( $post_type === $request_post_type || ! str_contains( $http_referer, 'post_type=' . $post_type ) ) ) {
 			return;
 		}
@@ -80,7 +83,7 @@ class Upload {
 		global $current_screen;
 		$current_screen = $current_screen_object;
 
-		/** @var array<string,\WP_Post_Type> $wp_post_types */
+		/** @var array<string,WP_Post_Type> $wp_post_types */
 		global $wp_post_types;
 		$wp_post_types['attachment'] = $post_type_object;
 	}
