@@ -103,6 +103,10 @@ class Upload {
 
 	/**
 	 *
+	 * The query being modified is raw SQL in `wp-includes/media.php:4894`.
+	 *
+	 * @see wp_enqueue_media()
+	 *
 	 * @hooked query
 	 * @see wpdb::query()
 	 *
@@ -239,7 +243,8 @@ class Upload {
 		remove_filter( 'clean_url', array( $this, 'clean_url' ) );
 		$request_uri_query = wp_parse_url( sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_QUERY ) ?: '';
 		add_filter( 'clean_url', array( $this, 'clean_url' ) );
-		parse_str( $request_uri_query, $parts );
+
+		$parts = wp_parse_args( $request_uri_query );
 
 		return isset( $parts['post_type'] ) && $parts['post_type'] === $post_type;
 	}
