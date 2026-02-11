@@ -45,9 +45,9 @@ function registerPrivateUploadsMediaLibrary( selector, private_attachment_post_t
 		file_frame.on( 'select', function() {
 			var attachments = file_frame.state().get('selection');
 
-			if(attachments.length !== 0) {
+			if (attachments.length !== 0) {
 
-				var meta_box_id = '#' + private_attachment_post_type.replace('_','-') + "-private-media-library-meta-box-input";
+				var meta_box_id = '#' + private_attachment_post_type.replaceAll('_','-') + "-private-media-library-meta-box-input";
 
 				jQuery(meta_box_id + ' .no-uploads-yet').css('display', 'none');
 
