@@ -14,6 +14,10 @@ class Upload_WPUnit_Test extends WPTestCase {
 	 * @dataProvider provider_clean_url
 	 * @covers ::clean_url
 	 * @covers ::request_uri_has_post_type
+	 *
+	 * @param string $current_page_url The page loaded in the user's browser.
+	 * @param string $input_url The URL being printed in the HTML.
+	 * @param string $expected_url What the updated URL should be after being filtered by the function.
 	 */
 	public function test_clean_url( string $current_page_url, string $input_url, string $expected_url ): void {
 
