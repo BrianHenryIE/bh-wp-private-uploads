@@ -16,8 +16,8 @@ wp plugin activate --all
 
 
 # Use the Composer installed WP-CLI.
-sudo rm /usr/local/bin/wp;
-sudo ln -s /var/www/html/wp-content/plugins/example-plugin/vendor/bin/wp /usr/local/bin/wp;
+#sudo rm /usr/local/bin/wp;
+#sudo ln -s /var/www/html/wp-content/plugins/example-plugin/vendor/bin/wp /usr/local/bin/wp;
 
 
 echo "Set up pretty permalinks for REST API."
