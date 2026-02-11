@@ -13,7 +13,6 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
-use BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload;
 use Codeception\Test\Unit;
 use WP_Mock;
 
@@ -86,7 +85,7 @@ class Admin_Assets_Unit_Test extends Unit {
 			->once()
 			->withArgs(
 				function ( $handle, $src, $deps ) {
-					return $deps === array( 'jquery' );
+					return array( 'jquery' ) === $deps;
 				}
 			);
 
@@ -115,7 +114,7 @@ class Admin_Assets_Unit_Test extends Unit {
 			->once()
 			->withArgs(
 				function ( $handle, $src, $deps, $ver, $in_footer ) {
-					return $in_footer === true;
+					return true === $in_footer;
 				}
 			);
 

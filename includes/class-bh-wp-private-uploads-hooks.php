@@ -90,9 +90,7 @@ class BH_WP_Private_Uploads_Hooks {
 	}
 
 	/**
-	 * This also registers the REST API.
 	 *
-	 * @since    2.0.0
 	 */
 	protected function define_post_hooks(): void {
 
