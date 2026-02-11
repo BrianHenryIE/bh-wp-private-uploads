@@ -22,8 +22,8 @@ use WP_Mock;
  */
 class Upload_Unit_Test extends Unit {
 
-	protected function setup(): void {
-		parent::setup();
+	protected function setUp(): void {
+		parent::setUp();
 		WP_Mock::setUp();
 
 		WP_Mock::passthruFunction( 'sanitize_key' );
