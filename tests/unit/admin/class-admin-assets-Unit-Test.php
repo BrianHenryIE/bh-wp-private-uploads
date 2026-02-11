@@ -22,8 +22,8 @@ use WP_Mock;
 class Admin_Assets_Unit_Test extends Unit {
 
 
-	protected function setup(): void {
-		parent::setup();
+	protected function setUp(): void {
+		parent::setUp();
 		WP_Mock::setUp();
 	}
 
