@@ -37,6 +37,7 @@ jobs:
         with:
           # Value already defaults to true, but `persist-credentials` is required to push new commits to the repository.
           persist-credentials: true
+          fetch-depth: 1 # attempt to fix phpcov empty BRANCHED_COMMIT.
 
       - name: Checkout GitHub Pages branch for code coverage report
         if: ${{ matrix.php == env.COVERAGE_PHP_VERSION }}
