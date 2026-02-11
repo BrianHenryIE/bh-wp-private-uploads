@@ -1,68 +1,12 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-async function login(page) {
-	// Login
-	await page.goto('http://localhost:8888/wp-login.php', {
-		waitUntil: 'networkidle',
+test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
+
+	const pageData = await requestUtils.createPage({
+		title: 'Test Private Upload Page ' + Date.now(),
+		status: 'draft',
 	});
-
-	await page.fill('input[name="log"]', 'admin');
-	await page.fill('input[name="pwd"]', 'password');
-	await page.locator('#loginform').getByText('Log In').click();
-	await page.waitForLoadState('networkidle');
-}
-
-async function createNewWpPage(page): Promise<number> {
-	// Use REST API to create a page
-	// First, we need to get a nonce for authentication by visiting an admin page
-	// The wpApiSettings.nonce is available on any admin page after login
-
-	await page.goto('http://localhost:8888/wp-admin/');
-	await page.waitForLoadState('networkidle');
-
-	// Get the REST API nonce from wpApiSettings
-	const nonce = await page.evaluate(() => {
-		// @ts-ignore - wpApiSettings is defined by WordPress
-		return window.wpApiSettings?.nonce;
-	});
-
-	if (!nonce) {
-		throw new Error('Could not get WordPress REST API nonce');
-	}
-
-	const title = 'Test Private Upload Page ' + Date.now();
-
-	// Now make the REST API call with the nonce
-	const response = await page.request.post('http://localhost:8888/?rest_route=/wp/v2/pages', {
-		headers: {
-			'X-WP-Nonce': nonce,
-		},
-		data: {
-			title: title,
-			status: 'draft',
-		},
-	});
-
-	if (!response.ok()) {
-		throw new Error(`Failed to create page via REST API: ${response.status()} ${await response.text()}`);
-	}
-
-	const pageData = await response.json();
-	const pageId = pageData.id;
-
-	// Navigate to the edit screen for the newly created page
-	await page.goto(`http://localhost:8888/wp-admin/post.php?post=${pageId}&action=edit`);
-
-	// Wait for block editor to load
-	await page.waitForSelector('.edit-post-header, .editor-header', { timeout: 15000 });
-
-	return pageId;
-}
-
-test('upload file via post meta-box', async ({ page }) => {
-
-	await login(page);
-	await createNewWpPage(page);
+	await admin.editPost(pageData.id);
 
   // The Private Uploads panel is in the sidebar (Editor settings), not in Meta Boxes
   // Look for the "Select files" button in the Private Uploads panel
