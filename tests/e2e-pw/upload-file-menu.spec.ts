@@ -28,5 +28,5 @@ test('upload file via admin menu page', async ({ page, admin }) => {
 
   // http://localhost:8888/wp-content/uploads/private-media/2026/02/sample-3.pdf
   // wp-content\/uploads\/private-media\/\d{4}\/\d{2}\/sample(-\d+)?.pdf
-  expect(uploadedUrl.match(/wp-content\/uploads\/private-media\/\d{4}\/\d{2}\/sample(-\d+)?.pdf/))
+  expect(uploadedUrl).toMatch(/wp-content\/uploads\/private-media\/\d{4}\/\d{2}\/sample(-\d+)?.pdf/);
 });
