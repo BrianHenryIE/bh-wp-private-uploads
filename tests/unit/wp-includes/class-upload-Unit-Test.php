@@ -13,6 +13,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
+use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Codeception\Test\Unit;
 use WP_Mock;
 
@@ -24,6 +25,9 @@ class Upload_Unit_Test extends Unit {
 	protected function setup(): void {
 		parent::setup();
 		WP_Mock::setUp();
+
+		WP_Mock::passthruFunction( 'sanitize_key' );
+		WP_Mock::passthruFunction( 'wp_unslash' );
 	}
 
 	protected function tearDown(): void {
@@ -38,9 +42,6 @@ class Upload_Unit_Test extends Unit {
 
 		global $pagenow;
 		$pagenow = 'upload.php';
-
-		WP_Mock::passthruFunction( 'sanitize_key' );
-		WP_Mock::passthruFunction( 'wp_unslash' );
 
 		$settings = $this->makeEmpty(
 			\BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::class,
@@ -107,5 +108,73 @@ class Upload_Unit_Test extends Unit {
 		$this->assertSame( 'Uploaded to', $result['parent'] );
 
 		unset( $_GET['post_type'] );
+	}
+
+	/**
+	 * @dataProvider provider_replace_post_type_in_query
+	 * @covers ::replace_post_type_in_query
+	 */
+	public function test_replace_post_type_in_query( string $input_query, string $expected ): void {
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name' => 'test_private',
+			)
+		);
+
+		$sut = new Upload( $settings );
+
+		$result = $sut->replace_post_type_in_query( $input_query );
+
+		$this->assertSame( $expected, $result );
+	}
+
+	/**
+	 * @return array<string, array{string, string}>
+	 */
+	public function provider_replace_post_type_in_query(): array {
+		return array(
+			array(
+				<<<'EOD'
+				SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+							FROM wp_posts
+							WHERE post_type = 'attachment'
+							ORDER BY post_date DESC
+				EOD,
+
+				<<<'EOD'
+				SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+							FROM wp_posts
+							WHERE post_type = 'test_private'
+							ORDER BY post_date DESC
+				EOD,
+			),
+			array(
+				<<<'EOD'
+				SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+							FROM wp_posts
+							WHERE post_type
+							=
+							'attachment'
+							ORDER BY post_date DESC
+				EOD,
+				<<<'EOD'
+				SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+							FROM wp_posts
+							WHERE post_type
+							=
+							'test_private'
+							ORDER BY post_date DESC
+				EOD,
+			),
+			array(
+				'SELECT my_attachment FROM whatever',
+				'SELECT my_attachment FROM whatever',
+			),
+			array(
+				'SELECT something FROM whatever',
+				'SELECT something FROM whatever',
+			),
+		);
 	}
 }

@@ -56,7 +56,7 @@ class Upload {
 		}
 
 		add_action( 'current_screen', array( $this, 'current_screen' ) );
-		add_filter( 'query', array( $this, 'query' ) );
+		add_filter( 'query', array( $this, 'replace_post_type_in_query' ) );
 		add_action( 'wp', array( $this, 'wp' ) );
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
 		add_filter( 'the_posts', array( $this, 'the_posts' ), 10, 2 );
@@ -102,17 +102,17 @@ class Upload {
 	 * @hooked query
 	 * @see wpdb::query()
 	 *
-	 * @param string $query
+	 * @param string $query SQL query from wpdb.
 	 */
-	public function query( string $query ): string {
+	public function replace_post_type_in_query( string $query ): string {
 
 		if ( ! str_contains( $query, 'attachment' ) ) {
 			return $query;
 		}
 
-		return str_replace(
-			'attachment',
-			sanitize_key( $this->settings->get_post_type_name() ),
+		return preg_replace(
+			'/(post_type\s*=\s*)([\'"])(attachment)([\'"])/',
+			'$1$2' . sanitize_key( $this->settings->get_post_type_name() ) . '$4',
 			$query
 		);
 	}
