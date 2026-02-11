@@ -3,7 +3,7 @@
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
-use Codeception\TestCase\WPTestCase;
+use lucatume\WPBrowser\TestCase\WPTestCase;
 
 /**
  * @coversDefaultClass  \BrianHenryIE\WP_Private_Uploads\WP_Includes\Media
@@ -306,8 +306,13 @@ class Media_WPUnit_Test extends WPTestCase {
 			'paged'          => 2,
 		);
 
+		/**
+		 * @phpstan-ignore-next-line varTag.type
+		 * @var array<string, mixed> $result
+		 */
 		$result = $sut->set_query_post_type_to_cpt( $query );
 
+		$this->assertArrayHasKey( 's', $result );
 		$this->assertSame( 'search term', $result['s'] );
 		$this->assertSame( 'DESC', $result['order'] );
 		$this->assertSame( 40, $result['posts_per_page'] );
