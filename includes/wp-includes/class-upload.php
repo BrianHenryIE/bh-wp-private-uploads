@@ -43,7 +43,7 @@ class Upload {
 			? sanitize_key( $_REQUEST['post_type'] )
 			: '';
 
-		$http_referer = ( function (): bool {
+		$http_referer = ( function (): string {
 			return isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? sanitize_url( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
 		} )();
 
