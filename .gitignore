@@ -74,6 +74,7 @@ dist-archive
 /playwright/.cache/
 .phpunit.result.cache
 patches.lock.json
+/artifacts
 
 # Claude Code
 .claude/settings.local.json
