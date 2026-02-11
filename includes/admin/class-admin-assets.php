@@ -15,6 +15,11 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
  */
 class Admin_Assets {
 
+	/**
+	 * Constructor
+	 *
+	 * @param Private_Uploads_Settings_Interface $settings To get the plugin slug.
+	 */
 	public function __construct(
 		protected Private_Uploads_Settings_Interface $settings
 	) {
