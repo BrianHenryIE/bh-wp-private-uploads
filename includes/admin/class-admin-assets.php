@@ -11,7 +11,7 @@ namespace BrianHenryIE\WP_Private_Uploads\Admin;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 
 /**
- * Registers the
+ * Registers (does not enqueue) the script used in admin UI AJAX uploads.
  */
 class Admin_Assets {
 
