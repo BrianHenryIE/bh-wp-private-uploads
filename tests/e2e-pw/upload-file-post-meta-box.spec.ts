@@ -100,13 +100,6 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
   const attachmentItem = attachmentsList.locator('li').first();
   await expect(attachmentItem).toBeVisible();
 
-  // Save the page to persist the attachment relationship
-  // Use keyboard shortcut since "Save draft" may show as "Saved"
-  await page.keyboard.press('Meta+s');
-
-  // Wait for save to complete
-  await page.waitForTimeout(2000);
-
   // Reload the page to verify persistence
   await page.reload();
 
