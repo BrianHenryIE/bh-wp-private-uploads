@@ -28,20 +28,20 @@ class Upload {
 	/**
 	 * Constructor.
 	 *
-	 * @param Private_Uploads_Settings_Interface $settings
+	 * @param Private_Uploads_Settings_Interface $settings To get the post type name.
 	 */
 	public function __construct(
 		protected Private_Uploads_Settings_Interface $settings
 	) {
 		/** @var string $pagenow */
 		global $pagenow;
-		if ( ! in_array( $pagenow, array( 'upload.php', 'media-new.php', 'async-upload.php' ) ) ) {
+		if ( ! in_array( $pagenow, array( 'upload.php', 'media-new.php', 'async-upload.php' ), true ) ) {
 			return;
 		}
 
 		$request_post_type = ( function (): string {
 			return isset( $_REQUEST['post_type'] ) && is_string( $_REQUEST['post_type'] )
-				? sanitize_key( $_REQUEST['post_type'] )
+				? sanitize_key( wp_unslash( $_REQUEST['post_type'] ) )
 				: '';
 		} )();
 
@@ -70,7 +70,7 @@ class Upload {
 	 *
 	 * @hooked current_screen
 	 *
-	 * @param WP_Screen $current_screen_object
+	 * @param WP_Screen $current_screen_object The global `$current_screen` which we will modify and overwrite.
 	 *
 	 * We'd prefer not to, but the only way to add a custom "attachment" involves messing with globals.
 	 *
@@ -80,6 +80,7 @@ class Upload {
 
 		$post_type        = $this->settings->get_post_type_name();
 		$post_type_object = get_post_type_object( $post_type );
+
 		if ( is_null( $post_type_object ) ) {
 			return;
 		}
@@ -120,6 +121,7 @@ class Upload {
 	 * Replace 'attachment' with the private uploads post type.
 	 *
 	 * @hooked wp
+	 * @see WP::main()
 	 *
 	 * @param WP $wp
 	 */
@@ -141,10 +143,12 @@ class Upload {
 	}
 
 	/**
+	 * This is only hooked when `post_type={our-post-type}` via a media library UI fetch for "atachments". So we
+	 * change the post type from attachment to the post type the private uploads use.
 	 *
 	 * @hooked pre_get_posts
 	 *
-	 * @param WP_Query $wp_query
+	 * @param WP_Query $wp_query The query that is about to be performed.
 	 */
 	public function pre_get_posts( WP_Query $wp_query ): void {
 
