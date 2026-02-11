@@ -43,8 +43,10 @@ class Upload {
 		$request_post_type = isset( $_REQUEST['post_type'] ) && is_string( $_REQUEST['post_type'] )
 			? sanitize_key( $_REQUEST['post_type'] )
 			: '';
-		$http_referer      = isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
-		if ( ! ( $post_type === $request_post_type || false !== strpos( $http_referer, 'post_type=' . $post_type ) ) ) {
+		$http_referer      = ( function (): bool {
+			return isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? sanitize_url( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
+		} )();
+		if ( ! ( $post_type === $request_post_type || ! str_contains( $http_referer, 'post_type=' . $post_type ) ) ) {
 			return;
 		}
 
@@ -94,13 +96,15 @@ class Upload {
 	 */
 	public function query( string $query ): string {
 
-		if ( false === strpos( $query, 'attachment' ) ) {
+		if ( ! str_contains( $query, 'attachment' ) ) {
 			return $query;
 		}
 
-		$post_type = $this->settings->get_post_type_name();
-
-		return str_replace( 'attachment', $post_type, $query );
+		return str_replace(
+			'attachment',
+			sanitize_key( $this->settings->get_post_type_name() ),
+			$query
+		);
 	}
 
 	/**
