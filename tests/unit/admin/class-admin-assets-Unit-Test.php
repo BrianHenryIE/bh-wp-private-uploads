@@ -20,20 +20,18 @@ use WP_Mock;
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets
  */
-class Admin_Assets_Unit_Test extends Unit
-{
+class Admin_Assets_Unit_Test extends Unit {
 
-    protected function setup(): void
-    {
-        parent::setup();
-        WP_Mock::setUp();
-    }
 
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-        WP_Mock::tearDown();
-    }
+	protected function setup(): void {
+		parent::setup();
+		WP_Mock::setUp();
+	}
+
+	protected function tearDown(): void {
+		parent::tearDown();
+		WP_Mock::tearDown();
+	}
 
 	/**
 	 * @covers ::register_script
