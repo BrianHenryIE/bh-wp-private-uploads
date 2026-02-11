@@ -2,7 +2,7 @@
 /**
  * Filter UI uploads when there is a `post_type=` parameter.
  *
- * TODO: Should this be in the /admin/ folder?
+ * TODO: Some of this should be in the /admin/ folder. E.g. changing the column title is very much an admin ui function.
  *
  * @package brianhenryie/bh-wp-private-uploads
  */
@@ -202,8 +202,14 @@ class Upload {
 	}
 
 	/**
+	 * ???? I guess immediately after it's uploaded there's another request to fetch the details??
 	 *
 	 * When an attachment is uploaded, change the post type in the cache.
+	 *
+	 * The "Add Media File" menu, `media-new.php` POSTs new uploads from the "Upload New Media" drag and drop form
+	 * to `async-upload.php` without a nonce.
+	 *
+	 * phpcs:disable WordPress.Security.NonceVerification.Missing
 	 *
 	 * @hooked admin_init
 	 */
@@ -222,11 +228,13 @@ class Upload {
 		$post_id = (int) $_POST['attachment_id'];
 
 		$post = get_post( $post_id );
+
 		if ( is_null( $post ) ) {
 			return;
 		}
 
 		$post->post_type = 'attachment';
+
 		wp_cache_set(
 			$post_id,
 			$post,
@@ -237,7 +245,9 @@ class Upload {
 	/**
 	 * Change table column header "Author" to "Owner".
 	 *
-	 * @param array{cb:string,title:string,author:string,parent:string,comments:string,date:string} $columns
+	 * The `cb` key in the arrays means "checkbox".
+	 *
+	 * @param array{cb:string,title:string,author:string,parent:string,comments:string,date:string} $columns The
 	 *
 	 * @return array{cb:string,title:string,author:string,parent:string,comments:string,date:string}
 	 */
