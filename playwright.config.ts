@@ -20,9 +20,7 @@ const STORAGE_STATE_PATH =
 export default defineConfig( {
   testDir: './tests/e2e-pw',
   testIgnore: '**/helpers-tests/**',
-  globalSetup: require.resolve(
-    '@wordpress/scripts/config/playwright/global-setup.js'
-  ),
+  globalSetup: require.resolve( './tests/e2e-pw/global-setup.ts' ),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
