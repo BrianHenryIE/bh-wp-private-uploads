@@ -7,9 +7,7 @@
  * registers the activation and deactivation functions, and defines a function
  * that starts the plugin.
  *
- * @link              http://example.com
- * @since             1.0.0
- * @package    brianhenryie/bh-wp-private-uploads
+ * @link              http://bhwp.ie
  *
  * @wordpress-plugin
  * Plugin Name:       Private Uploads Development Plugin
@@ -21,6 +19,8 @@
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       bh-wp-private-uploads
+ *
+ * @package    brianhenryie/bh-wp-private-uploads
  */
 
 namespace BrianHenryIE\WP_Private_Uploads_Development_Plugin;
@@ -40,14 +40,20 @@ define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 $settings = new Development_Plugin_Settings();
-$e        = new Example_Private_Uploads( $settings, new NullLogger() );
+new Example_Private_Uploads( $settings, new NullLogger() );
 
+/**
+ * Here we filter the parameters for registering the post type.
+ *
+ * There are fair arguments to expect these set via the Settings class, and also to allow them to be configured through
+ * the conventional WordPress filters.
+ *
+ * @see register_post_type()
+ */
 add_filter(
 	'register_post_type_args',
 	function ( array $args, string $post_type ) use ( $settings ): array {
-		// $args['show_in_menu'] = true;
 
-		// if ( 'bh-wp-privat_private' !== $post_type ) {
 		if ( $settings->get_post_type_name() !== $post_type ) {
 				return $args;
 		}
