@@ -45,7 +45,7 @@ jobs:
 
       - name: Run PHPCS to add annotations to the code
         continue-on-error: true
-        run: vendor/bin/phpcs -q -n --report=checkstyle | cs2pr
+        run: vendor/bin/phpcs -q --report=checkstyle | cs2pr
 
       - name: Fail if there are still phpcs errors in the production code
         run: vendor/bin/phpcs includes
