@@ -13,4 +13,13 @@ $GLOBALS['wordpress_root_dir'] = $project_root_dir . '/wordpress';
 
 define( 'WP_CONTENT_URL', $_ENV['TEST_SITE_WP_URL'] . '/wp-content' );
 
-define( 'WP_PHP_BINARY', PHP_BINARY );
+/**
+ * Fix "sh: php: command not found" when running wpunit tests in PhpStorm.
+ *
+ * @see lucatume\WPBrowser\Module\WPLoader::includeCorePHPUniteSuiteBootstrapFile()
+ * @see vendor/lucatume/wp-browser/includes/core-phpunit/includes/bootstrap.php:263
+ */
+$is_phpstorm = array_reduce( $GLOBALS['argv'], fn( bool $carry, string $arg ) => $carry || str_contains( $arg, 'PhpStorm' ), false );
+if ( $is_phpstorm ) {
+	define( 'WP_PHP_BINARY', PHP_BINARY );
+}
