@@ -40,6 +40,12 @@ class Upload {
 		}
 
 		$request_post_type = ( function (): string {
+			/**
+			 * There is no nonce being passed; we are only checking is the `?post_type` equal to a value, not
+			 * inserting or updating anything.
+			 *
+			 * phpcs:disable WordPress.Security.NonceVerification.Recommended
+			 */
 			return isset( $_REQUEST['post_type'] ) && is_string( $_REQUEST['post_type'] )
 				? sanitize_key( wp_unslash( $_REQUEST['post_type'] ) )
 				: '';
