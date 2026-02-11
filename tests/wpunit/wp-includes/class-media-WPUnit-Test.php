@@ -258,4 +258,82 @@ class Media_WPUnit_Test extends WPTestCase {
 
 		$this->assertSame( 'private_media', $result['post_type'] );
 	}
+
+	/**
+	 * @covers ::set_query_post_type_to_cpt
+	 */
+	public function test_sets_query_post_type_to_cpt(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name' => 'private_media',
+			)
+		);
+
+		$sut = new Media( $settings );
+
+		$query = array(
+			'post_type' => 'attachment',
+			's'         => 'search term',
+			'order'     => 'DESC',
+		);
+
+		$result = $sut->set_query_post_type_to_cpt( $query );
+
+		$this->assertSame( 'private_media', $result['post_type'] );
+	}
+
+	/**
+	 * @covers ::set_query_post_type_to_cpt
+	 */
+	public function test_set_query_post_type_preserves_other_query_args(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name' => 'private_media',
+			)
+		);
+
+		$sut = new Media( $settings );
+
+		$query = array(
+			'post_type'      => 'attachment',
+			's'              => 'search term',
+			'order'          => 'DESC',
+			'posts_per_page' => 40,
+			'paged'          => 2,
+		);
+
+		$result = $sut->set_query_post_type_to_cpt( $query );
+
+		$this->assertSame( 'search term', $result['s'] );
+		$this->assertSame( 'DESC', $result['order'] );
+		$this->assertSame( 40, $result['posts_per_page'] );
+		$this->assertSame( 2, $result['paged'] );
+	}
+
+	/**
+	 * @covers ::set_query_post_type_to_cpt
+	 */
+	public function test_set_query_post_type_adds_post_type_when_absent(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name' => 'private_media',
+			)
+		);
+
+		$sut = new Media( $settings );
+
+		$query = array(
+			's' => 'search term',
+		);
+
+		$result = $sut->set_query_post_type_to_cpt( $query );
+
+		$this->assertSame( 'private_media', $result['post_type'] );
+	}
 }

@@ -126,7 +126,6 @@ class Media {
 			&& str_contains( $http_referer, 'post_type=' . $this->settings->get_post_type_name() );
 	}
 
-
 	/**
 	 * @hooked ajax_query_attachments_args
 	 * @param array{s?:string,order?:string,orderby?:string,posts_per_page?:int,paged?:int,post_mime_type?:string,post_parent?:int,author?:int,post__in?:array<int>,post__not_in?:array<int>,year?:int,monthnum?:int,} $query From `$_REQUEST['query']`.
@@ -136,11 +135,9 @@ class Media {
 	 * @return array{post_type:string}&array<string,mixed>
 	 */
 	public function set_query_post_type_to_cpt( array $query ): array {
-		$post_type          = $this->settings->get_post_type_name();
-		$query['post_type'] = $post_type;
+		$query['post_type'] = $this->settings->get_post_type_name();
 		return $query;
 	}
-
 
 	/**
 	 *
