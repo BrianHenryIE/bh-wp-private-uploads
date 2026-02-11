@@ -225,7 +225,7 @@ EOD;
 		echo '<ul class="private-media-library-post-attachments">';
 		if ( ! empty( $private_uploads ) ) {
 			foreach ( $private_uploads as $upload_post ) {
-				// Change post_type to 'attachment' so wp_get_attachment_url works correctly
+				// Change post_type to 'attachment' so `wp_get_attachment_url()` works correctly.
 				$upload_post->post_type = 'attachment';
 				wp_cache_set( $upload_post->ID, $upload_post, 'posts' );
 
