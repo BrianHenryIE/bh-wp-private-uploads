@@ -44,7 +44,7 @@ class Admin_Menu_Unit_Test extends Unit {
 			)
 		);
 
-		$sut = new Admin_Menu($settings);
+		$sut = new Admin_Menu( $settings );
 
 		WP_Mock::userFunction( 'remove_menu_page' )
 			->once()
