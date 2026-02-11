@@ -47,25 +47,29 @@ function registerPrivateUploadsMediaLibrary( selector, private_attachment_post_t
 
 			if(attachments.length !== 0) {
 
-				var attachment = attachments.first().toJSON();
-
-				// TODO: set ALT/title text
-
 				var meta_box_id = '#' + private_attachment_post_type.replace('_','-') + "-private-media-library-meta-box-input";
 
 				jQuery(meta_box_id + ' .no-uploads-yet').css('display', 'none');
 
-				// div name is: private-media-private-media-library-meta-box-input
 				const unorderedList = jQuery(meta_box_id + ' .private-media-library-post-attachments');
 
-				const imgSrc = (attachment.sizes)
-					? attachment.sizes['medium'].url
-					: attachment.icon;
+				attachments.each(function(attachment) {
+					const attachmentData = attachment.toJSON();
 
-				unorderedList.append('<li class="private-media-library-post-attachment" id="' + private_attachment_post_type + '-' + attachment.id + '">' +
-					'<img src="'+imgSrc+'" />' +
-					'</li>')
+					// TODO: set ALT/title text
 
+					const imgSrc = (attachmentData.sizes && attachmentData.sizes['medium'])
+						? attachmentData.sizes['medium'].url
+						: attachmentData.icon;
+
+					const li = jQuery('<li>', {
+						'class': 'private-media-library-post-attachment',
+						'id': private_attachment_post_type + '-' + attachmentData.id
+					});
+					const img = jQuery('<img>', { 'src': imgSrc });
+					li.append(img);
+					unorderedList.append(li);
+				});
 			}
 
 			// Restore the main post ID
