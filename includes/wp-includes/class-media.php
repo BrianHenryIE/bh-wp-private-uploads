@@ -82,7 +82,7 @@ class Media {
 		$is_private_upload_via_post = isset( $_POST['post_type'] ) && $post_type === $_POST['post_type'];
 
 		// Check if this is our private upload via async-upload.php with referer containing post_type
-		$http_referer = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
+		$http_referer                  = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
 		$is_private_upload_via_referer = 'async-upload.php' === $pagenow
 			&& false !== strpos( $http_referer, 'post_type=' . $post_type );
 

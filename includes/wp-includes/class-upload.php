@@ -43,7 +43,7 @@ class Upload {
 		$request_post_type = isset( $_REQUEST['post_type'] ) && is_string( $_REQUEST['post_type'] )
 			? sanitize_key( $_REQUEST['post_type'] )
 			: '';
-		$http_referer  = isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
+		$http_referer      = isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
 		if ( ! ( $post_type === $request_post_type || false !== strpos( $http_referer, 'post_type=' . $post_type ) ) ) {
 			return;
 		}
