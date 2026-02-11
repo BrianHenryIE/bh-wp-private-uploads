@@ -113,6 +113,9 @@ class Upload_Unit_Test extends Unit {
 	/**
 	 * @dataProvider provider_replace_post_type_in_query
 	 * @covers ::replace_post_type_in_query
+	 *
+	 * @param string $input_query The SQL query sent to the function.
+	 * @param string $expected What the output of the function should be.
 	 */
 	public function test_replace_post_type_in_query( string $input_query, string $expected ): void {
 		$settings = $this->makeEmpty(
@@ -130,7 +133,7 @@ class Upload_Unit_Test extends Unit {
 	}
 
 	/**
-	 * @return array<string, array{string, string}>
+	 * @return array<array{string, string}>
 	 */
 	public function provider_replace_post_type_in_query(): array {
 		return array(
