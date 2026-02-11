@@ -3,6 +3,7 @@ parameters:
     paths:
         - includes
         - development-plugin
+        - tests
     excludePaths:
         - development-plugin/vendor/*
     bootstrapFiles:
