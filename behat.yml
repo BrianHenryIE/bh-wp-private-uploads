@@ -1,0 +1,45 @@
+default:
+  suites:
+    default:
+      contexts:
+        - BrianHenryIE\WP_Private_Uploads\FeatureContext
+      paths:
+        - tests/features
+
+coverage:
+  suites:
+    default:
+      contexts:
+        - BrianHenryIE\WP_Private_Uploads\FeatureContext
+      paths:
+        - tests/features
+  extensions:
+    DVDoug\Behat\CodeCoverage\Extension:
+      filter:
+        include:
+          directories:
+            'includes': ~
+        exclude:
+          directories:
+            'vendor': ~
+            'tests': ~
+      reports:
+        clover:
+          target: tests/_output/behat-clover.xml
+        html:
+          target: tests/_output/behat-html
+          lowUpperBound: 50
+          highLowerBound: 90
+        text:
+          showColors: true
+          showOnlySummary: false
+        php:
+          target: tests/_output/behat-coverage.php
+
+# Database Configuration:
+# By default, tests use SQLite (set via WP_CLI_TEST_DBTYPE environment variable).
+# To use MySQL instead, run: WP_CLI_TEST_DBTYPE=mysql vendor/bin/behat
+#
+# Usage:
+#   Default (no coverage): WP_CLI_TEST_DBTYPE=sqlite vendor/bin/behat
+#   With coverage:         XDEBUG_MODE=coverage WP_CLI_TEST_DBTYPE=sqlite vendor/bin/behat --profile=coverage

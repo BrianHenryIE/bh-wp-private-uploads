@@ -37,6 +37,7 @@ jobs:
         with:
           # Value already defaults to true, but `persist-credentials` is required to push new commits to the repository.
           persist-credentials: true
+          fetch-depth: 0 # attempt to fix phpcov empty BRANCHED_COMMIT.
 
       - name: Checkout GitHub Pages branch for code coverage report
         if: ${{ matrix.php == env.COVERAGE_PHP_VERSION }}
@@ -187,6 +188,7 @@ jobs:
             --covered-files=${{ steps.changed-files.outputs.all_changed_files }} \
             --base-url ${{ format('https://{0}.github.io/{1}/{2}/phpunit/html/', github.repository_owner, github.event.repository.name, github.sha) }} \
             --output-file coverage-report.md
+          # TODO: need to remove /includes from the beginning of every link
 
       - name: Add to the PR message
         if: ${{ matrix.php == env.COVERAGE_PHP_VERSION && github.event_name == 'pull_request' }}
@@ -202,7 +204,7 @@ jobs:
         if: ${{ matrix.php == env.COVERAGE_PHP_VERSION && github.event_name == 'pull_request' }}
         continue-on-error: true # phpcov can fail if there are no uncovered lines
         run: |
-          BRANCHED_COMMIT=$(git rev-list origin..HEAD | tail -n 1);
+          BRANCHED_COMMIT=$(git rev-list master..HEAD | tail -n 1);
           echo "BRANCHED_COMMIT=$BRANCHED_COMMIT"
           git diff $BRANCHED_COMMIT...${{ github.event.pull_request.head.sha }} > branch.diff
           cat branch.diff

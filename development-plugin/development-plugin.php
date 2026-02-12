@@ -7,9 +7,7 @@
  * registers the activation and deactivation functions, and defines a function
  * that starts the plugin.
  *
- * @link              http://example.com
- * @since             1.0.0
- * @package    brianhenryie/bh-wp-private-uploads
+ * @link              http://bhwp.ie
  *
  * @wordpress-plugin
  * Plugin Name:       Private Uploads Development Plugin
@@ -21,15 +19,13 @@
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       bh-wp-private-uploads
+ *
+ * @package    brianhenryie/bh-wp-private-uploads
  */
 
 namespace BrianHenryIE\WP_Private_Uploads_Development_Plugin;
 
-use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
-use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface as Settings_Interface;
-use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
-use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
+use Alley_Interactive\Autoloader\Autoloader;
 use Psr\Log\NullLogger;
 
 // If this file is called directly, abort.
@@ -42,100 +38,27 @@ require_once __DIR__ . '/../vendor/autoload.php';
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
-$settings = new class() implements Settings_Interface {
-	use Private_Uploads_Settings_Trait;
+Autoloader::generate(
+	'BrianHenryIE\\WP_Private_Uploads',
+	__DIR__ . '/../includes',
+)->register();
 
-	/**
-	 * For friendly display.
-	 */
-	public function get_plugin_name(): string {
-		return 'Private Uploads Development Plugin';
-	}
 
-	/**
-	 * The plugin basename, for adding the Logs link on plugins.php.
-	 */
-	public function get_plugin_basename(): string {
-		return defined( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME' )
-			? constant( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME' )
-			: 'development-plugin/development-plugin.php';
-	}
+$settings = new Development_Plugin_Settings();
+new Example_Private_Uploads( $settings, new NullLogger() );
 
-	/**
-	 * The plugin version for asset caching.
-	 *
-	 * @see Settings_Interface::get_plugin_version()
-	 */
-	public function get_plugin_version(): string {
-		return defined( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION' )
-			? constant( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION' )
-			: '3.0.0';
-	}
-
-	/**
-	 * The development plugin's slug as an identifier.
-	 *
-	 * @see Settings_Interface::get_plugin_slug()
-	 * @see Private_Uploads_Settings_Interface::get_plugin_slug()
-	 */
-	public function get_plugin_slug(): string {
-		return 'bh-wp-private-uploads-development-plugin';
-	}
-
-	/**
-	 * Configure private uploads to upload to `wp-content/uploads/development-plugin`.
-	 *
-	 * @see Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
-	 */
-	public function get_uploads_subdirectory_name(): string {
-		return 'private-media';
-	}
-
-	/**
-	 * Configure the WP CLI command base for the plugin's private uploads.
-	 *
-	 * `wp my_plugin private_media upload ...`
-	 *
-	 * @see Private_Uploads_Settings_Interface::get_cli_base()
-	 */
-	public function get_cli_base(): ?string {
-		return 'my_plugin private_media';
-	}
-
-	/**
-	 * The custom post type name for the private uploads.
-	 *
-	 * "Must not exceed 20 characters and may only contain lowercase alphanumeric characters, dashes, and underscores. See sanitize_key ()."
-	 *
-	 * @see Private_Uploads_Settings_Interface::get_post_type_name()
-	 */
-	public function get_post_type_name(): string {
-		return 'private_media';
-	}
-
-	/**
-	 * Add the private uploads meta box to the WooCommerce shop order edit page.
-	 *
-	 * @see Private_Uploads_Settings_Interface::get_meta_box_settings()
-	 *
-	 * @return array<string,array>
-	 */
-	public function get_meta_box_settings(): array {
-		return array(
-			'shop_order' => array(),
-		);
-	}
-};
-
-$e = new Example_Private_Uploads( $settings, new NullLogger() );
-
-// TODO: move to bh-wp-logger
+/**
+ * Here we filter the parameters for registering the post type.
+ *
+ * There are fair arguments to expect these set via the Settings class, and also to allow them to be configured through
+ * the conventional WordPress filters.
+ *
+ * @see register_post_type()
+ */
 add_filter(
 	'register_post_type_args',
 	function ( array $args, string $post_type ) use ( $settings ): array {
-		// $args['show_in_menu'] = true;
 
-		// if ( 'bh-wp-privat_private' !== $post_type ) {
 		if ( $settings->get_post_type_name() !== $post_type ) {
 				return $args;
 		}
@@ -152,4 +75,31 @@ add_filter(
 	},
 	10,
 	2
+);
+
+
+/**
+ * Because the relative filepaths mapped inside Docker, we need to fix the plugin urls.
+ *
+ * `assets`, `include`, `vendor` are mapped to the wp-content/plugins directory, not the development-plugin subdir.
+ *
+ * @see .wp-env.json
+ *
+ * "http://localhost:8888/wp-content/plugins/includes/admin/assets/bh-wp-private-uploads-admin.js?ver=1.0.0"
+ * should be
+ * "http://localhost:8888/wp-content/plugins/assets/bh-wp-private-uploads-admin.js?ver=1.0.0"
+ *
+ * @see plugins_url()
+ */
+add_filter(
+	'plugins_url',
+	function ( string $url, string $_path, string $_plugin ): string {
+
+		/** @phpstan-ignore-next-line phpstanWP.wpConstant.fetch */
+		$url = str_replace( WP_PLUGIN_URL . '/includes/admin', WP_PLUGIN_URL . '/', $url );
+
+		return $url;
+	},
+	10,
+	3
 );

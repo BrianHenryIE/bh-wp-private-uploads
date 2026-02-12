@@ -9,14 +9,20 @@
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
-use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 
+/**
+ * Registers (does not enqueue) the script used in admin UI AJAX uploads.
+ */
 class Admin_Assets {
 
-	protected Private_Uploads_Settings_Interface $settings;
-
-	public function __construct( Private_Uploads_Settings_Interface $settings ) {
-		$this->settings = $settings;
+	/**
+	 * Constructor
+	 *
+	 * @param Private_Uploads_Settings_Interface $settings To get the plugin slug.
+	 */
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings
+	) {
 	}
 
 	/**
@@ -28,18 +34,12 @@ class Admin_Assets {
 
 		$handle = sprintf(
 			'%s-private-uploads-media-library-js',
-			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
+			$this->settings->get_plugin_slug()
 		);
 
 		$version = '1.0.0';
 
-		$js_absolute_path = realpath( dirname( __DIR__, 2 ) ) . '/assets/bh-wp-private-uploads-admin.js';
-
-		$plugin_dir = trailingslashit( constant( 'WP_PLUGIN_DIR' ) ) . plugin_basename( __FILE__ );
-
-		$js_relative_path = str_replace( $plugin_dir, '', $js_absolute_path );
-
-		$js_url = plugins_url( $js_relative_path );
+		$js_url = plugins_url( '/assets/bh-wp-private-uploads-admin.js', __FILE__ );
 
 		wp_register_script(
 			$handle,

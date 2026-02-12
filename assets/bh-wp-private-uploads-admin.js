@@ -15,7 +15,7 @@ function registerPrivateUploadsMediaLibrary( selector, private_attachment_post_t
 
 		// If the media frame already exists, reopen it.
 		if ( file_frame ) {
-			// Set the post ID to what we want
+			// Set `post_id` to the post ID we want to attach the file to.
 			file_frame.uploader.uploader.param( 'post_id', set_to_post_id );
 
 			// For uploading.
@@ -41,23 +41,35 @@ function registerPrivateUploadsMediaLibrary( selector, private_attachment_post_t
 			multiple: true
 		});
 
-		// When an image is selected, run a callback.
+		// When the modal is dismissed, run a callback to display the selected image(s) etc.
 		file_frame.on( 'select', function() {
-			// We set multiple to false so only get one image from the uploader
-			var attachment = file_frame.state().get('selection').first().toJSON();
+			var attachments = file_frame.state().get('selection');
 
-			// Do something with attachment.id and/or attachment.url here
+			if (attachments.length !== 0) {
 
-			// TODO: set attachment.url to a data tag on the image
-			// TODO: set ALT/title text
+				var meta_box_id = '#' + private_attachment_post_type.replaceAll('_','-') + "-private-media-library-meta-box-input";
 
-			var meta_box_id = '#' + private_attachment_post_type;
-
-			if( attachment.sizes ) {
 				jQuery(meta_box_id + ' .no-uploads-yet').css('display', 'none');
-				jQuery(meta_box_id + ' .image-preview-private').attr('src', attachment.sizes['medium'].url);
-				jQuery(meta_box_id + ' .image-preview-private').css('display', '');
-				// jQuery(meta_box_id + ' .image_attachment_id_private').val(attachment.id);
+
+				const unorderedList = jQuery(meta_box_id + ' .private-media-library-post-attachments');
+
+				attachments.each(function(attachment) {
+					const attachmentData = attachment.toJSON();
+
+					// TODO: set ALT/title text
+
+					const imgSrc = (attachmentData.sizes && attachmentData.sizes['medium'])
+						? attachmentData.sizes['medium'].url
+						: attachmentData.icon;
+
+					const li = jQuery('<li>', {
+						'class': 'private-media-library-post-attachment',
+						'id': private_attachment_post_type + '-' + attachmentData.id
+					});
+					const img = jQuery('<img>', { 'src': imgSrc });
+					li.append(img);
+					unorderedList.append(li);
+				});
 			}
 
 			// Restore the main post ID

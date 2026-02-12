@@ -16,11 +16,6 @@ use WP_Post_Type;
 class Admin_Menu {
 
 	/**
-	 * The settings, mainly to compare the post type name (key).
-	 */
-	protected Private_Uploads_Settings_Interface $settings;
-
-	/**
 	 * The WordPress registered post type object reference.
 	 */
 	protected ?WP_Post_Type $post_type = null;
@@ -28,12 +23,11 @@ class Admin_Menu {
 	/**
 	 * Constructor
 	 *
-	 * @param Private_Uploads_Settings_Interface $settings To know whether to add a submenu, and the post type.
+	 * @param Private_Uploads_Settings_Interface $settings The settings, mainly to compare the post type name (key).
 	 */
-	public function __construct( Private_Uploads_Settings_Interface $settings ) {
-		$this->settings = $settings;
-
-		add_action( 'registered_post_type', array( $this, 'get_registered_post_type_object' ), 10, 2 );
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings
+	) {
 	}
 
 	/**
@@ -120,7 +114,7 @@ class Admin_Menu {
 
 		if ( isset( $_SERVER['REQUEST_URI'] )
 			&& is_string( $_SERVER['REQUEST_URI'] )
-			&& false !== strpos( $url, sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) )
+			&& str_contains( $url, sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) )
 		) {
 			return $url;
 		}
@@ -131,7 +125,7 @@ class Admin_Menu {
 	/**
 	 * Because we're using `show_in_menu`, it's also adding a top level menu. Let's delete that.
 	 *
-	 * TODO: redirect wp-admin/edit.php?post_type=test_plugin_private to the library.
+	 * TODO: redirect wp-admin/edit.php?post_type=test_plugin_private to the library. @see edit.php:26.
 	 *
 	 * @hooked admin_menu
 	 */

@@ -16,9 +16,16 @@ wp plugin activate --all
 
 
 # Use the Composer installed WP-CLI.
-sudo rm /usr/local/bin/wp;
-sudo ln -s /var/www/html/wp-content/plugins/example-plugin/vendor/bin/wp /usr/local/bin/wp;
+#sudo rm /usr/local/bin/wp;
+#sudo ln -s /var/www/html/wp-content/plugins/example-plugin/vendor/bin/wp /usr/local/bin/wp;
 
+# Install jq to manipulate json (optional output of WP CLI commands)
+if command -v jq &> /dev/null; then
+	echo "jq is already installed."
+else
+	echo "jq not found, installing..."
+	sudo apk add jq
+fi
 
 echo "Set up pretty permalinks for REST API."
 wp rewrite structure /%year%/%monthnum%/%postname%/ --hard;

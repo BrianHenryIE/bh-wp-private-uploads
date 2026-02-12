@@ -10,6 +10,7 @@
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use WC_Order;
@@ -19,17 +20,8 @@ use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 /**
  * @see assets/bh-wp-private-uploads-admin.js
  */
-class Admin_Meta_Boxes {
+class Admin_Meta_Boxes implements LoggerAwareInterface {
 	use LoggerAwareTrait;
-
-	/**
-	 * The plugin's settings.
-	 *
-	 * @uses Private_Uploads_Settings_Interface::get_plugin_basename()
-	 * @uses Private_Uploads_Settings_Interface::get_plugin_version()
-	 * @uses Private_Uploads_Settings_Interface::get_post_type_name()
-	 */
-	protected Private_Uploads_Settings_Interface $settings;
 
 	/**
 	 * The post currently being displayed in the admin UI.
@@ -42,15 +34,19 @@ class Admin_Meta_Boxes {
 	 * @param Private_Uploads_Settings_Interface $settings The private uploads settings.
 	 * @param LoggerInterface                    $logger A PSR logger.
 	 */
-	public function __construct( Private_Uploads_Settings_Interface $settings, LoggerInterface $logger ) {
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings,
+		LoggerInterface $logger
+	) {
 		$this->setLogger( $logger );
-		$this->settings = $settings;
 	}
 
 	/**
-	 * If we're on a shop order page, register the metabox, enqueue the media library JavaScript, and enqueue the
-	 * post data that will be used by the JavaScript to set the post type, author and parent post.
+	 * If we're on a nominated page (i.e. configured in the settings, e.g. shop-order), register the metabox,
+	 * enqueue the media library JavaScript, and enqueue the post data that will be used by the JavaScript to
+	 * set the post type, author and parent post.
 	 *
+	 * @see wordpress/wp-admin/includes/meta-boxes.php
 	 * @hooked add_meta_boxes
 	 *
 	 * @param string                 $post_type The registered CPT type for this edit screen.
@@ -78,7 +74,9 @@ class Admin_Meta_Boxes {
 			'Private Uploads',
 			array( $this, 'print_meta_box' ),
 			$post_type,
-			'side'
+			'side',
+			'default',
+			$meta_box_settings
 		);
 
 		$this->current_post = $post;
@@ -101,7 +99,7 @@ class Admin_Meta_Boxes {
 
 		$handle = sprintf(
 			'%s-private-uploads-media-library-js',
-			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
+			$this->settings->get_plugin_slug()
 		);
 
 		wp_enqueue_script( $handle );
@@ -192,6 +190,13 @@ EOD;
 			}
 		);
 
+		$selector_prefix = str_underscores_to_hyphens( $this->settings->get_post_type_name() );
+
+		printf(
+			'<div id="%s-private-media-library-meta-box-input">',
+			esc_attr( $selector_prefix )
+		);
+
 		if ( ! empty( $attachments_with_thumbnails ) ) {
 			$upload_post = $attachments_with_thumbnails[ array_key_first( $attachments_with_thumbnails ) ];
 			/**
@@ -217,18 +222,22 @@ EOD;
 			}
 		}
 
+		echo '<ul class="private-media-library-post-attachments">';
 		if ( ! empty( $private_uploads ) ) {
-			echo '<ul>';
 			foreach ( $private_uploads as $upload_post ) {
-				$non_image_attachment_href = wp_get_attachment_url( $upload_post->ID );
-				if ( false !== $non_image_attachment_href ) {
-					echo '<li><a href="' . esc_url( $non_image_attachment_href ) . '">' . esc_html( $upload_post->post_title ) . '</a></li>';
+				// Change post_type to 'attachment' so `wp_get_attachment_url()` works correctly.
+				$upload_post->post_type = 'attachment';
+				wp_cache_set( $upload_post->ID, $upload_post, 'posts' );
+
+				$attachment_href = wp_get_attachment_url( $upload_post->ID );
+				if ( false !== $attachment_href ) {
+					echo '<li><a href="' . esc_url( $attachment_href ) . '">' . esc_html( $upload_post->post_title ) . '</a></li>';
 				}
 			}
-			echo '</ul>';
+		}
+		echo '</ul>';
 
-		} else {
-
+		if ( empty( $private_uploads ) ) {
 			echo '<div class="no-uploads-yet">';
 
 			// TODO: Thickbox.
@@ -240,9 +249,21 @@ EOD;
 		}
 
 		echo '<p>';
+
 		// TODO: add an E2E tested example implementation in development-plugin.
-		echo '<button class="button bh-wp-private-uploads-test-plugin-private-media-library">' . esc_html( $select_files_text ) . '</button>';
-		echo '<button class="button bh-wp-private-uploads-test-plugin-private-media-library remove-files" style="display: none">' . esc_html( $remove_files_text ) . '</button>';
+		printf(
+			'<button class="button %s-private-media-library">%s</button>',
+			esc_attr( $selector_prefix ),
+			esc_html( $select_files_text )
+		);
+		if ( ! empty( $private_uploads ) ) {
+			printf(
+				'<button class="button %s-private-media-library remove-files">%s</button>',
+				esc_attr( $selector_prefix ),
+				esc_html( $remove_files_text )
+			);
+		}
 		echo '</p>';
+		echo '</div>';
 	}
 }

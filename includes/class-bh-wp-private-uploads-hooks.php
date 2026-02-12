@@ -17,6 +17,7 @@ use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
+use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
@@ -75,19 +76,18 @@ class BH_WP_Private_Uploads_Hooks {
 
 		$this->define_meta_box_hooks();
 		$this->define_media_library_hooks();
-		new Upload( $settings );
+		new Upload( $settings, new Media_Request() );
 
 		$this->define_admin_menu_hooks();
 	}
 
 	protected function define_api_hooks(): void {
+		/** @phpstan-ignore-next-line return.void  */
 		add_action( 'init', array( $this->api, 'create_directory' ) );
 	}
 
 	/**
-	 * This also registers the REST API.
 	 *
-	 * @since    2.0.0
 	 */
 	protected function define_post_hooks(): void {
 
@@ -169,7 +169,7 @@ class BH_WP_Private_Uploads_Hooks {
 	 */
 	protected function define_media_library_hooks(): void {
 
-		$media = new Media( $this->settings );
+		$media = new Media( $this->settings, new Media_Request() );
 
 		add_action( 'wp_ajax_query-attachments', array( $media, 'on_query_attachments' ), 1 );
 		add_action( 'admin_init', array( $media, 'on_upload_attachment' ), 1 );
@@ -188,6 +188,9 @@ class BH_WP_Private_Uploads_Hooks {
 	protected function define_admin_menu_hooks(): void {
 
 		$admin_menu_hooks = new Admin_Menu( $this->settings );
+
+		// This needs to run first for the other hooks to have any real effect.
+		add_action( 'registered_post_type', array( $admin_menu_hooks, 'get_registered_post_type_object' ), 10, 2 );
 
 		add_action( 'admin_menu', array( $admin_menu_hooks, 'add_private_media_library_menu' ) );
 		add_filter( 'submenu_file', array( $admin_menu_hooks, 'highlight_menu' ), 10, 2 );

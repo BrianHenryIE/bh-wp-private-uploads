@@ -2,6 +2,7 @@
  * External dependencies
  */
 import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
 
 /**
  * Read environment variables from file.
@@ -9,13 +10,25 @@ import { defineConfig, devices } from '@playwright/test';
  */
 require( 'dotenv' ).config();
 
+const WP_BASE_URL =
+  process.env.BASEURL ||
+  process.env.WP_BASE_URL ||
+  'http://localhost:8888';
+
+// Set WP_BASE_URL so @wordpress/e2e-test-utils-playwright uses the same base URL.
+process.env.WP_BASE_URL = WP_BASE_URL;
+
+const STORAGE_STATE_PATH =
+  process.env.STORAGE_STATE_PATH ||
+  path.join( process.cwd(), 'artifacts/storage-states/admin.json' );
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig( {
   testDir: './tests/e2e-pw',
   testIgnore: '**/helpers-tests/**',
-  // globalSetup: require.resolve( './tests/e2e-pw/config/global-setup' ),
+  globalSetup: require.resolve( './tests/e2e-pw/global-setup.ts' ),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -33,10 +46,9 @@ export default defineConfig( {
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL:
-      process.env.BASEURL ||
-      process.env.WP_BASE_URL ||
-      'http://localhost:8889',
+    baseURL: WP_BASE_URL,
+
+    storageState: STORAGE_STATE_PATH,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',

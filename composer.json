@@ -42,7 +42,8 @@
     },
     "autoload-dev": {
         "classmap": [
-            "development-plugin/"
+            "development-plugin/",
+            "tests/_support/"
         ]
     },
     "repositories": {
@@ -62,7 +63,7 @@
     "require": {
         "php": ">=8.0",
         "ext-fileinfo": "*",
-        "psr/log": "^1.0.0",
+        "psr/log": "^1 || ^2 || ^3",
         "wptrt/admin-notices": "^1.0"
     },
     "require-dev": {
@@ -70,13 +71,14 @@
         "10up/wp_mock": "^1.0",
         "alleyinteractive/wordpress-autoloader": "^1.1",
         "antecedent/patchwork": "^2.1",
+        "behat/behat": "^3.15.0",
         "brianhenryie/color-logger": "*",
         "brianhenryie/php-codecoverage-markdown": "^0.1.0",
         "cweagans/composer-patches": "*",
         "dealerdirect/phpcodesniffer-composer-installer": "*",
+        "dvdoug/behat-code-coverage": "^5.3",
         "johnpbloch/wordpress": "*",
         "lucatume/wp-browser": "^4",
-        "phpcompatibility/phpcompatibility-wp": "^2.1",
         "phpstan/extension-installer": "*",
         "phpunit/phpcov": "*",
         "rector/rector": "^2.3",
@@ -86,6 +88,7 @@
         "wp-cli/dist-archive-command": "*",
         "wp-cli/handbook": "dev-main",
         "wp-cli/wp-cli-bundle": "*",
+        "wp-cli/wp-cli-tests": "^5",
         "wp-coding-standards/wpcs": "*",
         "wpackagist-plugin/debug-log-manager": "*",
         "wpackagist-plugin/document-generator-for-openapi": "*",
@@ -112,6 +115,17 @@
             "vendor/bin/codecept run wpunit --coverage wpunit.cov",
             "vendor/bin/phpcov merge --clover tests/_output/clover.xml --html tests/_output/html tests/_output;",
             "open tests/_output/html/index.html"
+        ],
+        "behat": [
+            "WP_CLI_TEST_DBTYPE=sqlite vendor/bin/behat"
+        ],
+        "behat-coverage": [
+            "rm -f tests/_output/behat-*.xml tests/_output/behat-*.php || true",
+            "rm -rf tests/_output/behat-html || true",
+            "XDEBUG_MODE=coverage WP_CLI_TEST_DBTYPE=sqlite vendor/bin/behat --profile=coverage",
+            "echo '\\n✓ Coverage reports generated:'",
+            "echo '  - HTML: tests/_output/behat-html/index.html'",
+            "echo '  - Clover XML: tests/_output/behat-clover.xml'"
         ],
         "cs-fix": [
             "phpcbf || true",
