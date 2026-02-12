@@ -6,6 +6,7 @@ parameters:
         - tests
     excludePaths:
         - development-plugin/vendor/*
+        - tests/_support/_generated/*
     bootstrapFiles:
 #        - development-plugin/autoload.php
         - phpstanbootstrap.php

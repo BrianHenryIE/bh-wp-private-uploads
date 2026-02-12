@@ -307,11 +307,8 @@ class Media_WPUnit_Test extends WPTestCase {
 			'paged'          => 2,
 		);
 
-		/**
-		 * @phpstan-ignore-next-line varTag.type
-		 * @var array<string, mixed> $result
-		 */
-		$result = $sut->set_query_post_type_to_cpt( $query );
+		/** @var array<string, mixed> $result */
+		$result = $sut->set_query_post_type_to_cpt( $query ); /** @phpstan-ignore varTag.type */
 
 		$this->assertArrayHasKey( 's', $result );
 		$this->assertSame( 'search term', $result['s'] );

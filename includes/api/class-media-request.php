@@ -39,7 +39,8 @@ class Media_Request {
 		/** @var array<WP_Hook> $wp_filter */
 		global $wp_filter;
 
-		foreach ( $wp_filter['clean_url']?->callbacks[10] ?? array() as $action ) {
+		/** @var array{function?:array{0?:object}} $action */
+		foreach ( $wp_filter['clean_url']?->callbacks[10] ?? array() as $action ) { /** @phpstan-ignore foreach.nonIterable */
 			if ( isset( $action['function'][0] ) && $action['function'][0] instanceof Upload ) {
 				/** @var Upload $upload */
 				$upload = $action['function'][0];
