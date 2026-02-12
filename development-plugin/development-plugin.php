@@ -25,8 +25,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads_Development_Plugin;
 
-use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
-use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
+use Alley_Interactive\Autoloader\Autoloader;
 use Psr\Log\NullLogger;
 
 // If this file is called directly, abort.
@@ -38,6 +37,12 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+
+Autoloader::generate(
+	'BrianHenryIE\\WP_Private_Uploads',
+	__DIR__ . '/../includes',
+)->register();
+
 
 $settings = new Development_Plugin_Settings();
 new Example_Private_Uploads( $settings, new NullLogger() );
