@@ -2,221 +2,129 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\API;
 
-use BrianHenryIE\ColorLogger\ColorLogger;
-use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use lucatume\WPBrowser\TestCase\WPTestCase;
 
 /**
- * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\API\API
+ * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\API\Media_Request
  */
-class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
+class Media_Request_WPUnit_Test extends WPTestCase {
 
 	/**
-	 * When there is no private uploads directory we don't really care if it's "public", since there's nothing to protect.
+	 * @covers ::is_relevant_page
+	 * @dataProvider provider_is_relevant_page
 	 *
-	 * @covers ::check_and_update_is_url_private
+	 * @param string $pagenow Arrange the test as though this page was loaded.
+	 * @param bool   $expected Should it be deemed a relevant page.
 	 */
-	public function test_url_is_public_folder_missing(): void {
+	public function test_is_relevant_page( string $pagenow, bool $expected ): void {
+		$GLOBALS['pagenow'] = $pagenow;
 
-		$test_uploads_directory_name = uniqid( __FUNCTION__ );
+		$sut = new Media_Request();
 
-		$settings = $this->makeEmpty(
-			Private_Uploads_Settings_Interface::class,
-			array(
-				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
-			)
-		);
-
-		$dir = sprintf(
-			'%s/uploads/%s/',
-			constant( 'WP_CONTENT_DIR' ),
-			$test_uploads_directory_name
-		);
-
-		assert( ! is_dir( $dir ) );
-
-		$logger = new ColorLogger();
-
-		$api = new API( $settings, $logger );
-
-		$result = $api->check_and_update_is_url_private();
-
-		$this->assertNull( $result );
-	}
-
-
-	/**
-	 * When the directory is empty we don't really care if it's "public", since there's nothing to protect.
-	 *
-	 * @covers ::check_and_update_is_url_private
-	 */
-	public function test_url_is_public_file_missing(): void {
-
-		$test_uploads_directory_name = uniqid( __FUNCTION__ );
-
-		$settings = $this->makeEmpty(
-			Private_Uploads_Settings_Interface::class,
-			array(
-				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
-			)
-		);
-
-		$dir = sprintf(
-			'%s/uploads/%s/',
-			constant( 'WP_CONTENT_DIR' ),
-			$test_uploads_directory_name
-		);
-
-		@mkdir( $dir, 0777, true );
-
-		assert( is_dir( $dir ) );
-		assert( 2 === count( scandir( $dir ) ) );
-
-		$logger = new ColorLogger();
-
-		$api = new API( $settings, $logger );
-
-		$result = $api->check_and_update_is_url_private();
-
-		$this->assertNull( $result );
+		$this->assertSame( $expected, $sut->is_relevant_page() );
 	}
 
 	/**
-	 * If an error is returned when checking the URL, log the error.
-	 *
-	 * @covers ::check_and_update_is_url_private
+	 * @return array<string, array{string, bool}>
 	 */
-	public function test_check_url_wp_error(): void {
-
-		$test_uploads_directory_name = uniqid( __FUNCTION__ );
-
-		$settings = $this->makeEmpty(
-			Private_Uploads_Settings_Interface::class,
-			array(
-				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
-				'get_plugin_slug'               => 'test_check_url_wp_error',
-			)
+	public function provider_is_relevant_page(): array {
+		return array(
+			'upload.php is relevant'       => array( 'upload.php', true ),
+			'media-new.php is relevant'    => array( 'media-new.php', true ),
+			'async-upload.php is relevant' => array( 'async-upload.php', true ),
+			'edit.php is not relevant'     => array( 'edit.php', false ),
+			'index.php is not relevant'    => array( 'index.php', false ),
 		);
-
-		$dir = sprintf(
-			'%s/uploads/%s/',
-			constant( 'WP_CONTENT_DIR' ),
-			$test_uploads_directory_name
-		);
-
-		@mkdir( $dir, 0777, true );
-
-		file_put_contents( "{$dir}index.php", '<?php', 0777 );
-
-		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
-		assert( file_exists( "{$dir}index.php" ) );
-
-		$logger = new ColorLogger();
-		$api    = new API( $settings, $logger );
-
-		add_filter(
-			'pre_http_request',
-			fn() => new \WP_Error( '1', 'test_check_url_wp_error' )
-		);
-
-		$api->check_and_update_is_url_private();
-
-		$this->assertTrue( $logger->hasInfoRecords() );
-
-		unlink( $dir . 'index.php' );
-		rmdir( $dir );
 	}
 
 	/**
-	 * @covers ::check_and_update_is_url_private
+	 * @covers ::request_uri_has_post_type
+	 * @covers ::uri_has_post_type
 	 */
-	public function test_is_url_protected_false(): void {
+	public function test_request_uri_has_post_type_true(): void {
+		$_SERVER['REQUEST_URI'] = '/wp-admin/upload.php?post_type=test_private';
 
-		$test_uploads_directory_name = uniqid( __FUNCTION__ );
+		$sut = new Media_Request();
 
-		$settings = $this->makeEmpty(
-			Private_Uploads_Settings_Interface::class,
-			array(
-				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
-				'get_plugin_slug'               => 'test_check_url_wp_error',
-			)
-		);
-
-		$dir = sprintf(
-			'%s/uploads/%s/',
-			constant( 'WP_CONTENT_DIR' ),
-			$test_uploads_directory_name
-		);
-
-		@mkdir( $dir, 0777, true );
-
-		file_put_contents( "{$dir}index.php", '<?php', 0777 );
-
-		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
-		assert( file_exists( "{$dir}index.php" ) );
-
-		$logger = new ColorLogger();
-		$api    = new API( $settings, $logger );
-
-		add_filter(
-			'pre_http_request',
-			fn() => array(
-				'body'     => '',
-				'response' => array(
-					'code' => 200,
-				),
-			)
-		);
-
-		$result = $api->check_and_update_is_url_private();
-
-		$this->assertNotNull( $result );
-		$this->assertFalse( $result->is_private() );
+		$this->assertTrue( $sut->request_uri_has_post_type( 'test_private' ) );
 	}
 
 	/**
-	 *
-	 * @covers ::check_and_update_is_url_private
+	 * @covers ::request_uri_has_post_type
+	 * @covers ::uri_has_post_type
 	 */
-	public function test_is_url_protected_true(): void {
+	public function test_request_uri_has_post_type_wrong_type(): void {
+		$_SERVER['REQUEST_URI'] = '/wp-admin/upload.php?post_type=other';
 
-		$test_uploads_directory_name = uniqid( __FUNCTION__ );
+		$sut = new Media_Request();
 
-		$settings = $this->makeEmpty(
-			Private_Uploads_Settings_Interface::class,
-			array(
-				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
-				'get_plugin_slug'               => 'test_check_url_wp_error',
-			)
-		);
+		$this->assertFalse( $sut->request_uri_has_post_type( 'test_private' ) );
+	}
 
-		$dir = sprintf(
-			'%s/uploads/%s/',
-			constant( 'WP_CONTENT_DIR' ),
-			$test_uploads_directory_name
-		);
+	/**
+	 * @covers ::request_uri_has_post_type
+	 * @covers ::uri_has_post_type
+	 */
+	public function test_request_uri_has_post_type_missing(): void {
+		$_SERVER['REQUEST_URI'] = '/wp-admin/upload.php';
 
-		@mkdir( $dir, 0777, true );
+		$sut = new Media_Request();
 
-		file_put_contents( "{$dir}index.php", '<?php', 0777 );
+		$this->assertFalse( $sut->request_uri_has_post_type( 'test_private' ) );
+	}
 
-		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
-		assert( file_exists( "{$dir}index.php" ) );
+	/**
+	 * @covers ::request_uri_has_post_type
+	 */
+	public function test_request_uri_has_post_type_no_request_uri(): void {
+		unset( $_SERVER['REQUEST_URI'] );
 
-		$logger = new ColorLogger();
-		$api    = new API( $settings, $logger );
+		$sut = new Media_Request();
 
-		add_filter(
-			'pre_http_request',
-			fn() => array(
-				'body'     => '',
-				'response' => array(
-					'code' => 403,
-				),
-			)
-		);
+		$this->assertFalse( $sut->request_uri_has_post_type( 'test_private' ) );
+	}
 
-		$result = $api->check_and_update_is_url_private();
+	/**
+	 * @covers ::referer_uri_has_post_type
+	 */
+	public function test_referer_uri_has_post_type_true(): void {
+		$_SERVER['HTTP_REFERER'] = 'http://example.com/wp-admin/upload.php?post_type=test_private';
 
-		$this->assertTrue( $result?->is_private() );
+		$sut = new Media_Request();
+
+		$this->assertTrue( $sut->referer_uri_has_post_type( 'test_private' ) );
+	}
+
+	/**
+	 * @covers ::referer_uri_has_post_type
+	 */
+	public function test_referer_uri_has_post_type_wrong_type(): void {
+		$_SERVER['HTTP_REFERER'] = 'http://example.com/wp-admin/upload.php?post_type=other';
+
+		$sut = new Media_Request();
+
+		$this->assertFalse( $sut->referer_uri_has_post_type( 'test_private' ) );
+	}
+
+	/**
+	 * @covers ::referer_uri_has_post_type
+	 */
+	public function test_referer_uri_has_post_type_missing(): void {
+		$_SERVER['HTTP_REFERER'] = 'http://example.com/wp-admin/upload.php';
+
+		$sut = new Media_Request();
+
+		$this->assertFalse( $sut->referer_uri_has_post_type( 'test_private' ) );
+	}
+
+	/**
+	 * @covers ::referer_uri_has_post_type
+	 */
+	public function test_referer_uri_has_post_type_no_referer(): void {
+		unset( $_SERVER['HTTP_REFERER'] );
+
+		$sut = new Media_Request();
+
+		$this->assertFalse( $sut->referer_uri_has_post_type( 'test_private' ) );
 	}
 }

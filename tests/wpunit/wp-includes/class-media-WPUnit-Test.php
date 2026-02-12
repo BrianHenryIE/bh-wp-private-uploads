@@ -2,6 +2,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
+use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use lucatume\WPBrowser\TestCase\WPTestCase;
 
@@ -22,7 +23,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$uploads = array(
 			'path'    => '/var/www/html/wp-content/uploads/2026/02',
@@ -50,7 +51,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$uploads = array(
 			'path'    => '/var/www/html/wp-content/uploads/2026/02',
@@ -78,7 +79,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$uploads = array(
 			'path'    => '/var/www/html/wp-content/uploads/2026/02',
@@ -106,7 +107,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$uploads = array(
 			'path'    => '/var/www/html/wp-content/uploads/2026/02',
@@ -134,7 +135,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		add_filter( 'upload_dir', array( $sut, 'set_uploads_subdirectory' ) );
 
@@ -166,7 +167,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$uploads = array(
 			'path'    => '/var/www/html/wp-content/uploads',
@@ -195,7 +196,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$data = array(
 			'post_type'   => 'attachment',
@@ -220,7 +221,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$data = array(
 			'post_type'    => 'attachment',
@@ -248,7 +249,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$data = array(
 			'post_type' => 'attachment',
@@ -271,7 +272,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$query = array(
 			'post_type' => 'attachment',
@@ -296,7 +297,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$query = array(
 			'post_type'      => 'attachment',
@@ -331,7 +332,7 @@ class Media_WPUnit_Test extends WPTestCase {
 			)
 		);
 
-		$sut = new Media( $settings );
+		$sut = new Media( $settings, new Media_Request() );
 
 		$query = array(
 			's' => 'search term',

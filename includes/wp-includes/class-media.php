@@ -10,6 +10,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
+use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use WP_Post;
@@ -24,9 +25,11 @@ class Media {
 	 * Constructor
 	 *
 	 * @param Private_Uploads_Settings_Interface $settings The private uploads settings, CPT name and directory are needed.
+	 * @param Media_Request                      $media_request Common functions for checking is the current request relevant to custom media library filters.
 	 */
 	public function __construct(
-		protected Private_Uploads_Settings_Interface $settings
+		protected Private_Uploads_Settings_Interface $settings,
+		protected Media_Request $media_request,
 	) {
 	}
 
@@ -40,12 +43,10 @@ class Media {
 	 */
 	public function on_query_attachments(): void {
 
-		/**
-		 * The AJAX `query-attachments` action does not send a nonce.
-		 *
-		 * phpcs:disable WordPress.Security.NonceVerification.Recommended
-		 */
-		if ( ! isset( $_GET['post_type'] ) || $this->settings->get_post_type_name() !== $_GET['post_type'] ) {
+		$post_type = $this->settings->get_post_type_name();
+
+		if ( ! $this->media_request->request_uri_has_post_type( $post_type )
+			&& ! $this->media_request->referer_uri_has_post_type( $post_type ) ) {
 			return;
 		}
 

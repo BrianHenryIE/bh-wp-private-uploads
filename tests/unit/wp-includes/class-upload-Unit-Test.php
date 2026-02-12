@@ -13,6 +13,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
+use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Codeception\Test\Unit;
 use WP_Mock;
@@ -52,7 +53,7 @@ class Upload_Unit_Test extends Unit {
 
 		$_GET['post_type'] = 'private_media';
 
-		$sut = new Upload( $settings );
+		$sut = new Upload( $settings, new Media_Request() );
 
 		$columns = array(
 			'cb'       => '<input type="checkbox" />',
@@ -90,7 +91,7 @@ class Upload_Unit_Test extends Unit {
 
 		$_GET['post_type'] = 'private_media';
 
-		$sut = new Upload( $settings );
+		$sut = new Upload( $settings, new Media_Request() );
 
 		$columns = array(
 			'cb'       => '<input type="checkbox" />',
@@ -125,7 +126,7 @@ class Upload_Unit_Test extends Unit {
 			)
 		);
 
-		$sut = new Upload( $settings );
+		$sut = new Upload( $settings, new Media_Request() );
 
 		$result = $sut->replace_post_type_in_query( $input_query );
 

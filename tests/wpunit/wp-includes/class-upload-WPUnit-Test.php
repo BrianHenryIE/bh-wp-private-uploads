@@ -2,6 +2,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
+use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use lucatume\WPBrowser\TestCase\WPTestCase;
 
@@ -13,7 +14,6 @@ class Upload_WPUnit_Test extends WPTestCase {
 	/**
 	 * @dataProvider provider_clean_url
 	 * @covers ::clean_url
-	 * @covers ::request_uri_has_post_type
 	 *
 	 * @param string $current_page_url The page loaded in the user's browser.
 	 * @param string $input_url The URL being printed in the HTML.
@@ -30,7 +30,7 @@ class Upload_WPUnit_Test extends WPTestCase {
 
 		$_SERVER['REQUEST_URI'] = $current_page_url;
 
-		$sut = new Upload( $settings );
+		$sut = new Upload( $settings, new Media_Request() );
 
 		$result = $sut->clean_url( $input_url );
 

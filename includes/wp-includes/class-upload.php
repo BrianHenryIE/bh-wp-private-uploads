@@ -9,6 +9,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
+use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use WP;
 use WP_Post;
@@ -29,35 +30,20 @@ class Upload {
 	 * Constructor.
 	 *
 	 * @param Private_Uploads_Settings_Interface $settings To get the post type name.
+	 * @param Media_Request                      $media_request Common functions for checking is the current request relevant to custom media library filters.
 	 */
 	public function __construct(
-		protected Private_Uploads_Settings_Interface $settings
+		protected Private_Uploads_Settings_Interface $settings,
+		protected Media_Request $media_request
 	) {
-		/** @var string $pagenow */
-		global $pagenow;
-		if ( ! in_array( $pagenow, array( 'upload.php', 'media-new.php', 'async-upload.php' ), true ) ) {
+		if ( ! $this->media_request->is_relevant_page() ) {
 			return;
 		}
 
-		$request_post_type = ( function (): string {
-			/**
-			 * There is no nonce being passed; we are only checking is the `?post_type` equal to a value, not
-			 * inserting or updating anything.
-			 *
-			 * phpcs:disable WordPress.Security.NonceVerification.Recommended
-			 */
-			return isset( $_REQUEST['post_type'] ) && is_string( $_REQUEST['post_type'] )
-				? sanitize_key( wp_unslash( $_REQUEST['post_type'] ) )
-				: '';
-		} )();
-
-		$http_referer = ( function (): string {
-			return isset( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ? sanitize_url( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
-		} )();
-
 		$post_type = $settings->get_post_type_name();
 
-		if ( ! ( $post_type === $request_post_type ) && ! str_contains( $http_referer, 'post_type=' . $post_type ) ) {
+		if ( ! $this->media_request->request_uri_has_post_type( $post_type )
+			&& ! $this->media_request->referer_uri_has_post_type( $post_type ) ) {
 			return;
 		}
 
@@ -70,6 +56,12 @@ class Upload {
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_filter( 'manage_upload_columns', array( $this, 'manage_upload_columns' ) );
 	}
+
+	/**
+	 * Grid view uses AJAX `action=query-attachments`.
+	 *
+	 * @hooked
+	 */
 
 	/**
 	 * Replace the current screen object with one for the private uploads post type.
@@ -131,7 +123,7 @@ class Upload {
 	 * @hooked wp
 	 * @see WP::main()
 	 *
-	 * @param WP $wp
+	 * @param WP $wp Current WordPress environment instance (passed by reference).
 	 */
 	public function wp( WP $wp ): void {
 
@@ -141,7 +133,7 @@ class Upload {
 		$wp->query_vars['post_type']       = $post_type;
 		$wp->query_string                  = str_replace( 'attachment', $post_type, $wp->query_string );
 
-		/** @var WP_Query */
+		/** @var WP_Query $wp_query */
 		global $wp_query;
 
 		$wp_query->query['post_type']      = $post_type;
@@ -151,8 +143,10 @@ class Upload {
 	}
 
 	/**
-	 * This is only hooked when `post_type={our-post-type}` via a media library UI fetch for "atachments". So we
+	 * This is only hooked when `post_type={our-post-type}` via a media library UI fetch for "attachments". So we
 	 * change the post type from attachment to the post type the private uploads use.
+	 *
+	 * This is called when `mode=list` but not when `mode=grid`.
 	 *
 	 * @hooked pre_get_posts
 	 *
@@ -210,7 +204,7 @@ class Upload {
 		$post_type = $this->settings->get_post_type_name();
 
 		// If we're not on a page that has it in its querystring, return.
-		if ( ! $this->request_uri_has_post_type( $post_type ) ) {
+		if ( ! $this->media_request->request_uri_has_post_type( $post_type ) ) {
 			return $url;
 		}
 
@@ -230,23 +224,6 @@ class Upload {
 		}
 
 		return add_query_arg( array( 'post_type' => $post_type ), $url );
-	}
-
-	/**
-	 * Check is `post_type={x}` set in the request url.
-	 *
-	 * We need to remove and re-add the filter we're running inside to prevent infinite recursion.
-	 *
-	 * @param string $post_type The WP Post type key (name) to look for.
-	 */
-	protected function request_uri_has_post_type( string $post_type ): bool {
-		remove_filter( 'clean_url', array( $this, 'clean_url' ) );
-		$request_uri_query = wp_parse_url( sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_QUERY ) ?: '';
-		add_filter( 'clean_url', array( $this, 'clean_url' ) );
-
-		$parts = wp_parse_args( $request_uri_query );
-
-		return isset( $parts['post_type'] ) && $parts['post_type'] === $post_type;
 	}
 
 	/**

@@ -17,6 +17,7 @@ use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Menu;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Meta_Boxes;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
+use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
@@ -75,7 +76,7 @@ class BH_WP_Private_Uploads_Hooks {
 
 		$this->define_meta_box_hooks();
 		$this->define_media_library_hooks();
-		new Upload( $settings );
+		new Upload( $settings, new Media_Request() );
 
 		$this->define_admin_menu_hooks();
 	}
@@ -168,7 +169,7 @@ class BH_WP_Private_Uploads_Hooks {
 	 */
 	protected function define_media_library_hooks(): void {
 
-		$media = new Media( $this->settings );
+		$media = new Media( $this->settings, new Media_Request() );
 
 		add_action( 'wp_ajax_query-attachments', array( $media, 'on_query_attachments' ), 1 );
 		add_action( 'admin_init', array( $media, 'on_upload_attachment' ), 1 );
