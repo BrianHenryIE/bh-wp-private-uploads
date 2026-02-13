@@ -73,7 +73,7 @@
         "antecedent/patchwork": "^2.1",
         "behat/behat": "^3.15.0",
         "brianhenryie/color-logger": "*",
-        "brianhenryie/php-codecoverage-markdown": "^0.1.0",
+        "brianhenryie/php-codecoverage-markdown": "^0.2",
         "cweagans/composer-patches": "*",
         "dealerdirect/phpcodesniffer-composer-installer": "*",
         "dvdoug/behat-code-coverage": "^5.3",
