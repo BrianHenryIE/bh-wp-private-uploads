@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9b46adb358561e8ce86ac064bb7f8d50",
+    "content-hash": "5031fc329fa6e3cd0625689fc89e2c2d",
     "packages": [
         {
             "name": "psr/log",
@@ -502,16 +502,16 @@
         },
         {
             "name": "brianhenryie/php-codecoverage-markdown",
-            "version": "0.1",
+            "version": "0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BrianHenryIE/php-codecoverage-markdown.git",
-                "reference": "2f950454890545b2f992633babe184d521e429ee"
+                "reference": "b9f91a689a05e47991329758293034013736d101"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BrianHenryIE/php-codecoverage-markdown/zipball/2f950454890545b2f992633babe184d521e429ee",
-                "reference": "2f950454890545b2f992633babe184d521e429ee",
+                "url": "https://api.github.com/repos/BrianHenryIE/php-codecoverage-markdown/zipball/b9f91a689a05e47991329758293034013736d101",
+                "reference": "b9f91a689a05e47991329758293034013736d101",
                 "shasum": ""
             },
             "require": {
@@ -555,9 +555,9 @@
             ],
             "support": {
                 "issues": "https://github.com/BrianHenryIE/php-codecoverage-markdown/issues",
-                "source": "https://github.com/BrianHenryIE/php-codecoverage-markdown/tree/0.1"
+                "source": "https://github.com/BrianHenryIE/php-codecoverage-markdown/tree/0.2"
             },
-            "time": "2026-01-18T05:52:55+00:00"
+            "time": "2026-02-12T23:09:00+00:00"
         },
         {
             "name": "codeception/codeception",
@@ -11249,5 +11249,5 @@
     "platform-overrides": {
         "php": "8.0"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }
