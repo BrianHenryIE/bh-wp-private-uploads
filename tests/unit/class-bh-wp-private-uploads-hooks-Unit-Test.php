@@ -13,7 +13,6 @@
 
 namespace BrianHenryIE\WP_Private_Uploads;
 
-use BrianHenryIE\ColorLogger\ColorLogger;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets;
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
 use BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File;
@@ -23,21 +22,11 @@ use BrianHenryIE\WP_Private_Uploads\WP_Includes\Media;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite;
 use Codeception\Stub\Expected;
-use Codeception\Test\Unit;
-use WP_Mock\Matcher\AnyInstance;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks
  */
-class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
-
-	protected function setup(): void {
-		\WP_Mock::setUp();
-	}
-
-	protected function tearDown(): void {
-		\WP_Mock::tearDown();
-	}
+class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 
 	/**
 	 * @covers ::__construct
@@ -45,15 +34,15 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 	 */
 	public function test_define_api_hooks(): void {
 
-		$api = self::makeEmpty( API_Interface::class );
+		$api = $this->makeEmpty( API_Interface::class );
 
 		\WP_Mock::expectActionAdded(
 			'init',
 			array( $api, 'create_directory' )
 		);
 
-		$logger   = new ColorLogger();
-		$settings = self::makeEmpty( Private_Uploads_Settings_Interface::class );
+		$logger   = $this->logger;
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
 	}
 
@@ -64,12 +53,12 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 
 		\WP_Mock::expectActionAdded(
 			'init',
-			array( new AnyInstance( Post_Type::class ), 'register_post_type' )
+			array( \WP_Mock\Functions::type( Post_Type::class ), 'register_post_type' )
 		);
 
-		$logger   = new ColorLogger();
-		$api      = self::makeEmpty( API_Interface::class );
-		$settings = self::makeEmpty( Private_Uploads_Settings_Interface::class );
+		$logger   = $this->logger;
+		$api      = $this->makeEmpty( API_Interface::class );
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
 	}
 
@@ -79,17 +68,17 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 	public function test_define_admin_notices_hooks(): void {
 		\WP_Mock::expectActionAdded(
 			'admin_init',
-			array( new AnyInstance( Admin_Notices::class ), 'admin_notices' ),
+			array( \WP_Mock\Functions::type( Admin_Notices::class ), 'admin_notices' ),
 			9
 		);
 		\WP_Mock::expectActionAdded(
 			'admin_notices',
-			array( new AnyInstance( Admin_Notices::class ), 'the_notices' )
+			array( \WP_Mock\Functions::type( Admin_Notices::class ), 'the_notices' )
 		);
 
-		$logger   = new ColorLogger();
-		$api      = self::makeEmpty( API_Interface::class );
-		$settings = self::makeEmpty( Private_Uploads_Settings_Interface::class );
+		$logger   = $this->logger;
+		$api      = $this->makeEmpty( API_Interface::class );
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
 	}
 
@@ -100,12 +89,12 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 
 		\WP_Mock::expectActionAdded(
 			'init',
-			array( new AnyInstance( Serve_Private_File::class ), 'init' )
+			array( \WP_Mock\Functions::type( Serve_Private_File::class ), 'init' )
 		);
 
-		$logger   = new ColorLogger();
-		$api      = self::makeEmpty( API_Interface::class );
-		$settings = self::makeEmpty( Private_Uploads_Settings_Interface::class );
+		$logger   = $this->logger;
+		$api      = $this->makeEmpty( API_Interface::class );
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
 	}
 
@@ -116,22 +105,22 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 
 		\WP_Mock::expectActionAdded(
 			'init',
-			array( new AnyInstance( Cron::class ), 'register_cron_job' )
+			array( \WP_Mock\Functions::type( Cron::class ), 'register_cron_job' )
 		);
 
 		\WP_Mock::expectActionAdded(
 			'private_uploads_check_url_test_post_type',
-			array( new AnyInstance( Cron::class ), 'check_is_url_public' )
+			array( \WP_Mock\Functions::type( Cron::class ), 'check_is_url_public' )
 		);
 
 		\WP_Mock::expectActionAdded(
 			'private_uploads_unsnooze_dismissed_notice_test_post_type',
-			array( new AnyInstance( Cron::class ), 'unsnooze_dismissed_notice' )
+			array( \WP_Mock\Functions::type( Cron::class ), 'unsnooze_dismissed_notice' )
 		);
 
-		$logger   = new ColorLogger();
-		$api      = self::makeEmpty( API_Interface::class );
-		$settings = self::makeEmpty(
+		$logger   = $this->logger;
+		$api      = $this->makeEmpty( API_Interface::class );
+		$settings = $this->makeEmpty(
 			Private_Uploads_Settings_Interface::class,
 			array(
 				'get_post_type_name' => Expected::atLeastOnce( 'test_post_type' ),
@@ -147,12 +136,12 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 
 		\WP_Mock::expectActionAdded(
 			'cli_init',
-			array( new AnyInstance( CLI::class ), 'register_commands' )
+			array( \WP_Mock\Functions::type( CLI::class ), 'register_commands' )
 		);
 
-		$logger   = new ColorLogger();
-		$api      = self::makeEmpty( API_Interface::class );
-		$settings = self::makeEmpty(
+		$logger   = $this->logger;
+		$api      = $this->makeEmpty( API_Interface::class );
+		$settings = $this->makeEmpty(
 			Private_Uploads_Settings_Interface::class,
 			array(
 				'get_cli_base' => Expected::atLeastOnce( 'test_cli_base' ),
@@ -167,12 +156,12 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 	public function test_define_rewrite_hooks(): void {
 		\WP_Mock::expectActionAdded(
 			'init',
-			array( new AnyInstance( WP_Rewrite::class ), 'register_rewrite_rule' )
+			array( \WP_Mock\Functions::type( WP_Rewrite::class ), 'register_rewrite_rule' )
 		);
 
-		$logger   = new ColorLogger();
-		$api      = self::makeEmpty( API_Interface::class );
-		$settings = self::makeEmpty( Private_Uploads_Settings_Interface::class );
+		$logger   = $this->logger;
+		$api      = $this->makeEmpty( API_Interface::class );
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
 	}
 
@@ -182,24 +171,24 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit {
 	public function test_define_media_library_hooks(): void {
 		\WP_Mock::expectActionAdded(
 			'wp_ajax_query-attachments',
-			array( new AnyInstance( Media::class ), 'on_query_attachments' ),
+			array( \WP_Mock\Functions::type( Media::class ), 'on_query_attachments' ),
 			1
 		);
 		\WP_Mock::expectActionAdded(
 			'admin_init',
-			array( new AnyInstance( Media::class ), 'on_upload_attachment' ),
+			array( \WP_Mock\Functions::type( Media::class ), 'on_upload_attachment' ),
 			1
 		);
 
 		\WP_Mock::expectActionAdded(
 			'admin_init',
-			array( new AnyInstance( Admin_Assets::class ), 'register_script' ),
+			array( \WP_Mock\Functions::type( Admin_Assets::class ), 'register_script' ),
 			1
 		);
 
-		$logger   = new ColorLogger();
-		$api      = self::makeEmpty( API_Interface::class );
-		$settings = self::makeEmpty( Private_Uploads_Settings_Interface::class );
+		$logger   = $this->logger;
+		$api      = $this->makeEmpty( API_Interface::class );
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
 	}
 }

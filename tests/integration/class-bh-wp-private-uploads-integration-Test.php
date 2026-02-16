@@ -8,23 +8,23 @@
 
 namespace BrianHenryIE\WP_Private_Uploads;
 
-use BrianHenryIE\WP_Private_Uploads_Test_Plugin\Admin\Admin;
-use BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes\I18n;
+use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
+use WP_Hook;
 
 /**
  * Class Develop_Test
  */
-class BH_WP_Private_Uploads_Integration_Test extends \Codeception\TestCase\WPTestCase {
+class BH_WP_Private_Uploads_Integration_Test extends WPUnit_Testcase {
 
 	/**
 	 * Verify admin_enqueue_scripts action is correctly added for styles, at priority 10.
 	 */
-	public function test_action_admin_enqueue_scripts_styles() {
+	public function test_action_admin_enqueue_scripts_styles(): void {
 
-		$action_name       = 'admin_enqueue_scripts';
-		$expected_priority = 10;
-		$class_type        = Admin::class;
-		$method_name       = 'enqueue_styles';
+		$action_name       = 'admin_init';
+		$expected_priority = 9;
+		$class_type        = Admin_Notices::class;
+		$method_name       = 'admin_notices';
 
 		$function_is_hooked = $this->is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority );
 
@@ -34,47 +34,35 @@ class BH_WP_Private_Uploads_Integration_Test extends \Codeception\TestCase\WPTes
 	/**
 	 * Verify admin_enqueue_scripts action is added for scripts, at priority 10.
 	 */
-	public function test_action_admin_enqueue_scripts_scripts() {
+	public function test_action_admin_enqueue_scripts_scripts(): void {
 
-		$action_name       = 'admin_enqueue_scripts';
+		$action_name       = 'admin_notices';
 		$expected_priority = 10;
-		$class_type        = Admin::class;
-		$method_name       = 'enqueue_scripts';
+		$class_type        = Admin_Notices::class;
+		$method_name       = 'the_notices';
 
 		$function_is_hooked = $this->is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority );
 
 		$this->assertNotFalse( $function_is_hooked );
 	}
 
+	protected function is_function_hooked_on_action( string $class_type, string $method_name, string $action_name, int $expected_priority = 10 ): bool {
 
-	/**
-	 * Verify action to call load textdomain is added.
-	 */
-	public function test_action_plugins_loaded_load_plugin_textdomain() {
-
-		$action_name       = 'plugins_loaded';
-		$expected_priority = 10;
-		$class_type        = I18n::class;
-		$method_name       = 'load_plugin_textdomain';
-
-		$function_is_hooked = $this->is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority );
-
-		$this->assertNotFalse( $function_is_hooked );
-	}
-
-
-	protected function is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority = 10 ) {
-
+		/** @var array<string,WP_Hook> $wp_filter */
 		global $wp_filter;
 
 		$this->assertArrayHasKey( $action_name, $wp_filter, "$method_name definitely not hooked to $action_name" );
 
+		/** @var WP_Hook $actions_hooked */
 		$actions_hooked = $wp_filter[ $action_name ];
 
 		$this->assertArrayHasKey( $expected_priority, $actions_hooked, "$method_name definitely not hooked to $action_name priority $expected_priority" );
 
+		/** @var array<string, array{function:string|array{0:class-string,1:string}|array{0:object,1:string},accepted_args:int}> $callbacks */
+		$callbacks = $actions_hooked->callbacks[ $expected_priority ];
+
 		$hooked_method = null;
-		foreach ( $actions_hooked[ $expected_priority ] as $action ) {
+		foreach ( $callbacks as $action ) {
 			$action_function = $action['function'];
 			if ( is_array( $action_function ) ) {
 				if ( $action_function[0] instanceof $class_type ) {

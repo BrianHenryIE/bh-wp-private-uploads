@@ -3,12 +3,13 @@
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\WPUnit_Testcase;
 use WP_Scripts;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets
  */
-class Admin_Assets_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
+class Admin_Assets_WPUnit_Test extends WPUnit_Testcase {
 
 	/**
 	 * @covers ::__construct
@@ -16,7 +17,7 @@ class Admin_Assets_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 	 */
 	public function test_register_script(): void {
 
-		$settings = self::makeEmpty(
+		$settings = $this->makeEmpty(
 			Private_Uploads_Settings_Interface::class,
 			array(
 				'get_plugin_slug' => 'test',

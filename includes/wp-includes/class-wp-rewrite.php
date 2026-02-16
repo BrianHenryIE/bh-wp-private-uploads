@@ -16,19 +16,16 @@ class WP_Rewrite {
 	use LoggerAwareTrait;
 
 	/**
-	 * @uses Private_Uploads_Settings_Interface::get_post_type_name()
-	 */
-	protected Private_Uploads_Settings_Interface $settings;
-
-	/**
 	 * Constructor
 	 *
 	 * @param Private_Uploads_Settings_Interface $settings Settings for this plugin's private uploads.
 	 * @param LoggerInterface                    $logger A PSR logger.
 	 */
-	public function __construct( Private_Uploads_Settings_Interface $settings, LoggerInterface $logger ) {
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings,
+		LoggerInterface $logger
+	) {
 		$this->setLogger( $logger );
-		$this->settings = $settings;
 	}
 
 	/**

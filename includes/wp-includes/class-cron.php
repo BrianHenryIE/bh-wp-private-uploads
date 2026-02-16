@@ -23,31 +23,19 @@ class Cron {
 	use LoggerAwareTrait;
 
 	/**
-	 * The logger settings are used to determine which plugin we're working with.
-	 *
-	 * @see Logger_Settings_Interface::get_plugin_slug()
-	 */
-	protected Private_Uploads_Settings_Interface $settings;
-
-	/**
-	 * The API instance will delete the old logs.
-	 *
-	 * @see API_Interface::delete_old_logs()
-	 */
-	protected API_Interface $api;
-
-	/**
 	 * Cron constructor.
 	 *
 	 * @param API_Interface                      $api The logger's main functions.
 	 * @param Private_Uploads_Settings_Interface $settings The logger settings.
 	 * @param LoggerInterface                    $logger The logger itself for logging.
 	 */
-	public function __construct( API_Interface $api, Private_Uploads_Settings_Interface $settings, LoggerInterface $logger ) {
+	public function __construct(
+		protected API_Interface $api,
+		protected Private_Uploads_Settings_Interface $settings,
+		LoggerInterface $logger
+	) {
 
 		$this->setLogger( $logger );
-		$this->settings = $settings;
-		$this->api      = $api;
 	}
 
 	/**

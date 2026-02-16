@@ -21,18 +21,10 @@ class Example_Private_Uploads extends \BrianHenryIE\WP_Private_Uploads\API\API {
 	}
 
 	/**
-	 * @return array{is_private:bool}
+	 * @return array{is_private:bool|null}
 	 */
 	public function get_is_url_public_for_admin(): array {
 		$url = content_url( '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/' );
 		return $this->is_url_public_for_admin( $url );
-	}
-
-	/**
-	 * @return array{url:string, is_private:bool|null, http_response_code?:int}
-	 */
-	public function get_is_url_private(): array {
-		$url = content_url( '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/' );
-		return $this->check_is_url_private( $url );
 	}
 }

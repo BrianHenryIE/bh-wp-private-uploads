@@ -13,24 +13,13 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
-use Codeception\Test\Unit;
+use BrianHenryIE\WP_Private_Uploads\Unit_Testcase;
 use WP_Mock;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets
  */
-class Admin_Assets_Unit_Test extends Unit {
-
-
-	protected function setUp(): void {
-		parent::setUp();
-		WP_Mock::setUp();
-	}
-
-	protected function tearDown(): void {
-		parent::tearDown();
-		WP_Mock::tearDown();
-	}
+class Admin_Assets_Unit_Test extends Unit_Testcase {
 
 	/**
 	 * @covers ::register_script
@@ -84,9 +73,7 @@ class Admin_Assets_Unit_Test extends Unit {
 		WP_Mock::userFunction( 'wp_register_script' )
 			->once()
 			->withArgs(
-				function ( $handle, $src, $deps ) {
-					return array( 'jquery' ) === $deps;
-				}
+				fn( $handle, $src, $deps ) => array( 'jquery' ) === $deps
 			);
 
 		$sut->register_script();
@@ -113,9 +100,7 @@ class Admin_Assets_Unit_Test extends Unit {
 		WP_Mock::userFunction( 'wp_register_script' )
 			->once()
 			->withArgs(
-				function ( $handle, $src, $deps, $ver, $in_footer ) {
-					return true === $in_footer;
-				}
+				fn( $handle, $src, $deps, $ver, $in_footer ) => true === $in_footer
 			);
 
 		$sut->register_script();

@@ -8,7 +8,7 @@ modules:
         - lucatume\WPBrowser\Module\WPLoader
         - \Helper\Wpunit
     config:
-        WPLoader:
+        lucatume\WPBrowser\Module\WPLoader:
             loadOnly: false
             wpRootFolder: "%WP_ROOT_FOLDER%"
             # mysql://username:password@host:port/database
@@ -19,4 +19,5 @@ modules:
             title: "bh-wp-private-uploads"
 #            plugins: ['bh-wp-private-uploads-test-plugin/bh-wp-private-uploads-test-plugin.php']
 #            activatePlugins: ['bh-wp-private-uploads-test-plugin/bh-wp-private-uploads-test-plugin.php']
+            WP_CONTENT_DIR: wp-content
 bootstrap: _bootstrap.php

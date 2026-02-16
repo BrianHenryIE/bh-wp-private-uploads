@@ -14,7 +14,7 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
  */
 class Development_Plugin_Settings implements Private_Uploads_Settings_Interface {
 
-	use Private_Uploads_Settings_Trait;
+	// use Private_Uploads_Settings_Trait;
 
 	/**
 	 * For friendly display.
@@ -104,5 +104,16 @@ class Development_Plugin_Settings implements Private_Uploads_Settings_Interface 
 			'shop_order' => array(),
 			'page'       => array(),
 		);
+	}
+
+	public function get_post_type_label(): string {
+		return 'Private Uploads Development Plugin Example Post Type';
+	}
+
+	/**
+	 * @return string|null
+	 */
+	public function get_rest_base(): ?string {
+		return 'test-plugin-private';
 	}
 }

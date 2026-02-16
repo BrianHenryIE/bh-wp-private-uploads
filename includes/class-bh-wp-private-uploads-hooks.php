@@ -43,10 +43,6 @@ class BH_WP_Private_Uploads_Hooks {
 
 	protected LoggerInterface $logger;
 
-	protected Private_Uploads_Settings_Interface $settings;
-
-	protected API_Interface $api;
-
 	/**
 	 * Define the core functionality of the plugin.
 	 *
@@ -60,11 +56,13 @@ class BH_WP_Private_Uploads_Hooks {
 	 *
 	 * @since    1.0.0
 	 */
-	public function __construct( API_Interface $api, Private_Uploads_Settings_Interface $settings, ?LoggerInterface $logger = null ) {
+	public function __construct(
+		protected API_Interface $api,
+		protected Private_Uploads_Settings_Interface $settings,
+		?LoggerInterface $logger = null
+	) {
 
-		$this->logger   = $logger ?? new \Psr\Log\NullLogger();
-		$this->settings = $settings;
-		$this->api      = $api;
+		$this->logger = $logger ?? new \Psr\Log\NullLogger();
 
 		$this->define_api_hooks();
 		$this->define_admin_notices_hooks();
@@ -76,7 +74,7 @@ class BH_WP_Private_Uploads_Hooks {
 
 		$this->define_meta_box_hooks();
 		$this->define_media_library_hooks();
-		new Upload( $settings, new Media_Request() );
+		new Upload( $this->settings, new Media_Request() );
 
 		$this->define_admin_menu_hooks();
 	}

@@ -15,25 +15,19 @@ namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
 use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
-use Codeception\Test\Unit;
+use BrianHenryIE\WP_Private_Uploads\Unit_Testcase;
 use WP_Mock;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload
  */
-class Upload_Unit_Test extends Unit {
+class Upload_Unit_Test extends Unit_Testcase {
 
 	protected function setUp(): void {
 		parent::setUp();
-		WP_Mock::setUp();
 
 		WP_Mock::passthruFunction( 'sanitize_key' );
 		WP_Mock::passthruFunction( 'wp_unslash' );
-	}
-
-	protected function tearDown(): void {
-		WP_Mock::tearDown();
-		parent::tearDown();
 	}
 
 	/**

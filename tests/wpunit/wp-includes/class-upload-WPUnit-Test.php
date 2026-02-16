@@ -4,12 +4,12 @@ namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
 use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
-use lucatume\WPBrowser\TestCase\WPTestCase;
+use BrianHenryIE\WP_Private_Uploads\WPUnit_Testcase;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload
  */
-class Upload_WPUnit_Test extends WPTestCase {
+class Upload_WPUnit_Test extends WPUnit_Testcase {
 
 	/**
 	 * @dataProvider provider_clean_url

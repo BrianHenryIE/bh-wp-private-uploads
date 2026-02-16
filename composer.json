@@ -19,10 +19,7 @@
         "process-timeout": 0,
         "sort-packages": true,
         "allow-plugins": {
-            "brianhenryie/composer-fallback-to-git": true,
-            "brianhenryie/composer-phpstorm": true,
             "composer/installers": true,
-            "cweagans/composer-patches": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "johnpbloch/wordpress-core-installer": true,
             "phpstan/extension-installer": true
@@ -41,6 +38,13 @@
         ]
     },
     "autoload-dev": {
+        "psr-4": {
+            "BrianHenryIE\\WP_Private_Uploads\\": [
+                "tests/unit",
+                "tests/wpunit",
+                "tests/integration"
+            ]
+        },
         "classmap": [
             "development-plugin/",
             "tests/_support/"
@@ -74,7 +78,6 @@
         "behat/behat": "^3.15.0",
         "brianhenryie/color-logger": "*",
         "brianhenryie/php-codecoverage-markdown": "^0.2",
-        "cweagans/composer-patches": "*",
         "dealerdirect/phpcodesniffer-composer-installer": "*",
         "dvdoug/behat-code-coverage": "^5.3",
         "johnpbloch/wordpress": "*",
@@ -110,10 +113,9 @@
             "codecept run wpunit"
         ],
         "test-coverage": [
-            "rm tests/_output/*.cov || true; rm tests/_output/clover.xml || true",
-            "vendor/bin/codecept run unit --coverage unit.cov",
-            "vendor/bin/codecept run wpunit --coverage wpunit.cov",
-            "vendor/bin/phpcov merge --clover tests/_output/clover.xml --html tests/_output/html tests/_output;",
+            "codecept run unit --coverage unit.cov",
+            "codecept run wpunit --coverage wpunit.cov",
+            "phpcov merge --clover tests/_output/clover.xml --html tests/_output/html tests/_output;",
             "open tests/_output/html/index.html"
         ],
         "behat": [

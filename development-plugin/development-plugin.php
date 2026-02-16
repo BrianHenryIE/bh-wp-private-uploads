@@ -44,8 +44,8 @@ Autoloader::generate(
 )->register();
 
 
-$settings = new Development_Plugin_Settings();
-new Example_Private_Uploads( $settings, new NullLogger() );
+$settings                                     = new Development_Plugin_Settings();
+$GLOBALS['bh_wp_private_uploads_test_plugin'] = new Example_Private_Uploads( $settings, new NullLogger() );
 
 /**
  * Here we filter the parameters for registering the post type.
@@ -65,7 +65,7 @@ add_filter(
 		// $args['description'] = 'Private uploads for my-plugin';    // Description as shown ... ? TODO: where is it shown?
 		$args['show_in_menu'] = true;          // Should the admin menu Media submenu be displayed?
 		// $args['label'] = 'My-plugin Files';    // The name for the admin menu Media submenu item.
-		$args['show_in_rest'] = false;          // Default is true.
+		$args['show_in_rest'] = true;          // Default is true.
 		// $args['rest_namespace'] = 'my-plugin/v1'; // Default is `plugin-slug/v1`.
 		// $args['rest_base'] = 'uploads';        // Default is `uploads`.
 		// $args['taxonomies'] = array();         // E.g. `category`, `post_tag`.

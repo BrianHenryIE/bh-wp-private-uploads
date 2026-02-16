@@ -18,6 +18,7 @@ use WP_Post_Type;
 use WP_REST_Attachments_Controller;
 use WP_REST_Controller;
 use WP_REST_Request;
+use WP_REST_Response;
 
 /**
  * @phpstan-type Dependencies array{settings: Private_Uploads_Settings_Interface}
@@ -38,7 +39,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 
 		$post_type_object = get_post_type_object( $post_type_name );
 
-		if ( null !== $post_type_object && isset( $post_type_object->dependencies ) ) {
+		if ( null !== $post_type_object && property_exists( $post_type_object, 'dependencies' ) && is_array( $post_type_object->dependencies ) ) {
 			/** @var Dependencies $dependencies */
 			$dependencies   = $post_type_object->dependencies;
 			$this->settings = $dependencies['settings'];
@@ -172,7 +173,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 *
 	 * @param $request
 	 *
-	 * @return array|bool|true|WP_Error|\WP_REST_Response
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
 
@@ -210,6 +211,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 			return $file;
 		}
 
+		/** @var array{file:string, url:string, type:string} $file */
 		// Slug / Post type name?
 		do_action( 'rest_private_uploads_upload', $file, $request, $this->settings );
 

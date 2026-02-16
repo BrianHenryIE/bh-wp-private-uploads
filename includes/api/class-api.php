@@ -19,27 +19,24 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Throwable;
 
+/**
+ * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
+ * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_post_type_name()
+ */
 class API implements API_Interface {
 	use LoggerAwareTrait;
 
 	/**
-	 *
-	 * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
-	 * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_post_type_name()
-	 *
-	 * @var Private_Uploads_Settings_Interface
-	 */
-	protected Private_Uploads_Settings_Interface $settings;
-
-	/**
 	 * API constructor.
 	 *
-	 * @param Private_Uploads_Settings_Interface $settings
-	 * @param LoggerInterface                    $logger
+	 * @param Private_Uploads_Settings_Interface $settings The configuration.
+	 * @param LoggerInterface                    $logger A PSR logger (optional).
 	 */
-	public function __construct( Private_Uploads_Settings_Interface $settings, ?LoggerInterface $logger = null ) {
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings,
+		?LoggerInterface $logger = null
+	) {
 		$this->setLogger( $logger ?? new NullLogger() );
-		$this->settings = $settings;
 	}
 
 	/**
@@ -49,24 +46,31 @@ class API implements API_Interface {
 	 * @param ?string            $filename Destination filename.
 	 * @param ?DateTimeInterface $datetime Destination uploads subdir date.
 	 *
-	 * @return array On success, returns an associative array of file attributes.
-	 *               On failure, returns `$overrides['upload_error_handler']( &$file, $message )`
-	 *               or `array( 'error' => $message )`.
+	 * @return File_Upload_Result On success, returns file attributes.
+	 *                            On failure, returns error message.
+	 * @throws Private_Uploads_Exception
 	 */
-	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): array {
+	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): File_Upload_Result {
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			throw new Private_Uploads_Exception( 'Current user does not have permissions to upload files.' );
+		}
+
 		$tmp_file = download_url( $file_url );
 
 		if ( is_wp_error( $tmp_file ) ) {
-			// TODO: Look into using `$overrides['upload_error_handler']( &$file, $message )`.
-			return array( 'error' => "Failed `download_url( {$file_url} )` in " . __NAMESPACE__ . ' Private Uploads API.' );
+			throw new Private_Uploads_Exception(
+				message: "Failed `download_url( {$file_url} )` in " . __NAMESPACE__ . ' Private Uploads API: ' . $tmp_file->get_error_message(),
+				wp_error: $tmp_file,
+			);
 		}
 
-		$filename ??= basename( $file_url );
+		$filename = sanitize_file_name( basename( $filename ?: $file_url ) );
 
 		$result = $this->move_file_to_private_uploads( $tmp_file, $filename, $datetime );
 
 		if ( is_readable( $tmp_file ) ) {
-			unlink( $tmp_file );
+			wp_delete_file( $tmp_file );
 		}
 
 		return $result;
@@ -83,79 +87,57 @@ class API implements API_Interface {
 	 * @see wp_handle_upload()
 	 *
 	 * @param string             $tmp_file The full filepath of the existing file to move.
-	 * @param string             $filename The preferred name of the destination file (will be appended with -1, -2 etc as needed).
+	 * @param string             $filename The preferred name of the destination file (will be appended with -1, -2 etc. as needed).
 	 * @param ?DateTimeInterface $datetime A DateTime for which folder the file should be put in, i.e. 2022/22 etc.
 	 * @param ?int               $filesize The size in bytes. Calculated automatically.
 	 *
-	 * @return array On success, returns an associative array of file attributes.
-	 *               On failure, returns `$overrides['upload_error_handler']( &$file, $message )`
-	 *               or `array( 'error' => $message )`.
+	 * @return File_Upload_Result On success, returns file attributes.
+	 *                            On failure, returns error message.
 	 */
-	public function move_file_to_private_uploads( $tmp_file, $filename, ?DateTimeInterface $datetime = null, $filesize = null ): array {
-		// Use the file's created date, which is either 'now' or hopefully was read from the webserver.
-		// TODO: check does WordPress attempt to read the original file creation date during `download_url()`.
-		$datetime = $datetime
-					?? DateTimeImmutable::createFromFormat( 'U', (string) ( filectime( $tmp_file ) ?: time() ) )
-					?: new DateTimeImmutable();
+	public function move_file_to_private_uploads( string $tmp_file, string $filename, ?DateTimeInterface $datetime = null, ?int $filesize = null ): File_Upload_Result {
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			throw new Private_Uploads_Exception( 'Current user does not have permissions to upload files.' );
+		}
+
+		if ( ! is_readable( $tmp_file ) ) {
+			throw new Private_Uploads_Exception( "Failed to read file( {$tmp_file} )" );
+		}
+
+		$file = array(
+			'name'     => sanitize_file_name( basename( $filename ) ),
+			'tmp_name' => $tmp_file,
+			'error'    => UPLOAD_ERR_OK,
+		);
 
 		// Look at the extension.
 		$mime     = wp_check_filetype( $tmp_file );
 		$mimetype = $mime['type'];
 		if ( ! $mimetype && function_exists( 'mime_content_type' ) ) {
-			// Use ext-fileinfo to look inside the file.
+			// Use `ext-fileinfo` to look inside the file.
 			$mimetype = mime_content_type( $tmp_file );
 		}
+		if ( is_string( $mimetype ) ) {
+			$file['type'] = $mimetype;
+		}
 
-		$file = array(
-			'name'     => $filename,
-			'type'     => $mimetype,
-			'tmp_name' => $tmp_file,
-			'error'    => UPLOAD_ERR_OK,
-			'size'     => $filesize ?? filesize( $tmp_file ),
-		);
+		$filesize = $filesize ?? filesize( $tmp_file );
+		if ( is_int( $filesize ) ) {
+			$file['size'] = $filesize;
+		}
 
-		// TODO, maybe use `$datetime->format('/Y/m');` instead. Consider timezones.
-		$yyyymm = '/' . gmdate( 'Y', $datetime->getTimestamp() ) . '/' . gmdate( 'm', $datetime->getTimestamp() );
-
-		$private_directory_name = $this->settings->get_uploads_subdirectory_name();
+		add_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ), 10, 1 );
 
 		/**
-		 * Filter wp_upload_dir() to add private
+		 * This function isn't designed to use the `action` POST parameter. We set it to our own action name and
+		 * restore the existing one after. We don't use this value anywhere else.
 		 *
-		 * @see wp_upload_dir()
+		 * @see _wp_handle_upload
 		 *
-		 * Filters the uploads directory data.
-		 *
-		 * @since 2.0.0
-		 *
-		 * @param array $uploads {
-		 *     Array of information about the upload directory.
-		 *
-		 *     @type string       $path    Base directory and subdirectory or full path to upload directory.
-		 *     @type string       $url     Base URL and subdirectory or absolute URL to upload directory.
-		 *     @type string       $private_directory_name  Subdirectory if uploads use year/month folders option is on.
-		 *     @type string       $basedir Path without subdir.
-		 *     @type string       $baseurl URL path without subdir.
-		 *     @type string|false $error   False or error message.
-		 * }
-		 * @return array{path:string,url:string,subdir:string,basedir:string,baseurl:string,error:string|false} $uploads
+		 * phpcs:disable WordPress.Security.NonceVerification.Missing
+		 * phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		 * phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		 */
-		$private_path = function ( array $uploads ) use ( $yyyymm, $private_directory_name ): array {
-
-			// Use private uploads dir.
-
-			$uploads['basedir'] = "{$uploads['basedir']}/{$private_directory_name}";
-			$uploads['baseurl'] = "{$uploads['baseurl']}/{$private_directory_name}";
-
-			$uploads['path'] = $uploads['basedir'] . $uploads['subdir'];
-			$uploads['url']  = $uploads['baseurl'] . $uploads['subdir'];
-			// Use the correct month.
-			$uploads['path'] = str_replace( $uploads['subdir'], $yyyymm, $uploads['path'] );
-
-			return $uploads;
-		};
-		add_filter( 'upload_dir', $private_path, 10, 1 );
-
 		if ( isset( $_POST['action'] ) ) {
 			$post_action_before = $_POST['action'];
 		}
@@ -163,15 +145,49 @@ class API implements API_Interface {
 		$action          = 'wp_handle_private_upload';
 		$_POST['action'] = $action;
 
+		/** @var array{error:string}|array{file:string,url:string,type:string} $file */
 		$file = wp_handle_upload( $file, array( 'action' => $action ) );
 
 		if ( isset( $post_action_before ) ) {
 			$_POST['action'] = $post_action_before;
 		}
 
-		remove_filter( 'upload_dir', $private_path );
+		if ( isset( $file['error'] ) ) {
+			throw new Private_Uploads_Exception( $file['error'] );
+		}
 
-		return $file;
+		remove_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ) );
+
+		/** @var array{file:string,url:string,type:string} $file */
+		return new File_Upload_Result(
+			file: $file['file'],
+			url: $file['url'],
+			type: $file['type'],
+		);
+	}
+
+	/**
+	 * Filters the uploads directory data to add the uploads/{private-dir} subdirectory path.
+	 *
+	 * @see wp_upload_dir()
+	 *
+	 * @hooked upload_dir
+	 *
+	 * @param array{path:string,url:string,subdir:string,basedir:string,baseurl:string,error:string|false} $upload_dir_data The array from `wp_upload_dir()`.
+	 * @return array{path:string,url:string,subdir:string,basedir:string,baseurl:string,error:string|false}
+	 */
+	public function set_private_uploads_path( array $upload_dir_data ): array {
+
+		// Use private uploads dir.
+		$private_directory_name = $this->settings->get_uploads_subdirectory_name();
+
+		$upload_dir_data['basedir'] = "{$upload_dir_data['basedir']}/{$private_directory_name}";
+		$upload_dir_data['baseurl'] = "{$upload_dir_data['baseurl']}/{$private_directory_name}";
+
+		$upload_dir_data['path'] = $upload_dir_data['basedir'] . $upload_dir_data['subdir'];
+		$upload_dir_data['url']  = $upload_dir_data['baseurl'] . $upload_dir_data['subdir'];
+
+		return $upload_dir_data;
 	}
 
 	/**
@@ -196,29 +212,29 @@ class API implements API_Interface {
 	 * TODO: Don't run this every time.
 	 * TODO: Run it when necessary: when a file is moved
 	 *
-	 * @return array{dir:string|null,message:string}
-	 * @throws Exception When PHP fails to create the directory.
+	 * @return Create_Directory_Result
+	 * @throws Private_Uploads_Exception When PHP fails to create the missing directory.
 	 */
-	public function create_directory(): array {
+	public function create_directory(): Create_Directory_Result {
 		$dir = constant( 'WP_CONTENT_DIR' ) . '/uploads/' . $this->settings->get_uploads_subdirectory_name();
 
 		if ( file_exists( $dir ) ) {
-			return array(
-				'dir'     => $dir,
-				'message' => 'Already exists',
+			return new Create_Directory_Result(
+				dir: $dir,
+				message: 'Already exists'
 			);
 		}
 
-		$result = mkdir( $dir );
+		$result = wp_mkdir_p( $dir );
 
 		if ( false === $result ) {
 			$this->logger->error( 'Failed to create directory: ' . $dir, array( 'dir' => $dir ) );
-			throw new Exception( 'Failed to create directory: ' . $dir );
+			throw new Private_Uploads_Exception( 'Failed to create directory: ' . $dir );
 		}
 
-		return array(
-			'dir'     => $dir,
-			'message' => 'Created',
+		return new Create_Directory_Result(
+			dir: $dir,
+			message: 'Created'
 		);
 	}
 
@@ -240,7 +256,7 @@ class API implements API_Interface {
 			if ( $transient_value instanceof Is_Private_Result ) {
 				return $transient_value;
 			}
-		} catch ( Throwable $throwable ) {
+		} catch ( Throwable ) {
 			// If the transient class is modified, deserializing the old value will fail.
 			delete_transient( $transient_name );
 		}
@@ -305,8 +321,10 @@ class API implements API_Interface {
 			}
 		}
 
-		// Had tried zero redirections but hadn't worked well.
-		// TODO: wp_remote_head()
+		/**
+		 * Had tried zero redirections but hadn't worked well.
+		 * TODO: try using {@see wp_remote_head()} to make a lighter request.
+		 */
 		$request_response = wp_remote_get(
 			$url,
 			array(
@@ -356,9 +374,9 @@ class API implements API_Interface {
 	 * Test if the .htaccess redirect is working to return the file when appropriate.
 	 * i.e. the webserver might be 403ing for another reason, and never 200ing.
 	 *
-	 * @param string $url
+	 * @param string $url The URL that should generally be private, but should be accessible always for logged in admins.
 	 *
-	 * @return array{is_private:bool|null}
+	 * @return array{is_private:bool|null} Null when it could not be determined.
 	 */
 	protected function is_url_public_for_admin( string $url ): array {
 
@@ -368,7 +386,7 @@ class API implements API_Interface {
 
 		$args['cookies'] = array_filter(
 			$_COOKIE,
-			fn( $value, $key ) => false !== strpos( $key, 'WordPress' ),
+			fn( $value, $key ) => str_contains( $key, 'WordPress' ),
 			ARRAY_FILTER_USE_BOTH
 		);
 

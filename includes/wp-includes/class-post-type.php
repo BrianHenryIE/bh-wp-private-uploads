@@ -11,12 +11,22 @@ namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 
+/**
+ * @uses Private_Uploads_Settings_Interface::get_post_type_name()
+ * @uses Private_Uploads_Settings_Interface::get_post_type_label()
+ * @uses Private_Uploads_Settings_Interface::get_plugin_slug()
+ * @uses Private_Uploads_Settings_Interface::get_rest_base()
+ */
 class Post_Type {
 
-	protected Private_Uploads_Settings_Interface $settings;
-
-	public function __construct( Private_Uploads_Settings_Interface $settings ) {
-		$this->settings = $settings;
+	/**
+	 * Constructor.
+	 *
+	 * @param Private_Uploads_Settings_Interface $settings The configuration.
+	 */
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings
+	) {
 	}
 
 	/**
@@ -32,6 +42,12 @@ class Post_Type {
 	public function register_post_type(): void {
 
 		$post_type_name = $this->settings->get_post_type_name();
+
+		if ( empty( $post_type_name ) ) {
+			return;
+		} else {
+			$post_type_name = strtolower( $post_type_name );
+		}
 
 		$post_type_config = array(
 			'public'             => false,

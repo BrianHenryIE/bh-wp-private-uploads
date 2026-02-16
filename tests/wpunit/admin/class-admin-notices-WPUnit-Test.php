@@ -2,24 +2,24 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
-use BrianHenryIE\ColorLogger\ColorLogger;
 use BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\WPUnit_Testcase;
 use Codeception\Stub\Expected;
 use DateTimeImmutable;
 
 /**
  * @coversDefaultClass  \BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices
  */
-class Admin_Notices_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
+class Admin_Notices_WPUnit_Test extends WPUnit_Testcase {
 
 	/**
 	 * @covers ::__construct
 	 * @covers ::admin_notices
 	 */
 	public function test_admin_notices_adds_notice_when_url_not_private(): void {
-		$logger = new ColorLogger();
+		$logger = $this->logger;
 
 		$is_private_result = new Is_Private_Result(
 			'http://example.com/wp-content/uploads/private',
@@ -49,7 +49,7 @@ class Admin_Notices_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 		$result = $sut->get_all();
 
-		self::assertNotEmpty( $result );
-		self::assertArrayHasKey( 'test-plugin-private-uploads-url-is-public', $result );
+		$this->assertNotEmpty( $result );
+		$this->assertArrayHasKey( 'test-plugin-private-uploads-url-is-public', $result );
 	}
 }
