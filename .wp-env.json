@@ -16,8 +16,6 @@
     "afterStart": "bash 'tests/_wp-env/initialize-external.sh'"
   },
   "mappings": {
-    "../docs": "./docs",
-    "../openapi": "./openapi",
     "../setup": "./tests/_wp-env",
     "wp-content/plugins/assets": "./assets",
     "wp-content/plugins/debug-log-manager": "./wp-content/plugins/debug-log-manager",
