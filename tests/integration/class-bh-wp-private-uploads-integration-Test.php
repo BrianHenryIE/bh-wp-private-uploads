@@ -8,8 +8,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads;
 
-use BrianHenryIE\WP_Private_Uploads_Test_Plugin\Admin\Admin;
-use BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes\I18n;
+use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
 
 /**
  * Class Develop_Test
@@ -21,10 +20,10 @@ class BH_WP_Private_Uploads_Integration_Test extends \BrianHenryIE\WP_Private_Up
 	 */
 	public function test_action_admin_enqueue_scripts_styles() {
 
-		$action_name       = 'admin_enqueue_scripts';
-		$expected_priority = 10;
-		$class_type        = Admin::class;
-		$method_name       = 'enqueue_styles';
+		$action_name       = 'admin_init';
+		$expected_priority = 9;
+		$class_type        = Admin_Notices::class;
+		$method_name       = 'admin_notices';
 
 		$function_is_hooked = $this->is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority );
 
@@ -36,32 +35,15 @@ class BH_WP_Private_Uploads_Integration_Test extends \BrianHenryIE\WP_Private_Up
 	 */
 	public function test_action_admin_enqueue_scripts_scripts() {
 
-		$action_name       = 'admin_enqueue_scripts';
+		$action_name       = 'admin_notices';
 		$expected_priority = 10;
-		$class_type        = Admin::class;
-		$method_name       = 'enqueue_scripts';
+		$class_type        = Admin_Notices::class;
+		$method_name       = 'the_notices';
 
 		$function_is_hooked = $this->is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority );
 
 		$this->assertNotFalse( $function_is_hooked );
 	}
-
-
-	/**
-	 * Verify action to call load textdomain is added.
-	 */
-	public function test_action_plugins_loaded_load_plugin_textdomain() {
-
-		$action_name       = 'plugins_loaded';
-		$expected_priority = 10;
-		$class_type        = I18n::class;
-		$method_name       = 'load_plugin_textdomain';
-
-		$function_is_hooked = $this->is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority );
-
-		$this->assertNotFalse( $function_is_hooked );
-	}
-
 
 	protected function is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority = 10 ) {
 

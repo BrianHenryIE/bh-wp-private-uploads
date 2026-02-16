@@ -45,3 +45,9 @@ $is_phpstorm = array_reduce( $GLOBALS['argv'], fn( bool $carry, string $arg ) =>
 if ( $is_phpstorm ) {
 	define( 'WP_PHP_BINARY', PHP_BINARY );
 }
+
+/**
+ * @see wp-content/mu-plugins/bh-plugin-outside-dir.php
+ */
+global $arbitrary_plugins;
+$arbitrary_plugins = array( codecept_root_dir( 'development-plugin/development-plugin.php' ) );

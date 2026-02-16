@@ -19,4 +19,5 @@ modules:
             title: "bh-wp-private-uploads"
 #            plugins: ['bh-wp-private-uploads-test-plugin/bh-wp-private-uploads-test-plugin.php']
 #            activatePlugins: ['bh-wp-private-uploads-test-plugin/bh-wp-private-uploads-test-plugin.php']
+            WP_CONTENT_DIR: wp-content
 bootstrap: _bootstrap.php

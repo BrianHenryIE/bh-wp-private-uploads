@@ -16,8 +16,8 @@ class Upload_File_Integration_Test extends \BrianHenryIE\WP_Private_Uploads\WPUn
 
 		$test_file_path = $project_root_dir . '/tests/_data/sample.pdf';
 
-		$yyyymm                      = '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' );
-		$expected_uploaded_file_path = $project_root_dir . "/wp-content/uploads/test-plugin/$yyyymm/sample.pdf";
+		$yyyymm                      = gmdate( 'Y' ) . '/' . gmdate( 'm' );
+		$expected_uploaded_file_path = $project_root_dir . "/wp-content/uploads/private-media/$yyyymm/sample.pdf";
 
 		if ( file_exists( $expected_uploaded_file_path ) ) {
 			unlink( $expected_uploaded_file_path );
@@ -30,7 +30,7 @@ class Upload_File_Integration_Test extends \BrianHenryIE\WP_Private_Uploads\WPUn
 		// User 1 is admin.
 		wp_set_current_user( 1 );
 
-		$request = new WP_REST_Request( 'POST', '/brianhenryie/v1/test_plugin_private' );
+		$request = new WP_REST_Request( 'POST', '/bh-wp-private-uploads-development-plugin/v1/test-plugin-private' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=' . basename( $test_file_path ) );
 		$request->set_param( 'title', 'My title is very cool' );
@@ -57,7 +57,7 @@ class Upload_File_Integration_Test extends \BrianHenryIE\WP_Private_Uploads\WPUn
 		$this->assertSame( 'Alt text is stored outside post schema.', $data['alt_text'] );
 		$this->assertSame( 'Alt text is stored outside post schema.', get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) );
 
-		$this->assertEquals( 'test_plugin_private', $attachment->post_type );
+		$this->assertEquals( 'private_media', $attachment->post_type );
 
 		$this->assertEquals( $post_id, $attachment->post_parent );
 
