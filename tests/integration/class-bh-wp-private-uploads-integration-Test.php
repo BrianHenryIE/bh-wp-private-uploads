@@ -14,7 +14,7 @@ use BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes\I18n;
 /**
  * Class Develop_Test
  */
-class BH_WP_Private_Uploads_Integration_Test extends \Codeception\TestCase\WPTestCase {
+class BH_WP_Private_Uploads_Integration_Test extends \BrianHenryIE\WP_Private_Uploads\WPUnit_Testcase {
 
 	/**
 	 * Verify admin_enqueue_scripts action is correctly added for styles, at priority 10.

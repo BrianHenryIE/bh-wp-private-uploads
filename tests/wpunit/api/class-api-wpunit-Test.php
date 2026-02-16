@@ -2,13 +2,13 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\API;
 
-use BrianHenryIE\ColorLogger\ColorLogger;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\WPUnit_Testcase;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\API\API
  */
-class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
+class API_WPUnit_Test extends WPUnit_Testcase {
 
 	/**
 	 * When there is no private uploads directory we don't really care if it's "public", since there's nothing to protect.
@@ -34,7 +34,7 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 
 		assert( ! is_dir( $dir ) );
 
-		$logger = new ColorLogger();
+		$logger = $this->logger;
 
 		$api = new API( $settings, $logger );
 
@@ -71,7 +71,7 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 		assert( is_dir( $dir ) );
 		assert( 2 === count( scandir( $dir ) ) );
 
-		$logger = new ColorLogger();
+		$logger = $this->logger;
 
 		$api = new API( $settings, $logger );
 
@@ -110,7 +110,7 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
 		assert( file_exists( "{$dir}index.php" ) );
 
-		$logger = new ColorLogger();
+		$logger = $this->logger;
 		$api    = new API( $settings, $logger );
 
 		add_filter(
@@ -154,7 +154,7 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
 		assert( file_exists( "{$dir}index.php" ) );
 
-		$logger = new ColorLogger();
+		$logger = $this->logger;
 		$api    = new API( $settings, $logger );
 
 		add_filter(
@@ -202,7 +202,7 @@ class API_WPUnit_Test extends \Codeception\TestCase\WPTestCase {
 		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
 		assert( file_exists( "{$dir}index.php" ) );
 
-		$logger = new ColorLogger();
+		$logger = $this->logger;
 		$api    = new API( $settings, $logger );
 
 		add_filter(

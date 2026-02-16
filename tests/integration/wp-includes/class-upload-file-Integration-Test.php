@@ -4,7 +4,7 @@ namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin\WP_Includes;
 
 use WP_REST_Request;
 
-class Upload_File_Integration_Test extends \Codeception\TestCase\WPTestCase {
+class Upload_File_Integration_Test extends \BrianHenryIE\WP_Private_Uploads\WPUnit_Testcase {
 
 
 	/**

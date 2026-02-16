@@ -13,24 +13,13 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
-use Codeception\Test\Unit;
+use BrianHenryIE\WP_Private_Uploads\Unit_Testcase;
 use WP_Mock;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\Admin\Admin_Assets
  */
-class Admin_Assets_Unit_Test extends Unit {
-
-
-	protected function setUp(): void {
-		parent::setUp();
-		WP_Mock::setUp();
-	}
-
-	protected function tearDown(): void {
-		parent::tearDown();
-		WP_Mock::tearDown();
-	}
+class Admin_Assets_Unit_Test extends Unit_Testcase {
 
 	/**
 	 * @covers ::register_script

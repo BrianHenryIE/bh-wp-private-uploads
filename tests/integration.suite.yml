@@ -8,7 +8,7 @@ modules:
         - lucatume\WPBrowser\Module\WPLoader
         - \Helper\Wpunit
     config:
-        WPLoader:
+        lucatume\WPBrowser\Module\WPLoader:
             loadOnly: false
             wpRootFolder: "%WP_ROOT_FOLDER%"
             # mysql://username:password@host:port/database

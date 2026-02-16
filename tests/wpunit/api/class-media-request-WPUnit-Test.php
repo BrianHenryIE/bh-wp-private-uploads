@@ -2,12 +2,12 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\API;
 
-use lucatume\WPBrowser\TestCase\WPTestCase;
+use BrianHenryIE\WP_Private_Uploads\WPUnit_Testcase;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\API\Media_Request
  */
-class Media_Request_WPUnit_Test extends WPTestCase {
+class Media_Request_WPUnit_Test extends WPUnit_Testcase {
 
 	/**
 	 * @covers ::is_relevant_page

@@ -14,7 +14,8 @@ use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Test_Plugin;
 /**
  * Verifies the plugin has been instantiated and added to PHP's $GLOBALS variable.
  */
-class Plugin_Integration_Test extends \Codeception\TestCase\WPTestCase {
+class Plugin_Integration_Test extends WPUnit_Testcase {
+
 
 	/**
 	 * Test the main plugin object is added to PHP's GLOBALS and that it is the correct class.

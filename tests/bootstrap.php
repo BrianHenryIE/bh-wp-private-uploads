@@ -20,6 +20,21 @@ Autoloader::generate(
 	__DIR__ . '/../includes',
 )->register();
 
+Autoloader::generate(
+	'BrianHenryIE\\WP_Private_Uploads',
+	__DIR__ . '/unit',
+)->register();
+
+Autoloader::generate(
+	'BrianHenryIE\\WP_Private_Uploads',
+	__DIR__ . '/wpunit',
+)->register();
+
+Autoloader::generate(
+	'BrianHenryIE\\WP_Private_Uploads',
+	__DIR__ . '/integration',
+)->register();
+
 /**
  * Fix "sh: php: command not found" when running wpunit tests in PhpStorm.
  *

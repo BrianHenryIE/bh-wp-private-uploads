@@ -9,22 +9,14 @@
 namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
 use BrianHenryIE\WP_Private_Uploads\API\API;
+use BrianHenryIE\WP_Private_Uploads\Unit_Testcase;
 
 /**
  * Class Plugin_WP_Mock_Test
  *
  * @coversNothing
  */
-class Plugin_Unit_Test extends \Codeception\Test\Unit {
-
-	protected function setup(): void {
-		\WP_Mock::setUp();
-	}
-
-	protected function tearDown(): void {
-		\WP_Mock::tearDown();
-		\Patchwork\restoreAll();
-	}
+class Plugin_Unit_Test extends Unit_Testcase {
 
 	/**
 	 * Verifies the plugin initialization.

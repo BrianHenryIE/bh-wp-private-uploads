@@ -7,12 +7,12 @@
 
 namespace BrianHenryIE\WP_Private_Uploads_Test_Plugin;
 
-use Codeception\Test\Unit;
+use BrianHenryIE\WP_Private_Uploads\Unit_Testcase;
 
 /**
  * @see includes/functions.php
  */
-class Functions_Unit_Test extends Unit {
+class Functions_Unit_Test extends Unit_Testcase {
 
 	/**
 	 * Test get_plugin_basename() finds the correct plugin basename from a slug.
