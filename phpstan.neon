@@ -18,3 +18,6 @@ parameters:
         - vendor/antecedent/patchwork/Patchwork.php
     ignoreErrors:
         - '#LoggerInterface\|null#'
+        - # Parameter #2 $callback of static method WP_Mock::expectActionAdded() expects (callable(): mixed)|Mockery\Matcher\Type|string, array{Mockery\Matcher\Type, 'register_post_type'} given.
+          identifier: argument.type
+          path: tests/unit/class-bh-wp-private-uploads-hooks-Unit-Test.php
