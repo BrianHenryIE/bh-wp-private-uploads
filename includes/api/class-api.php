@@ -29,8 +29,8 @@ class API implements API_Interface {
 	/**
 	 * API constructor.
 	 *
-	 * @param Private_Uploads_Settings_Interface $settings
-	 * @param LoggerInterface                    $logger
+	 * @param Private_Uploads_Settings_Interface $settings The configuration.
+	 * @param LoggerInterface                    $logger A PSR logger (optional).
 	 */
 	public function __construct(
 		protected Private_Uploads_Settings_Interface $settings,
@@ -46,16 +46,17 @@ class API implements API_Interface {
 	 * @param ?string            $filename Destination filename.
 	 * @param ?DateTimeInterface $datetime Destination uploads subdir date.
 	 *
-	 * @return array On success, returns an associative array of file attributes.
-	 *               On failure, returns `$overrides['upload_error_handler']( &$file, $message )`
-	 *               or `array( 'error' => $message )`.
+	 * @return File_Upload_Result On success, returns file attributes.
+	 *                            On failure, returns error message.
 	 */
-	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): array {
+	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): File_Upload_Result {
 		$tmp_file = download_url( $file_url );
 
 		if ( is_wp_error( $tmp_file ) ) {
 			// TODO: Look into using `$overrides['upload_error_handler']( &$file, $message )`.
-			return array( 'error' => "Failed `download_url( {$file_url} )` in " . __NAMESPACE__ . ' Private Uploads API.' );
+			return new File_Upload_Result(
+				error: "Failed `download_url( {$file_url} )` in " . __NAMESPACE__ . ' Private Uploads API.'
+			);
 		}
 
 		$filename ??= basename( $file_url );
@@ -63,7 +64,7 @@ class API implements API_Interface {
 		$result = $this->move_file_to_private_uploads( $tmp_file, $filename, $datetime );
 
 		if ( is_readable( $tmp_file ) ) {
-			unlink( $tmp_file );
+			wp_delete_file( $tmp_file );
 		}
 
 		return $result;
@@ -84,11 +85,10 @@ class API implements API_Interface {
 	 * @param ?DateTimeInterface $datetime A DateTime for which folder the file should be put in, i.e. 2022/22 etc.
 	 * @param ?int               $filesize The size in bytes. Calculated automatically.
 	 *
-	 * @return array On success, returns an associative array of file attributes.
-	 *               On failure, returns `$overrides['upload_error_handler']( &$file, $message )`
-	 *               or `array( 'error' => $message )`.
+	 * @return File_Upload_Result On success, returns file attributes.
+	 *                            On failure, returns error message.
 	 */
-	public function move_file_to_private_uploads( $tmp_file, $filename, ?DateTimeInterface $datetime = null, $filesize = null ): array {
+	public function move_file_to_private_uploads( $tmp_file, $filename, ?DateTimeInterface $datetime = null, $filesize = null ): File_Upload_Result {
 		// Use the file's created date, which is either 'now' or hopefully was read from the webserver.
 		// TODO: check does WordPress attempt to read the original file creation date during `download_url()`.
 		$datetime = $datetime
@@ -168,7 +168,12 @@ class API implements API_Interface {
 
 		remove_filter( 'upload_dir', $private_path );
 
-		return $file;
+		return new File_Upload_Result(
+			file: $file['file'] ?? null,
+			url: $file['url'] ?? null,
+			type: $file['type'] ?? null,
+			error: $file['error'] ?? null
+		);
 	}
 
 	/**
@@ -193,29 +198,29 @@ class API implements API_Interface {
 	 * TODO: Don't run this every time.
 	 * TODO: Run it when necessary: when a file is moved
 	 *
-	 * @return array{dir:string|null,message:string}
+	 * @return Create_Directory_Result
 	 * @throws Exception When PHP fails to create the directory.
 	 */
-	public function create_directory(): array {
+	public function create_directory(): Create_Directory_Result {
 		$dir = constant( 'WP_CONTENT_DIR' ) . '/uploads/' . $this->settings->get_uploads_subdirectory_name();
 
 		if ( file_exists( $dir ) ) {
-			return array(
-				'dir'     => $dir,
-				'message' => 'Already exists',
+			return new Create_Directory_Result(
+				dir: $dir,
+				message: 'Already exists'
 			);
 		}
 
-		$result = mkdir( $dir );
+		$result = wp_mkdir_p( $dir );
 
 		if ( false === $result ) {
 			$this->logger->error( 'Failed to create directory: ' . $dir, array( 'dir' => $dir ) );
 			throw new Exception( 'Failed to create directory: ' . $dir );
 		}
 
-		return array(
-			'dir'     => $dir,
-			'message' => 'Created',
+		return new Create_Directory_Result(
+			dir: $dir,
+			message: 'Created'
 		);
 	}
 

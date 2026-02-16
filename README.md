@@ -61,14 +61,21 @@ That `$private_uploads` instance can be passed around, or the singleton can be a
 $private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance();
 ```
 
-The `\BrianHenryIE\WP_Private_Uploads\API\API` class (which `Private_Uploads` extends) contains convenience functions for downloading and moving files to the private uploads folder. Their signatures resemble WordPress's internal functions, since behind the scenes they use `wp_handle_upload` and have the same return signature.
+The `\BrianHenryIE\WP_Private_Uploads\API\API` class (which `Private_Uploads` extends) contains convenience functions for downloading and moving files to the private uploads folder. These methods use `wp_handle_upload` behind the scenes and return result objects with file information.
 
 ```php
 // Download `https://example.org/doc.pdf` to `wp-content/uploads/my-plugin/2022/02/target-filename.pdf`.
-$private_uploads->download_remote_file_to_private_uploads( 'https://example.org/doc.pdf', 'target-filename.pdf' );
+$result = $private_uploads->download_remote_file_to_private_uploads( 'https://example.org/doc.pdf', 'target-filename.pdf' );
+if ( $result->is_success() ) {
+    $file_path = $result->get_file();
+    $file_url = $result->get_url();
+}
 
 // Move `'/local/path/to/doc.pdf` to `wp-content/uploads/my-plugin/2022/02/target-filename.pdf`.
-$private_uploads->move_file_to_private_uploads( '/local/path/to/doc.pdf', 'target-filename.pdf' );
+$result = $private_uploads->move_file_to_private_uploads( '/local/path/to/doc.pdf', 'target-filename.pdf' );
+if ( $result->is_success() ) {
+    $file_path = $result->get_file();
+}
 ```
 
 By default, administrators can access the files via their URL. This can be widened to more users with the filter:

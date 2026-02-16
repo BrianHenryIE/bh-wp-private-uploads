@@ -111,6 +111,16 @@ class CLI {
 		// TODO: Add post_id to output.
 		$result = $this->api->download_remote_file_to_private_uploads( $filtered_url );
 
+		// Convert result object to array for WP_CLI formatting
+		$result_array = array(
+			'file'  => $result->get_file(),
+			'url'   => $result->get_url(),
+			'type'  => $result->get_type(),
+			'error' => $result->get_error(),
+		);
+		// Remove null values
+		$result_array = array_filter( $result_array, fn( $value ) => $value !== null );
+
 		switch ( true ) {
 			case isset( $assoc_args['field'] ):
 				$fields = array( $assoc_args['field'] );
@@ -119,12 +129,12 @@ class CLI {
 				$fields = $assoc_args['fields'];
 				break;
 			default:
-				$fields = array_keys( $result );
+				$fields = array_keys( $result_array );
 		}
 
 		WP_CLI\Utils\format_items(
 			$assoc_args['format'] ?: 'table',
-			array( $result ),
+			array( $result_array ),
 			$fields
 		);
 	}
