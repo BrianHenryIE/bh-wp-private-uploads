@@ -59,11 +59,13 @@ class API implements API_Interface {
 		$tmp_file = download_url( $file_url );
 
 		if ( is_wp_error( $tmp_file ) ) {
-			// TODO: Look into using `$overrides['upload_error_handler']( &$file, $message )`.
-			throw new Private_Uploads_Exception( "Failed `download_url( {$file_url} )` in " . __NAMESPACE__ . ' Private Uploads API.' );
+			throw new Private_Uploads_Exception(
+				message: "Failed `download_url( {$file_url} )` in " . __NAMESPACE__ . ' Private Uploads API: ' . $tmp_file->get_error_message(),
+				wp_error: $tmp_file,
+			);
 		}
 
-		$filename ??= basename( $file_url );
+		$filename = sanitize_file_name( basename( $filename ?: $file_url ) );
 
 		$result = $this->move_file_to_private_uploads( $tmp_file, $filename, $datetime );
 
@@ -103,7 +105,7 @@ class API implements API_Interface {
 		}
 
 		$file = array(
-			'name'     => basename( $filename ),
+			'name'     => sanitize_file_name( basename( $filename ) ),
 			'tmp_name' => $tmp_file,
 			'error'    => UPLOAD_ERR_OK,
 		);
