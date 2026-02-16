@@ -113,11 +113,11 @@ interface Private_Uploads_Settings_Interface {
 	 *
 	 * Trait default: `array()`.
 	 *
-	 * TODO: the array needs to contain the post type, for cases of multiple post types in one plugin (+logs...).
+	 * @see add_meta_box()
 	 *
 	 * @see Private_Uploads_Settings_Trait::get_meta_box_settings()
 	 *
-	 * @return array<string, array>
+	 * @return array<string, array<mixed>>|array{} Array of <post type name/key : array to pass to add_meta_box()>.
 	 */
 	public function get_meta_box_settings(): array;
 

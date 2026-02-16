@@ -376,7 +376,7 @@ class API implements API_Interface {
 	 *
 	 * @param string $url The URL that should generally be private, but should be accessible always for logged in admins.
 	 *
-	 * @return array{is_private:bool|null}
+	 * @return array{is_private:bool|null} Null when it could not be determined.
 	 */
 	protected function is_url_public_for_admin( string $url ): array {
 

@@ -7,6 +7,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads;
 
+use RuntimeException;
 use WP_CLI;
 
 /**
@@ -50,8 +51,11 @@ class FeatureContext extends \WP_CLI\Tests\Context\FeatureContext {
 				$source_dir = $project_dir . '/' . dirname( $path );
 				break;
 			default:
-				WP_CLI::error( "Path not found: {$path}" );
-				return;
+				throw new RuntimeException( "Path not found: {$path}"  );
+		}
+
+		if(false === $source_dir){
+			throw new RuntimeException( "Error determining realpath for: {$path}"  );
 		}
 
 		$plugin_slug = basename( $source_dir );
