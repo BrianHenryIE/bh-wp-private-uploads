@@ -10,14 +10,15 @@ class Unit_Testcase extends \Codeception\Test\Unit {
 
 	protected LoggerInterface $logger;
 
-	protected function setup(): void {
+	protected function setUp(): void {
+		parent::setUp();
 		WP_Mock::setUp();
 
 		$this->logger = new ColorLogger();
 	}
 
 	protected function tearDown(): void {
-		parent::_tearDown();
+		parent::tearDown();
 		WP_Mock::tearDown();
 		\Patchwork\restoreAll();
 	}

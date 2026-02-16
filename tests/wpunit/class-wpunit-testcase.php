@@ -5,10 +5,11 @@ namespace BrianHenryIE\WP_Private_Uploads;
 use BrianHenryIE\ColorLogger\ColorLogger;
 use lucatume\WPBrowser\TestCase\WPTestCase;
 use Psr\Log\LoggerInterface;
+use Psr\Log\Test\TestLogger;
 
 class WPUnit_Testcase extends WPTestCase {
 
-	protected LoggerInterface $logger;
+	protected TestLogger $logger;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -16,7 +17,7 @@ class WPUnit_Testcase extends WPTestCase {
 	}
 
 	protected function get_installed_major_version( string $plugin_basename ): int {
-		$plugin_headers = get_plugin_data( codecept_root_dir( WP_PLUGIN_DIR . '/' . $plugin_basename ) );
+		$plugin_headers = get_plugin_data( codecept_root_dir( WP_PLUGIN_DIR . '/' . $plugin_basename ) ); /** @phpstan-ignore argument.type */
 		if ( 1 === preg_match( '/(\d+)/', $plugin_headers['Version'], $output_array ) ) {
 			return (int) $output_array[1];
 		} else {

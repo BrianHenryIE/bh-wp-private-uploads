@@ -9,16 +9,17 @@
 namespace BrianHenryIE\WP_Private_Uploads;
 
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
+use WP_Hook;
 
 /**
  * Class Develop_Test
  */
-class BH_WP_Private_Uploads_Integration_Test extends \BrianHenryIE\WP_Private_Uploads\WPUnit_Testcase {
+class BH_WP_Private_Uploads_Integration_Test extends WPUnit_Testcase {
 
 	/**
 	 * Verify admin_enqueue_scripts action is correctly added for styles, at priority 10.
 	 */
-	public function test_action_admin_enqueue_scripts_styles() {
+	public function test_action_admin_enqueue_scripts_styles(): void {
 
 		$action_name       = 'admin_init';
 		$expected_priority = 9;
@@ -33,7 +34,7 @@ class BH_WP_Private_Uploads_Integration_Test extends \BrianHenryIE\WP_Private_Up
 	/**
 	 * Verify admin_enqueue_scripts action is added for scripts, at priority 10.
 	 */
-	public function test_action_admin_enqueue_scripts_scripts() {
+	public function test_action_admin_enqueue_scripts_scripts(): void {
 
 		$action_name       = 'admin_notices';
 		$expected_priority = 10;
@@ -45,18 +46,23 @@ class BH_WP_Private_Uploads_Integration_Test extends \BrianHenryIE\WP_Private_Up
 		$this->assertNotFalse( $function_is_hooked );
 	}
 
-	protected function is_function_hooked_on_action( $class_type, $method_name, $action_name, $expected_priority = 10 ) {
+	protected function is_function_hooked_on_action( string $class_type, string $method_name, string $action_name, int $expected_priority = 10 ): bool {
 
+		/** @var array<string,WP_Hook> $wp_filter */
 		global $wp_filter;
 
 		$this->assertArrayHasKey( $action_name, $wp_filter, "$method_name definitely not hooked to $action_name" );
 
+		/** @var WP_Hook $actions_hooked */
 		$actions_hooked = $wp_filter[ $action_name ];
 
 		$this->assertArrayHasKey( $expected_priority, $actions_hooked, "$method_name definitely not hooked to $action_name priority $expected_priority" );
 
+		/** @var array<string, array{function:string|array{0:class-string,1:string}|array{0:object,1:string},accepted_args:int}> $callbacks */
+		$callbacks = $actions_hooked->callbacks[ $expected_priority ];
+
 		$hooked_method = null;
-		foreach ( $actions_hooked[ $expected_priority ] as $action ) {
+		foreach ( $callbacks as $action ) {
 			$action_function = $action['function'];
 			if ( is_array( $action_function ) ) {
 				if ( $action_function[0] instanceof $class_type ) {

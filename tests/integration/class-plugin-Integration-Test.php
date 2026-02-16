@@ -18,7 +18,7 @@ class Plugin_Integration_Test extends WPUnit_Testcase {
 	/**
 	 * Test the main plugin object is added to PHP's GLOBALS and that it is the correct class.
 	 */
-	public function test_plugin_instantiated() {
+	public function test_plugin_instantiated(): void {
 
 		$this->assertArrayHasKey( 'bh_wp_private_uploads_test_plugin', $GLOBALS );
 
