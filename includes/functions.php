@@ -38,7 +38,7 @@ if ( ! function_exists( __NAMESPACE__ . '\\get_plugin_basename' ) ) {
 	 * @used-by get_plugin_name_from_slug()
 	 *
 	 * @param array<string,array{Name:string}> $plugins The {@see get_plugins()} array.
-	 * @param string $plugin_slug The plugin slug (directory) we are searching for.
+	 * @param string                           $plugin_slug The plugin slug (directory) we are searching for.
 	 */
 	function get_plugin_basename( array $plugins, string $plugin_slug ): ?string {
 
