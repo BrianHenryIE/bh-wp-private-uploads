@@ -6,7 +6,7 @@
  *
  * I'm currently setting `$arbitrary_plugins` in `/tests/bootstrap.php`.
  *
- * @package brianhenryie/bh-wp-bitcoin-gateway
+ * @package brianhenryie/bh-wp-private-uploads
  */
 
 /**

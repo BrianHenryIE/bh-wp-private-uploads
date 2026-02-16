@@ -48,15 +48,19 @@ class API implements API_Interface {
 	 *
 	 * @return File_Upload_Result On success, returns file attributes.
 	 *                            On failure, returns error message.
+	 * @throws Private_Uploads_Exception
 	 */
 	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): File_Upload_Result {
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			throw new Private_Uploads_Exception( 'Current user does not have permissions to upload files.' );
+		}
+
 		$tmp_file = download_url( $file_url );
 
 		if ( is_wp_error( $tmp_file ) ) {
 			// TODO: Look into using `$overrides['upload_error_handler']( &$file, $message )`.
-			return new File_Upload_Result(
-				error: "Failed `download_url( {$file_url} )` in " . __NAMESPACE__ . ' Private Uploads API.'
-			);
+			throw new Private_Uploads_Exception( "Failed `download_url( {$file_url} )` in " . __NAMESPACE__ . ' Private Uploads API.' );
 		}
 
 		$filename ??= basename( $file_url );
@@ -81,38 +85,43 @@ class API implements API_Interface {
 	 * @see wp_handle_upload()
 	 *
 	 * @param string             $tmp_file The full filepath of the existing file to move.
-	 * @param string             $filename The preferred name of the destination file (will be appended with -1, -2 etc as needed).
+	 * @param string             $filename The preferred name of the destination file (will be appended with -1, -2 etc. as needed).
 	 * @param ?DateTimeInterface $datetime A DateTime for which folder the file should be put in, i.e. 2022/22 etc.
 	 * @param ?int               $filesize The size in bytes. Calculated automatically.
 	 *
 	 * @return File_Upload_Result On success, returns file attributes.
 	 *                            On failure, returns error message.
 	 */
-	public function move_file_to_private_uploads( $tmp_file, $filename, ?DateTimeInterface $datetime = null, $filesize = null ): File_Upload_Result {
-		// Use the file's created date, which is either 'now' or hopefully was read from the webserver.
-		// TODO: check does WordPress attempt to read the original file creation date during `download_url()`.
-		$datetime = $datetime
-					?? DateTimeImmutable::createFromFormat( 'U', (string) ( filectime( $tmp_file ) ?: time() ) )
-					?: new DateTimeImmutable();
+	public function move_file_to_private_uploads( string $tmp_file, string $filename, ?DateTimeInterface $datetime = null, ?int $filesize = null ): File_Upload_Result {
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			throw new Private_Uploads_Exception( 'Current user does not have permissions to upload files.' );
+		}
+
+		if ( ! is_readable( $tmp_file ) ) {
+			throw new Private_Uploads_Exception( "Failed to read file( {$tmp_file} )" );
+		}
+
+		$file = array(
+			'name'     => basename( $filename ),
+			'tmp_name' => $tmp_file,
+			'error'    => UPLOAD_ERR_OK,
+		);
 
 		// Look at the extension.
 		$mime     = wp_check_filetype( $tmp_file );
 		$mimetype = $mime['type'];
 		if ( ! $mimetype && function_exists( 'mime_content_type' ) ) {
-			// Use ext-fileinfo to look inside the file.
+			// Use `ext-fileinfo` to look inside the file.
 			$mimetype = mime_content_type( $tmp_file );
 		}
-
-		$file = array(
-			'name'     => $filename,
-			'tmp_name' => $tmp_file,
-			'error'    => UPLOAD_ERR_OK,
-		);
 		if ( is_string( $mimetype ) ) {
 			$file['type'] = $mimetype;
 		}
-		if ( is_int( $filesize ?? filesize( $tmp_file ) ) ) {
-			$file['size'] = $filesize ?? filesize( $tmp_file );
+
+		$filesize = $filesize ?? filesize( $tmp_file );
+		if ( is_int( $filesize ) ) {
+			$file['size'] = $filesize;
 		}
 
 		add_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ), 10, 1 );
@@ -134,19 +143,24 @@ class API implements API_Interface {
 		$action          = 'wp_handle_private_upload';
 		$_POST['action'] = $action;
 
+		/** @var array{error:string}|array{file:string,url:string,type:string} $file */
 		$file = wp_handle_upload( $file, array( 'action' => $action ) );
 
 		if ( isset( $post_action_before ) ) {
 			$_POST['action'] = $post_action_before;
 		}
 
+		if ( isset( $file['error'] ) ) {
+			throw new Private_Uploads_Exception( $file['error'] );
+		}
+
 		remove_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ) );
 
+		/** @var array{file:string,url:string,type:string} $file */
 		return new File_Upload_Result(
-			file: is_string( $file['file'] ) ? $file['file'] : null,
-			url: is_string( $file['url'] ) ? $file['url'] : null,
-			type: is_string( $file['type'] ) ? $file['type'] : null,
-			error: is_string( $file['error'] ) ? $file['error'] : null,
+			file: $file['file'],
+			url: $file['url'],
+			type: $file['type'],
 		);
 	}
 
@@ -197,7 +211,7 @@ class API implements API_Interface {
 	 * TODO: Run it when necessary: when a file is moved
 	 *
 	 * @return Create_Directory_Result
-	 * @throws Exception When PHP fails to create the directory.
+	 * @throws Private_Uploads_Exception When PHP fails to create the missing directory.
 	 */
 	public function create_directory(): Create_Directory_Result {
 		$dir = constant( 'WP_CONTENT_DIR' ) . '/uploads/' . $this->settings->get_uploads_subdirectory_name();
@@ -213,7 +227,7 @@ class API implements API_Interface {
 
 		if ( false === $result ) {
 			$this->logger->error( 'Failed to create directory: ' . $dir, array( 'dir' => $dir ) );
-			throw new Exception( 'Failed to create directory: ' . $dir );
+			throw new Private_Uploads_Exception( 'Failed to create directory: ' . $dir );
 		}
 
 		return new Create_Directory_Result(

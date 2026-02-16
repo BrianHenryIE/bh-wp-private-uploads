@@ -7,6 +7,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
+use BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Exception;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Psr\Log\LoggerAwareTrait;
@@ -109,17 +110,18 @@ class CLI {
 
 		// TODO: Return an immutable pojo.
 		// TODO: Add post_id to output.
-		$result = $this->api->download_remote_file_to_private_uploads( $filtered_url );
+		try {
+			$result = $this->api->download_remote_file_to_private_uploads( $filtered_url );
+		} catch ( Private_Uploads_Exception $exception ) {
+			WP_CLI::error( $exception->getMessage() );
+		}
 
-		// Convert result object to array for WP_CLI formatting
+		// Convert result object to array for WP_CLI formatting.
 		$result_array = array(
-			'file'  => $result->get_file(),
-			'url'   => $result->get_url(),
-			'type'  => $result->get_type(),
-			'error' => $result->get_error(),
+			'file' => $result->get_file(),
+			'url'  => $result->get_url(),
+			'type' => $result->get_type(),
 		);
-		// Remove null values
-		$result_array = array_filter( $result_array, fn( $value ) => $value !== null );
 
 		switch ( true ) {
 			case isset( $assoc_args['field'] ):
