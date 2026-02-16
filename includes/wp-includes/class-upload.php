@@ -242,6 +242,10 @@ class Upload {
 	 */
 	public function admin_init(): void {
 
+		if ( ! current_user_can( 'upload_files' ) ) {
+			return;
+		}
+
 		if ( ! isset( $_POST['fetch'] ) ) {
 			return;
 		}
