@@ -105,54 +105,28 @@ class API implements API_Interface {
 
 		$file = array(
 			'name'     => $filename,
-			'type'     => $mimetype,
 			'tmp_name' => $tmp_file,
 			'error'    => UPLOAD_ERR_OK,
-			'size'     => $filesize ?? filesize( $tmp_file ),
 		);
+		if ( is_string( $mimetype ) ) {
+			$file['type'] = $mimetype;
+		}
+		if ( is_int( $filesize ?? filesize( $tmp_file ) ) ) {
+			$file['size'] = $filesize ?? filesize( $tmp_file );
+		}
 
-		// TODO, maybe use `$datetime->format('/Y/m');` instead. Consider timezones.
-		$yyyymm = '/' . gmdate( 'Y', $datetime->getTimestamp() ) . '/' . gmdate( 'm', $datetime->getTimestamp() );
-
-		$private_directory_name = $this->settings->get_uploads_subdirectory_name();
+		add_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ), 10, 1 );
 
 		/**
-		 * Filter wp_upload_dir() to add private
+		 * This function isn't designed to use the `action` POST parameter. We set it to our own action name and
+		 * restore the existing one after. We don't use this value anywhere else.
 		 *
-		 * @see wp_upload_dir()
+		 * @see _wp_handle_upload
 		 *
-		 * Filters the uploads directory data.
-		 *
-		 * @since 2.0.0
-		 *
-		 * @param array $uploads {
-		 *     Array of information about the upload directory.
-		 *
-		 *     @type string       $path    Base directory and subdirectory or full path to upload directory.
-		 *     @type string       $url     Base URL and subdirectory or absolute URL to upload directory.
-		 *     @type string       $private_directory_name  Subdirectory if uploads use year/month folders option is on.
-		 *     @type string       $basedir Path without subdir.
-		 *     @type string       $baseurl URL path without subdir.
-		 *     @type string|false $error   False or error message.
-		 * }
-		 * @return array{path:string,url:string,subdir:string,basedir:string,baseurl:string,error:string|false} $uploads
+		 * phpcs:disable WordPress.Security.NonceVerification.Missing
+		 * phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		 * phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		 */
-		$private_path = function ( array $uploads ) use ( $yyyymm, $private_directory_name ): array {
-
-			// Use private uploads dir.
-
-			$uploads['basedir'] = "{$uploads['basedir']}/{$private_directory_name}";
-			$uploads['baseurl'] = "{$uploads['baseurl']}/{$private_directory_name}";
-
-			$uploads['path'] = $uploads['basedir'] . $uploads['subdir'];
-			$uploads['url']  = $uploads['baseurl'] . $uploads['subdir'];
-			// Use the correct month.
-			$uploads['path'] = str_replace( $uploads['subdir'], $yyyymm, $uploads['path'] );
-
-			return $uploads;
-		};
-		add_filter( 'upload_dir', $private_path, 10, 1 );
-
 		if ( isset( $_POST['action'] ) ) {
 			$post_action_before = $_POST['action'];
 		}
@@ -166,14 +140,38 @@ class API implements API_Interface {
 			$_POST['action'] = $post_action_before;
 		}
 
-		remove_filter( 'upload_dir', $private_path );
+		remove_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ) );
 
 		return new File_Upload_Result(
-			file: $file['file'] ?? null,
-			url: $file['url'] ?? null,
-			type: $file['type'] ?? null,
-			error: $file['error'] ?? null
+			file: is_string( $file['file'] ) ? $file['file'] : null,
+			url: is_string( $file['url'] ) ? $file['url'] : null,
+			type: is_string( $file['type'] ) ? $file['type'] : null,
+			error: is_string( $file['error'] ) ? $file['error'] : null,
 		);
+	}
+
+	/**
+	 * Filters the uploads directory data to add the uploads/{private-dir} subdirectory path.
+	 *
+	 * @see wp_upload_dir()
+	 *
+	 * @hooked upload_dir
+	 *
+	 * @param array{path:string,url:string,subdir:string,basedir:string,baseurl:string,error:string|false} $upload_dir_data The array from `wp_upload_dir()`.
+	 * @return array{path:string,url:string,subdir:string,basedir:string,baseurl:string,error:string|false}
+	 */
+	public function set_private_uploads_path( array $upload_dir_data ): array {
+
+		// Use private uploads dir.
+		$private_directory_name = $this->settings->get_uploads_subdirectory_name();
+
+		$upload_dir_data['basedir'] = "{$upload_dir_data['basedir']}/{$private_directory_name}";
+		$upload_dir_data['baseurl'] = "{$upload_dir_data['baseurl']}/{$private_directory_name}";
+
+		$upload_dir_data['path'] = $upload_dir_data['basedir'] . $upload_dir_data['subdir'];
+		$upload_dir_data['url']  = $upload_dir_data['baseurl'] . $upload_dir_data['subdir'];
+
+		return $upload_dir_data;
 	}
 
 	/**
@@ -307,8 +305,10 @@ class API implements API_Interface {
 			}
 		}
 
-		// Had tried zero redirections but hadn't worked well.
-		// TODO: wp_remote_head()
+		/**
+		 * Had tried zero redirections but hadn't worked well.
+		 * TODO: try using {@see wp_remote_head()} to make a lighter request.
+		 */
 		$request_response = wp_remote_get(
 			$url,
 			array(
@@ -358,7 +358,7 @@ class API implements API_Interface {
 	 * Test if the .htaccess redirect is working to return the file when appropriate.
 	 * i.e. the webserver might be 403ing for another reason, and never 200ing.
 	 *
-	 * @param string $url
+	 * @param string $url The URL that should generally be private, but should be accessible always for logged in admins.
 	 *
 	 * @return array{is_private:bool|null}
 	 */
