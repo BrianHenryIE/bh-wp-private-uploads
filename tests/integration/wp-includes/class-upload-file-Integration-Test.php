@@ -10,13 +10,14 @@ class Upload_File_Integration_Test extends \BrianHenryIE\WP_Private_Uploads\WPUn
 	/**
 	 * @requires function imagejpeg
 	 */
-	public function test_create_item() {
+	public function test_create_item(): void {
 
+		/** @var string $project_root_dir */
 		global $project_root_dir;
 
 		$test_file_path = $project_root_dir . '/tests/_data/sample.pdf';
 
-		$yyyymm                      = gmdate( 'Y' ) . '/' . gmdate( 'm' );
+		$yyyymm                      = ( new \DateTimeImmutable() )->format( 'Y/m' );
 		$expected_uploaded_file_path = $project_root_dir . "/wp-content/uploads/private-media/$yyyymm/sample.pdf";
 
 		if ( file_exists( $expected_uploaded_file_path ) ) {
@@ -40,14 +41,23 @@ class Upload_File_Integration_Test extends \BrianHenryIE\WP_Private_Uploads\WPUn
 		$request->set_param( 'post_parent', $post_id ); // e.g. the WooCommerce order id.
 		$request->set_param( 'post_author', $user_id ); // e.g. the WooCommerce customer user id.
 
-		$request->set_body( file_get_contents( $test_file_path ) );
+		$file_contents = file_get_contents( $test_file_path );
+		if ( false === $file_contents ) {
+			$this->fail( 'Failed to load test data at: ' . $test_file_path );
+		}
+		$request->set_body( $file_contents );
 		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
+
+		/** @var array{id:int, media_type:string, title:array{raw:string,rendered:string}, caption:array{raw:string,rendered:string}, description:array{raw:string,rendered:string}, alt_text:string} $data */
+		$data = $response->get_data();
 
 		$this->assertSame( 201, $response->get_status() );
+
 		$this->assertSame( 'file', $data['media_type'] );
 
 		$attachment = get_post( $data['id'] );
+		$this->assertInstanceOf( 'WP_Post', $attachment );
+
 		$this->assertSame( 'My title is very cool', $data['title']['raw'] );
 		$this->assertSame( 'My title is very cool', $attachment->post_title );
 		$this->assertSame( 'This is a better caption.', $data['caption']['raw'] );
