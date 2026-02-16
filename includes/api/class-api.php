@@ -19,17 +19,12 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Throwable;
 
+/**
+ * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
+ * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_post_type_name()
+ */
 class API implements API_Interface {
 	use LoggerAwareTrait;
-
-	/**
-	 *
-	 * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
-	 * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_post_type_name()
-	 *
-	 * @var Private_Uploads_Settings_Interface
-	 */
-	protected Private_Uploads_Settings_Interface $settings;
 
 	/**
 	 * API constructor.
@@ -37,9 +32,11 @@ class API implements API_Interface {
 	 * @param Private_Uploads_Settings_Interface $settings
 	 * @param LoggerInterface                    $logger
 	 */
-	public function __construct( Private_Uploads_Settings_Interface $settings, ?LoggerInterface $logger = null ) {
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings,
+		?LoggerInterface $logger = null
+	) {
 		$this->setLogger( $logger ?? new NullLogger() );
-		$this->settings = $settings;
 	}
 
 	/**
@@ -240,7 +237,7 @@ class API implements API_Interface {
 			if ( $transient_value instanceof Is_Private_Result ) {
 				return $transient_value;
 			}
-		} catch ( Throwable $throwable ) {
+		} catch ( Throwable ) {
 			// If the transient class is modified, deserializing the old value will fail.
 			delete_transient( $transient_name );
 		}
@@ -368,7 +365,7 @@ class API implements API_Interface {
 
 		$args['cookies'] = array_filter(
 			$_COOKIE,
-			fn( $value, $key ) => false !== strpos( $key, 'WordPress' ),
+			fn( $value, $key ) => str_contains( $key, 'WordPress' ),
 			ARRAY_FILTER_USE_BOTH
 		);
 

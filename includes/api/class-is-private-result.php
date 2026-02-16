@@ -7,24 +7,12 @@ use DateTimeInterface;
 
 class Is_Private_Result {
 
-	protected DateTimeInterface $last_checked;
-
-	protected string $url;
-
-	protected bool $is_private;
-
-	protected int $http_response_code;
-
 	public function __construct(
-		string $url,
-		bool $is_private,
-		int $http_response_code,
-		DateTimeInterface $last_checked
+		protected string $url,
+		protected bool $is_private,
+		protected int $http_response_code,
+		protected DateTimeInterface $last_checked
 	) {
-		$this->url                = $url;
-		$this->is_private         = $is_private;
-		$this->http_response_code = $http_response_code;
-		$this->last_checked       = $last_checked;
 	}
 
 	public function get_last_checked(): DateTimeInterface {

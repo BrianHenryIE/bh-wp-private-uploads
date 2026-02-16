@@ -13,10 +13,9 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 
 class Post_Type {
 
-	protected Private_Uploads_Settings_Interface $settings;
-
-	public function __construct( Private_Uploads_Settings_Interface $settings ) {
-		$this->settings = $settings;
+	public function __construct(
+		protected Private_Uploads_Settings_Interface $settings
+	) {
 	}
 
 	/**

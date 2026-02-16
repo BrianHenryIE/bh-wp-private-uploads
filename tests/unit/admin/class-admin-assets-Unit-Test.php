@@ -84,9 +84,7 @@ class Admin_Assets_Unit_Test extends Unit {
 		WP_Mock::userFunction( 'wp_register_script' )
 			->once()
 			->withArgs(
-				function ( $handle, $src, $deps ) {
-					return array( 'jquery' ) === $deps;
-				}
+				fn( $handle, $src, $deps ) => array( 'jquery' ) === $deps
 			);
 
 		$sut->register_script();
@@ -113,9 +111,7 @@ class Admin_Assets_Unit_Test extends Unit {
 		WP_Mock::userFunction( 'wp_register_script' )
 			->once()
 			->withArgs(
-				function ( $handle, $src, $deps, $ver, $in_footer ) {
-					return true === $in_footer;
-				}
+				fn( $handle, $src, $deps, $ver, $in_footer ) => true === $in_footer
 			);
 
 		$sut->register_script();
