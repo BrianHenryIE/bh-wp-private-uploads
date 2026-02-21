@@ -6,11 +6,21 @@ name: Integration
 #
 # @author BrianHenryIE
 
-on: ["push"]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize, closed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
   ci:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
 
     services:
