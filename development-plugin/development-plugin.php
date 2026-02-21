@@ -73,7 +73,7 @@ add_filter(
 
 /**
  * Options.
- * 
+ *
  * show_in_menu: Should the admin menu Media submenu be displayed?
  * label: The name for the admin menu Media submenu item.
  * show_in_rest: Default is true.
