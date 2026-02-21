@@ -21,10 +21,13 @@ use WP_REST_Request;
 use WP_REST_Response;
 
 /**
- * @phpstan-type Dependencies array{settings: Private_Uploads_Settings_Interface}
+ * @phpstan-type DependenciesArray array{settings: Private_Uploads_Settings_Interface}
  */
 class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 
+	/**
+	 * @uses Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
+	 */
 	protected Private_Uploads_Settings_Interface $settings;
 
 	/**
@@ -33,14 +36,15 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 * Earlier we added the dependencies array to the post type object which is used here.
 	 *
 	 * @see Post_Type
-	 * @param string $post_type_name
+	 *
+	 * @param string $post_type_name The post type name/key is essential for children of `WP_REST_Posts_Controller`.
 	 */
 	public function __construct( $post_type_name ) {
 
 		$post_type_object = get_post_type_object( $post_type_name );
 
 		if ( null !== $post_type_object && property_exists( $post_type_object, 'dependencies' ) && is_array( $post_type_object->dependencies ) ) {
-			/** @var Dependencies $dependencies */
+			/** @var DependenciesArray $dependencies */
 			$dependencies   = $post_type_object->dependencies;
 			$this->settings = $dependencies['settings'];
 		}
@@ -66,7 +70,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		parent::register_routes();
 
 		// Register an "upload_item" route that uploads to private uploads but does not create an attachment/post.
-		// Defaults to plugin-slug/v1/plugin-slug-uploads or plugin-slug/v1/post-type-name
+		// Defaults to `plugin-slug/v1/plugin-slug-uploads` or `plugin-slug/v1/post-type-name`.
 		register_rest_route(
 			$this->namespace,
 			'/' . $this->rest_base . '/', // TODO: trailing slash?
@@ -84,7 +88,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 * * set the post type
 	 * * set the parent post
 	 *
-	 * @param WP_REST_Request $request
+	 * @param WP_REST_Request $request The request object.
 	 */
 	protected function add_set_private_uploads_filters( WP_REST_Request $request ): void {
 
@@ -96,31 +100,18 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		 * @see wp_upload_dir()
 		 *
 		 * Filters the uploads directory data.
-		 *
-		 * @since 2.0.0
-		 *
-		 * @param array $uploads {
-		 *     Array of information about the upload directory.
-		 *
-		 *     @type string       $path    Base directory and subdirectory or full path to upload directory.
-		 *     @type string       $url     Base URL and subdirectory or absolute URL to upload directory.
-		 *     @type string       $subdir  Subdirectory if uploads use year/month folders option is on.
-		 *     @type string       $basedir Path without subdir.
-		 *     @type string       $baseurl URL path without subdir.
-		 *     @type string|false $error   False or error message.
-		 * }
-		 * @return array{path:string,url:string,subdir:string,basedir:string,baseurl:string,error:string|false} $uploads
 		 */
-		$private_path = function ( array $uploads ) use ( $uploads_subdirectory_name ): array {
+		$private_path = function ( array $upload_dir_data ) use ( $uploads_subdirectory_name ): array {
+			/** @var array{path:string, url:string, subdir:string, basedir:string, baseurl:string, error:string|false} $upload_dir_data The array from `wp_upload_dir()`. */
 
 			// Use private uploads dir.
-			$uploads['basedir'] = "{$uploads['basedir']}/{$uploads_subdirectory_name}";
-			$uploads['baseurl'] = "{$uploads['baseurl']}/{$uploads_subdirectory_name}";
+			$upload_dir_data['basedir'] = "{$upload_dir_data['basedir']}/{$uploads_subdirectory_name}";
+			$upload_dir_data['baseurl'] = "{$upload_dir_data['baseurl']}/{$uploads_subdirectory_name}";
 
-			$uploads['path'] = $uploads['basedir'] . $uploads['subdir'];
-			$uploads['url']  = $uploads['baseurl'] . $uploads['subdir'];
+			$upload_dir_data['path'] = $upload_dir_data['basedir'] . $upload_dir_data['subdir'];
+			$upload_dir_data['url']  = $upload_dir_data['baseurl'] . $upload_dir_data['subdir'];
 
-			return $uploads;
+			return $upload_dir_data;
 		};
 		add_filter( 'upload_dir', $private_path, 10, 1 );
 
@@ -159,7 +150,12 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 			3
 		);
 
-		// apply_filters( 'wp_insert_post_parent'
+		/**
+		 * During `wp_insert_post()` this filter is called and we immediately return the value from the request. It
+		 * doesn't look like it should work, but I think it does.
+		 *
+		 * @see wp_insert_post()
+		 */
 		if ( ! empty( $request->get_param( 'post_parent' ) ) ) {
 			add_filter(
 				'wp_insert_post_parent',
@@ -171,7 +167,7 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	/**
 	 * Upload a file and create a new post
 	 *
-	 * @param $request
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return WP_Error|WP_REST_Response
 	 */
@@ -187,9 +183,11 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 * Based on insert_attachment()
 	 * We don't use insert_attachment because that also creates an entry in the Media Library, which we do not always want.
 	 *
+	 * @see self::create_item() when we want to upload AND add a new attachment-post.
+	 *
 	 * @see WP_REST_Attachments_Controller::insert_attachment()
 	 *
-	 * @param WP_REST_Request $request
+	 * @param WP_REST_Request $request The parsed request.
 	 * @return array{file:array{file:string, url:string, type:string}}|WP_Error
 	 */
 	public function upload_item( WP_REST_Request $request ) {

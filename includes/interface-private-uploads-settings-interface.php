@@ -40,7 +40,10 @@ use BrianHenryIE\WP_Private_Uploads\WP_Includes\CLI;
 interface Private_Uploads_Settings_Interface {
 
 	/**
+	 * The plugin slug (directory name from WP_PLUGINS_DIR) is essential to distinguish from other instances.
 	 *
+	 * JS scripts are registered once per plugin.
+	 * The default rest-base is the plugin slug.
 	 */
 	public function get_plugin_slug(): string;
 

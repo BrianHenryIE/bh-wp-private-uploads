@@ -13,7 +13,6 @@ use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use DateTimeImmutable;
 use DateTimeInterface;
-use Exception;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -48,7 +47,7 @@ class API implements API_Interface {
 	 *
 	 * @return File_Upload_Result On success, returns file attributes.
 	 *                            On failure, returns error message.
-	 * @throws Private_Uploads_Exception
+	 * @throws Private_Uploads_Exception On permissions failure|WordPress download_url() failure.
 	 */
 	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): File_Upload_Result {
 
@@ -80,10 +79,6 @@ class API implements API_Interface {
 	 * Use internal WordPress functions to move a file into private uploads.
 	 * i.e. creates the folders and checks for unique filenames.
 	 *
-	 * Emulates a file upload.
-	 *
-	 * The original file is automatically deleted by wp_handle_upload().
-	 *
 	 * @see wp_handle_upload()
 	 *
 	 * @param string             $tmp_file The full filepath of the existing file to move.
@@ -92,7 +87,8 @@ class API implements API_Interface {
 	 * @param ?int               $filesize The size in bytes. Calculated automatically.
 	 *
 	 * @return File_Upload_Result On success, returns file attributes.
-	 *                            On failure, returns error message.
+	 *
+	 * @throws Private_Uploads_Exception On permissions failure|file exists failure.
 	 */
 	public function move_file_to_private_uploads( string $tmp_file, string $filename, ?DateTimeInterface $datetime = null, ?int $filesize = null ): File_Upload_Result {
 
@@ -156,9 +152,13 @@ class API implements API_Interface {
 			throw new Private_Uploads_Exception( $file['error'] );
 		}
 
+		if ( ! isset( $file['file'], $file['url'], $file['type'] ) ) {
+			$missing = array_diff( array( 'file', 'url', 'type' ), array_keys( $file ) );
+			throw new Private_Uploads_Exception( 'Missing keys from wp_handle_upload() result: ' . implode( ', ', $missing ) );
+		}
+
 		remove_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ) );
 
-		/** @var array{file:string,url:string,type:string} $file */
 		return new File_Upload_Result(
 			file: $file['file'],
 			url: $file['url'],
@@ -221,7 +221,8 @@ class API implements API_Interface {
 		if ( file_exists( $dir ) ) {
 			return new Create_Directory_Result(
 				dir: $dir,
-				message: 'Already exists'
+				created: false,
+				message: 'Already exists',
 			);
 		}
 
@@ -234,7 +235,8 @@ class API implements API_Interface {
 
 		return new Create_Directory_Result(
 			dir: $dir,
-			message: 'Created'
+			created: true,
+			message: 'Created',
 		);
 	}
 

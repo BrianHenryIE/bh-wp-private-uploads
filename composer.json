@@ -47,6 +47,7 @@
         },
         "classmap": [
             "development-plugin/",
+            "tests/",
             "tests/_support/"
         ]
     },

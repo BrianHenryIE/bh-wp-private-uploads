@@ -118,9 +118,9 @@ class CLI {
 
 		// Convert result object to array for WP_CLI formatting.
 		$result_array = array(
-			'file' => $result->get_file(),
-			'url'  => $result->get_url(),
-			'type' => $result->get_type(),
+			'file' => $result->file,
+			'url'  => $result->url,
+			'type' => $result->type,
 		);
 
 		switch ( true ) {

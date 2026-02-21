@@ -15,6 +15,9 @@ namespace BrianHenryIE\WP_Private_Uploads\Frontend;
 
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite;
+use DateTimeImmutable;
+use DateTimeInterface;
+use Exception;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
@@ -62,7 +65,7 @@ class Serve_Private_File {
 		 *
 		 * phpcs:disable WordPress.Security.NonceVerification.Recommended
 		 */
-		if ( ! isset( $_REQUEST[ $file_key ] ) ) {
+		if ( empty( $_REQUEST[ $file_key ] ) || ! is_string( $_REQUEST[ $file_key ] ) ) {
 			return;
 		}
 
@@ -150,15 +153,68 @@ class Serve_Private_File {
 		header( 'ETag: "' . $etag . '"' );
 		header( 'Expires: ' . gmdate( $date_format, time() + HOUR_IN_SECONDS ) ); // an arbitrary hour from now.
 
-		// Support for caching.
-		$client_etag = sanitize_text_field( wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] ?? '' ) );
-		// Example: "If-Modified-Since: Wed, 21 Oct 2015 07:28:00 GMT".
-		$client_if_mod_since      = sanitize_text_field( wp_unslash( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? '' ) );
-		$client_if_mod_since_unix = strtotime( $client_if_mod_since );
+		/**
+		 * Support for caching.
+		 *
+		 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-None-Match
+		 */
+		$get_if_none_match_header = function (): ?string {
+			if ( empty( $_SERVER['HTTP_IF_NONE_MATCH'] ) || ! is_string( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) {
+				return null;
+			}
+			return sanitize_text_field( wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] ) );
+		};
 
-		if ( $etag === $client_etag ||
+		/**
+		 * Look for `If-Modified-Since` header to check against the file modified time and avoid unnecessary downloads.
+		 *
+		 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Modified-Since
+		 *
+		 * Example: "If-Modified-Since: Wed, 21 Oct 2015 07:28:00 GMT".
+		 */
+		$get_if_modified_since_header = function (): ?DateTimeInterface {
+			if ( empty( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) || ! is_string( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
+				return null;
+			}
+			$modified_since_string = sanitize_text_field( wp_unslash( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) );
+			try {
+				return new DateTimeImmutable( $modified_since_string );
+			} catch ( Exception $exception ) {
+				$this->logger->warning(
+					'Failed to parse If-Modified-Since header ' . $modified_since_string . ' as DateTime. The file will be returned regardless.',
+					array(
+						'exception' => $exception,
+					)
+				);
+				return null;
+			}
+		};
+
+		/**
+		 * @return ?numeric-string
+		 */
+		$get_if_modified_since_header_unix_time = function () use ( $get_if_modified_since_header ): ?string {
+			return $get_if_modified_since_header()?->format( 'U' ) ?? null;
+		};
+
+		$client_if_mod_since_unix = (int) ( $get_if_modified_since_header_unix_time() ?? 0 );
+
+		/**
+		 * TODO: etag.
+		 *
+		 * @gemini-code-assist
+		 * The ETag comparison logic is likely to fail because it compares the raw MD5 hash with the value from the
+		 * If-None-Match header, which is typically wrapped in double quotes (e.g., "hash"). Since the server sends
+		 * the ETag with quotes on line 153, the client will return it with quotes, leading to a mismatch
+		 * (hash === '"hash"'). This prevents the 304 Not Modified response from being sent correctly.
+		 */
+		if ( $etag === $get_if_none_match_header() ||
 			$last_modified_unix <= $client_if_mod_since_unix ) {
-			// Return 'not modified' header.
+			/**
+			 * Return 'not modified' header.
+			 *
+			 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/304
+			 */
 			status_header( 304 );
 			die();
 		}

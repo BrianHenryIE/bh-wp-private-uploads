@@ -58,7 +58,12 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 
 		$logger   = $this->logger;
 		$api      = $this->makeEmpty( API_Interface::class );
-		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name' => 'non-empty-string',
+			)
+		);
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
 	}
 

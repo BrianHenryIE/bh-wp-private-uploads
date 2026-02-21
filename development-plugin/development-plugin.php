@@ -62,14 +62,8 @@ add_filter(
 		if ( $settings->get_post_type_name() !== $post_type ) {
 				return $args;
 		}
-		// $args['description'] = 'Private uploads for my-plugin';    // Description as shown ... ? TODO: where is it shown?
 		$args['show_in_menu'] = true;          // Should the admin menu Media submenu be displayed?
-		// $args['label'] = 'My-plugin Files';    // The name for the admin menu Media submenu item.
 		$args['show_in_rest'] = true;          // Default is true.
-		// $args['rest_namespace'] = 'my-plugin/v1'; // Default is `plugin-slug/v1`.
-		// $args['rest_base'] = 'uploads';        // Default is `uploads`.
-		// $args['taxonomies'] = array();         // E.g. `category`, `post_tag`.
-		// $args['delete_with_user'] = true;      // Delete all posts of this type authored by a user when that user is deleted.
 		// ...
 		return $args;
 	},
@@ -77,9 +71,20 @@ add_filter(
 	2
 );
 
+// Options.
+//
+// `show_in_menu`: Should the admin menu Media submenu be displayed?
+// `label`: The name for the admin menu Media submenu item.
+// `show_in_rest`: Default is true.
+// `rest_namespace`: Default is `plugin-slug/v1`.
+// `rest_base`: Default is `uploads`.
+// `taxonomies`: E.g. `category`, `post_tag`.
+// `delete_with_user`: Delete all posts of this type authored by a user when that user is deleted.
+//
+// `array{show_in_menu:bool, label:string, show_in_rest:bool, rest_namespace:string, rest_base:string, taxonomies:mixed, delete_with_user:bool}`.
 
 /**
- * Because the relative filepaths mapped inside Docker, we need to fix the plugin urls.
+ * Because of the relative filepaths mapped inside Docker, we need to fix the plugin urls.
  *
  * `assets`, `include`, `vendor` are mapped to the wp-content/plugins directory, not the development-plugin subdir.
  *
@@ -89,17 +94,19 @@ add_filter(
  * should be
  * "http://localhost:8888/wp-content/plugins/assets/bh-wp-private-uploads-admin.js?ver=1.0.0"
  *
+ * @hooked plugins_url
  * @see plugins_url()
+ * This is only called from that one core action (so I will just copy the param docs verbatim).
+ *
+ * @param string $url The complete URL to the plugins directory including scheme and path.
+ * @param string $_path Path relative to the URL to the plugins directory. Blank string if no path is specified.
+ * @param string $_plugin The plugin file path to be relative to. Blank string if no plugin is specified.
  */
-add_filter(
-	'plugins_url',
-	function ( string $url, string $_path, string $_plugin ): string {
+$filter_correct_local_path = function ( string $url, string $_path, string $_plugin ): string {
 
-		/** @phpstan-ignore-next-line phpstanWP.wpConstant.fetch */
-		$url = str_replace( WP_PLUGIN_URL . '/includes/admin', WP_PLUGIN_URL . '/', $url );
+	/** @phpstan-ignore-next-line phpstanWP.wpConstant.fetch */
+	$url = str_replace( WP_PLUGIN_URL . '/includes/admin', WP_PLUGIN_URL . '/', $url );
 
-		return $url;
-	},
-	10,
-	3
-);
+	return $url;
+};
+add_filter( 'plugins_url', $filter_correct_local_path, 10, 3 );
