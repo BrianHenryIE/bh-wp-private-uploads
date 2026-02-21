@@ -71,17 +71,17 @@ add_filter(
 	2
 );
 
-// * Options.
-// *
-// * `show_in_menu`: Should the admin menu Media submenu be displayed?
-// * `label`: The name for the admin menu Media submenu item.
-// * `show_in_rest`: Default is true.
-// * `rest_namespace`: Default is `plugin-slug/v1`.
-// * `rest_base`: Default is `uploads`.
-// * `taxonomies`: E.g. `category`, `post_tag`.
-// * `delete_with_user`: Delete all posts of this type authored by a user when that user is deleted.
-// *
-// * @var array{show_in_menu:bool, label:string, show_in_rest:bool, rest_namespace:string, rest_base:string, taxonomies:mixed, delete_with_user:bool}
+// Options.
+//
+// `show_in_menu`: Should the admin menu Media submenu be displayed?
+// `label`: The name for the admin menu Media submenu item.
+// `show_in_rest`: Default is true.
+// `rest_namespace`: Default is `plugin-slug/v1`.
+// `rest_base`: Default is `uploads`.
+// `taxonomies`: E.g. `category`, `post_tag`.
+// `delete_with_user`: Delete all posts of this type authored by a user when that user is deleted.
+//
+// `array{show_in_menu:bool, label:string, show_in_rest:bool, rest_namespace:string, rest_base:string, taxonomies:mixed, delete_with_user:bool}`.
 
 /**
  * Because of the relative filepaths mapped inside Docker, we need to fix the plugin urls.

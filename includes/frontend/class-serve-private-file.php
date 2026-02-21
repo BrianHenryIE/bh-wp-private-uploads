@@ -190,10 +190,11 @@ class Serve_Private_File {
 			}
 		};
 
-		$client_if_mod_since_unix = $get_if_modified_since_header()?->format( 'U' ) ?? 0;
+		$client_if_mod_since_unix = (int) $get_if_modified_since_header()?->format( 'U' ) ?? 0;
 
 		/**
 		 * TODO: etag.
+		 *
 		 * @gemini-code-assist
 		 * The ETag comparison logic is likely to fail because it compares the raw MD5 hash with the value from the
 		 * If-None-Match header, which is typically wrapped in double quotes (e.g., "hash"). Since the server sends
