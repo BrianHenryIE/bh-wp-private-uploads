@@ -94,7 +94,7 @@ trait Private_Uploads_Settings_Trait {
 	 *
 	 * @see Private_Uploads_Settings_Interface::get_meta_box_settings()
 	 *
-	 * @return array<string, array>|array{}
+	 * @return array<string, array<mixed>>|array{}
 	 */
 	public function get_meta_box_settings(): array {
 		return array();
