@@ -17,6 +17,7 @@ parameters:
         - vendor/wp-cli
     scanFiles:
         - vendor/antecedent/patchwork/Patchwork.php
+    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         - '#LoggerInterface\|null#'
         - # Parameter #2 $callback of static method WP_Mock::expectActionAdded() expects (callable(): mixed)|Mockery\Matcher\Type|string, array{Mockery\Matcher\Type, 'register_post_type'} given.
