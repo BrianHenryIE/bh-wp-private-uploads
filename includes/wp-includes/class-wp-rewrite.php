@@ -12,6 +12,9 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 
+/**
+ * Use WordPress function to write `.htaccess`.
+ */
 class WP_Rewrite {
 	use LoggerAwareTrait;
 
