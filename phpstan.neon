@@ -25,4 +25,4 @@ parameters:
           path: tests/unit/class-bh-wp-private-uploads-hooks-Unit-Test.php
         - # Trait BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait is used zero times and is not analysed.
           identifier: trait.unused
-          path: trait-private-uploads-settings.php
+          path: includes/trait-private-uploads-settings.php
