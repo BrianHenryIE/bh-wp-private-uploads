@@ -31,7 +31,7 @@ class BH_WP_Private_Uploads_Hooks {
 	 *
 	 * @param API_Interface                      $api The main functions.
 	 * @param Private_Uploads_Settings_Interface $settings The configured settings.
-	 * @param LoggerInterface                    $logger PSR logger to record errors.
+	 * @param ?LoggerInterface                   $logger PSR logger to record errors.
 	 *
 	 * @since    1.0.0
 	 */
