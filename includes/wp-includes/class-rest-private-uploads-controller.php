@@ -36,7 +36,8 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 * Earlier we added the dependencies array to the post type object which is used here.
 	 *
 	 * @see Post_Type
-	 * @param string $post_type_name
+	 *
+	 * @param string $post_type_name The post type name/key is essential for children of `WP_REST_Posts_Controller`.
 	 */
 	public function __construct( $post_type_name ) {
 
