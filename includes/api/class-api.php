@@ -152,6 +152,10 @@ class API implements API_Interface {
 			throw new Private_Uploads_Exception( $file['error'] );
 		}
 
+		if ( ! isset( $file['file'], $file['url'], $file['type'] ) ) {
+			throw new Private_Uploads_Exception( 'Missing param.' );
+		}
+
 		remove_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ) );
 
 		return new File_Upload_Result(
