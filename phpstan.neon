@@ -4,6 +4,7 @@ parameters:
         - includes
         - development-plugin
         - tests
+        - tests/_support/_phpstan/class-private-uploads-settings.php
     excludePaths:
         - development-plugin/vendor/*
         - tests/_support/_generated/*
