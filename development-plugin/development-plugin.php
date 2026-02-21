@@ -109,4 +109,4 @@ $filter_correct_local_path = function ( string $url, string $_path, string $_plu
 
 	return $url;
 };
-add_filter( '$filter_correct_local_path', $filter_correct_local_path, 10, 3 );
+add_filter( 'plugins_url', $filter_correct_local_path, 10, 3 );

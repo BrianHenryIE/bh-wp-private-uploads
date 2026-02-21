@@ -38,7 +38,7 @@ class BH_WP_Private_Uploads_Hooks {
 	public function __construct(
 		protected API_Interface $api,
 		protected Private_Uploads_Settings_Interface $settings,
-		protected ?LoggerInterface $logger = null
+		?LoggerInterface $logger = null
 	) {
 		$this->logger = $logger ?? new \Psr\Log\NullLogger();
 

@@ -31,8 +31,7 @@
     "autoload": {
         "classmap": [
             "includes/",
-            "assets/",
-            "tests/"
+            "assets/"
         ],
         "files": [
             "includes/functions.php"
@@ -48,6 +47,7 @@
         },
         "classmap": [
             "development-plugin/",
+            "tests/",
             "tests/_support/"
         ]
     },
