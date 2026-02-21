@@ -11,11 +11,10 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
 
 /**
  * As an example.
+ *
+ * Normally we would use {@see Private_Uploads_Settings_Trait}.
  */
 class Development_Plugin_Settings implements Private_Uploads_Settings_Interface {
-
-	// use Private_Uploads_Settings_Trait;
-
 	/**
 	 * For friendly display.
 	 */
@@ -106,12 +105,17 @@ class Development_Plugin_Settings implements Private_Uploads_Settings_Interface 
 		);
 	}
 
+	/**
+	 * The display name of the private post type.
+	 *
+	 * E.g. in the media upload UI.
+	 */
 	public function get_post_type_label(): string {
 		return 'Private Uploads Development Plugin Example Post Type';
 	}
 
 	/**
-	 * @return string|null
+	 * Use null to disable; `{plugin-slug}/v1/{post-name}`, where `v1` is a function of this library.
 	 */
 	public function get_rest_base(): ?string {
 		return 'test-plugin-private';
