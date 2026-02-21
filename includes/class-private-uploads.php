@@ -21,6 +21,7 @@ use Psr\Log\NullLogger;
 class Private_Uploads extends API implements API_Interface {
 	use LoggerAwareTrait;
 
+	/** @var ?Private_Uploads The singleton.  */
 	protected static ?Private_Uploads $instance = null;
 
 	/**
