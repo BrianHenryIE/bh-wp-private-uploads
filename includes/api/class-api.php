@@ -153,7 +153,8 @@ class API implements API_Interface {
 		}
 
 		if ( ! isset( $file['file'], $file['url'], $file['type'] ) ) {
-			throw new Private_Uploads_Exception( 'Missing param.' );
+			$missing = array_diff( array( 'file', 'url', 'type' ), array_keys( $file ) );
+			throw new Private_Uploads_Exception( 'Missing keys from wp_handle_upload() result: ' . implode( ', ', $missing ) );
 		}
 
 		remove_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ) );
