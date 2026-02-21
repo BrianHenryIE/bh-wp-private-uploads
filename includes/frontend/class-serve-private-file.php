@@ -190,7 +190,14 @@ class Serve_Private_File {
 			}
 		};
 
-		$client_if_mod_since_unix = (int) $get_if_modified_since_header()?->format( 'U' ) ?? 0;
+		/**
+		 * @return ?numeric-string
+		 */
+		$get_if_modified_since_header_unix_time = function () use ( $get_if_modified_since_header ): ?string {
+			return $get_if_modified_since_header()?->format( 'U' ) ?? null;
+		};
+
+		$client_if_mod_since_unix = (int) ( $get_if_modified_since_header_unix_time() ?? 0 );
 
 		/**
 		 * TODO: etag.
