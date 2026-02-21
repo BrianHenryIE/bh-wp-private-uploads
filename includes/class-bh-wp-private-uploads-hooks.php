@@ -1,12 +1,6 @@
 <?php
 /**
- * The file that defines the core plugin class
- *
- * A class definition that includes attributes and functions used across both the
- * frontend-facing side of the site and the admin area.
- *
- * @link       http://example.com
- * @since      1.0.0
+ * Add the hooks to WordPress.
  *
  * @package    brianhenryie/bh-wp-private-uploads
  */
@@ -26,42 +20,26 @@ use BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Upload;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite;
 use Psr\Log\LoggerInterface;
-use WP_CLI;
 
 /**
- * The core plugin class.
- *
- * This is used to define internationalization, admin-specific hooks, and
- * frontend-facing site hooks.
- *
- * @since      1.0.0
- * @package    brianhenryie/bh-wp-private-uploads
- *
- * @author     BrianHenryIE <BrianHenryIE@gmail.com>
+ * Exclusively `add_action()` and `add_filter()` preceded with conditional checks.
  */
 class BH_WP_Private_Uploads_Hooks {
 
-	protected LoggerInterface $logger;
-
 	/**
-	 * Define the core functionality of the plugin.
+	 * Constructor
 	 *
-	 * Set the plugin name and the plugin version that can be used throughout the plugin.
-	 * Load the dependencies, define the locale, and set the hooks for the admin area and
-	 * the frontend-facing side of the site.
-	 *
-	 * @param API_Interface                      $api
-	 * @param Private_Uploads_Settings_Interface $settings
-	 * @param LoggerInterface                    $logger
+	 * @param API_Interface                      $api The main functions.
+	 * @param Private_Uploads_Settings_Interface $settings The configured settings.
+	 * @param LoggerInterface                    $logger PSR logger to record errors.
 	 *
 	 * @since    1.0.0
 	 */
 	public function __construct(
 		protected API_Interface $api,
 		protected Private_Uploads_Settings_Interface $settings,
-		?LoggerInterface $logger = null
+		protected ?LoggerInterface $logger = null
 	) {
-
 		$this->logger = $logger ?? new \Psr\Log\NullLogger();
 
 		$this->define_api_hooks();
@@ -79,15 +57,24 @@ class BH_WP_Private_Uploads_Hooks {
 		$this->define_admin_menu_hooks();
 	}
 
+	/**
+	 * On every load, ensure the directory exists.
+	 *
+	 * TODO: Think about how this could be delayed. Let's avoid file-system operations unless 100% necessary.
+	 */
 	protected function define_api_hooks(): void {
 		/** @phpstan-ignore-next-line return.void  */
 		add_action( 'init', array( $this->api, 'create_directory' ) );
 	}
 
 	/**
-	 *
+	 * Maybe register the post type.
 	 */
 	protected function define_post_hooks(): void {
+
+		if ( empty( $this->settings->get_post_type_name() ) ) {
+			return;
+		}
 
 		$post = new Post_Type( $this->settings );
 
@@ -96,8 +83,6 @@ class BH_WP_Private_Uploads_Hooks {
 
 	/**
 	 * Register hooks for handling admin notices: display and dismissal.
-	 *
-	 * @since    3.0.0
 	 */
 	protected function define_admin_notices_hooks(): void {
 
@@ -111,8 +96,6 @@ class BH_WP_Private_Uploads_Hooks {
 
 	/**
 	 * Register hooks for handling frontend delivery of the files.
-	 *
-	 * @since    1.0.0
 	 */
 	protected function define_frontend_hooks(): void {
 
@@ -138,8 +121,6 @@ class BH_WP_Private_Uploads_Hooks {
 
 	/**
 	 * Register CLI commands: `download`.
-	 *
-	 * @since    2.0.0
 	 */
 	protected function define_cli_hooks(): void {
 
@@ -177,12 +158,19 @@ class BH_WP_Private_Uploads_Hooks {
 		add_action( 'admin_init', array( $admin_assets, 'register_script' ), 1 );
 	}
 
+	/**
+	 * When `Settings::get_meta_box_settings()` has an array (key:value post_type:meta-box-args), display the
+	 * upload meta-box on the post type.
+	 */
 	protected function define_meta_box_hooks(): void {
 		$admin_meta_boxes = new Admin_Meta_Boxes( $this->settings, $this->logger );
 
 		add_action( 'add_meta_boxes', array( $admin_meta_boxes, 'add_meta_box' ), 10, 2 );
 	}
 
+	/**
+	 * If `show_in_menu` is set, add a submenu to "Media" for the new post type.
+	 */
 	protected function define_admin_menu_hooks(): void {
 
 		$admin_menu_hooks = new Admin_Menu( $this->settings );
