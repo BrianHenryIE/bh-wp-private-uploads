@@ -38,10 +38,8 @@ class BH_WP_Private_Uploads_Hooks {
 	public function __construct(
 		protected API_Interface $api,
 		protected Private_Uploads_Settings_Interface $settings,
-		?LoggerInterface $logger = null
+		protected LoggerInterface $logger
 	) {
-		$this->logger = $logger ?? new \Psr\Log\NullLogger();
-
 		$this->define_api_hooks();
 		$this->define_admin_notices_hooks();
 		$this->define_frontend_hooks();
