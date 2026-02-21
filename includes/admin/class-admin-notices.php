@@ -15,10 +15,20 @@ use Psr\Log\LoggerInterface;
 use WPTRT\AdminNotices\Notices;
 use function BrianHenryIE\WP_Private_Uploads\str_underscores_to_hyphens;
 
+/**
+ * Uses the WordPress Themes Team library.
+ */
 class Admin_Notices extends Notices {
 
 	use LoggerAwareTrait;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param API_Interface                      $api Ask the cache if we should display a notice.
+	 * @param Private_Uploads_Settings_Interface $settings Interpolate the correct post_type in output.
+	 * @param LoggerInterface                    $logger A PSR logger.
+	 */
 	public function __construct(
 		protected API_Interface $api,
 		protected Private_Uploads_Settings_Interface $settings,
@@ -52,8 +62,8 @@ class Admin_Notices extends Notices {
 			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
 		);
 
-		$title   = '';
-		$href    = '<a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a>';
+		$href = '<a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a>';
+		// translators: %s is a HTML link to the directory's URL.
 		$content = sprintf( __( 'Private uploads directory at %s is publicly accessible.', 'bh-wp-private-uploads' ), $href );
 		$content = apply_filters( 'bh_wp_private_uploads_url_is_public_warning_' . $this->settings->get_post_type_name(), $content, $url );
 
@@ -65,7 +75,7 @@ class Admin_Notices extends Notices {
 		// ID must be globally unique because it is the css id that will be used.
 		$this->add(
 			$notice_id,
-			$title,   // The title for this notice.
+			'',   // The title for this notice. If this were set it would be a h2 title; we don't want any.
 			$content, // The content for this notice.
 			array(
 				'scope' => 'global',
