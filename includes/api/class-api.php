@@ -217,7 +217,8 @@ class API implements API_Interface {
 		if ( file_exists( $dir ) ) {
 			return new Create_Directory_Result(
 				dir: $dir,
-				message: 'Already exists'
+				created: null,
+				message: 'Already exists',
 			);
 		}
 
@@ -230,7 +231,8 @@ class API implements API_Interface {
 
 		return new Create_Directory_Result(
 			dir: $dir,
-			message: 'Created'
+			created: true,
+			message: 'Created',
 		);
 	}
 
