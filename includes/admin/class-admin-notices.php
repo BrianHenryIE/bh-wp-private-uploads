@@ -49,8 +49,8 @@ class Admin_Notices extends Notices {
 			return;
 		}
 
-		$url        = $is_private_result->get_url();
-		$is_private = $is_private_result->is_private();
+		$url        = $is_private_result->url;
+		$is_private = $is_private_result->is_private;
 
 		if ( false !== $is_private ) {
 			// URL is private, no need to display admin notice (and no need to log this fact!).

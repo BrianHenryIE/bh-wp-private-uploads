@@ -170,7 +170,7 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$result = $api->check_and_update_is_url_private();
 
 		$this->assertNotNull( $result );
-		$this->assertFalse( $result->is_private() );
+		$this->assertFalse( $result->is_private );
 	}
 
 	/**
@@ -217,6 +217,6 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		$result = $api->check_and_update_is_url_private();
 
-		$this->assertTrue( $result?->is_private() );
+		$this->assertTrue( $result?->is_private );
 	}
 }
