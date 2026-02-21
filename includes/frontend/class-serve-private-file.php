@@ -192,6 +192,14 @@ class Serve_Private_File {
 
 		$client_if_mod_since_unix = $get_if_modified_since_header()?->format( 'U' ) ?? 0;
 
+		/**
+		 * TODO: etag.
+		 * @gemini-code-assist
+		 * The ETag comparison logic is likely to fail because it compares the raw MD5 hash with the value from the
+		 * If-None-Match header, which is typically wrapped in double quotes (e.g., "hash"). Since the server sends
+		 * the ETag with quotes on line 153, the client will return it with quotes, leading to a mismatch
+		 * (hash === '"hash"'). This prevents the 304 Not Modified response from being sent correctly.
+		 */
 		if ( $etag === $get_if_none_match_header() ||
 			$last_modified_unix <= $client_if_mod_since_unix ) {
 			/**
