@@ -7,10 +7,15 @@ on:
     branches:
       - master
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, closed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   phpstan:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
 
     strategy:
