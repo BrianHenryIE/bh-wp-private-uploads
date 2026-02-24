@@ -43,7 +43,7 @@ class Admin_Notices extends Notices {
 	public function admin_notices(): void {
 
 		// This _should_ be returning the transient value.
-		$is_private_result = $this->api->check_and_update_is_url_private();
+		$is_private_result = $this->api->get_last_checked_is_url_private();
 
 		if ( null === $is_private_result ) {
 			return;

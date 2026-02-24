@@ -36,31 +36,10 @@ class Upload {
 		protected Private_Uploads_Settings_Interface $settings,
 		protected Media_Request $media_request
 	) {
-		if ( ! $this->media_request->is_relevant_page() ) {
-			return;
-		}
-
-		$post_type = $settings->get_post_type_name();
-
-		if ( ! $this->media_request->request_uri_has_post_type( $post_type )
-			&& ! $this->media_request->referer_uri_has_post_type( $post_type ) ) {
-			return;
-		}
-
-		add_action( 'current_screen', array( $this, 'current_screen' ) );
-		add_filter( 'query', array( $this, 'replace_post_type_in_query' ) );
-		add_action( 'wp', array( $this, 'wp' ) );
-		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
-		add_filter( 'the_posts', array( $this, 'the_posts' ), 10, 2 );
-		add_filter( 'clean_url', array( $this, 'clean_url' ) );
-		add_action( 'admin_init', array( $this, 'admin_init' ) );
-		add_filter( 'manage_upload_columns', array( $this, 'manage_upload_columns' ) );
 	}
 
 	/**
 	 * Grid view uses AJAX `action=query-attachments`.
-	 *
-	 * @hooked
 	 */
 
 	/**
