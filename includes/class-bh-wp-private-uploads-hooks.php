@@ -31,7 +31,7 @@ class BH_WP_Private_Uploads_Hooks {
 	 *
 	 * @param API_Interface                      $api The main functions.
 	 * @param Private_Uploads_Settings_Interface $settings The configured settings.
-	 * @param ?LoggerInterface                   $logger PSR logger to record errors.
+	 * @param LoggerInterface                    $logger PSR logger to record errors.
 	 *
 	 * @since    1.0.0
 	 */
@@ -50,7 +50,6 @@ class BH_WP_Private_Uploads_Hooks {
 
 		$this->define_meta_box_hooks();
 		$this->define_media_library_hooks();
-		new Upload( $this->settings, new Media_Request() );
 
 		$this->define_admin_menu_hooks();
 	}
@@ -146,7 +145,9 @@ class BH_WP_Private_Uploads_Hooks {
 	 */
 	protected function define_media_library_hooks(): void {
 
-		$media = new Media( $this->settings, new Media_Request() );
+		$media_request = new Media_Request();
+
+		$media = new Media( $this->settings, $media_request );
 
 		add_action( 'wp_ajax_query-attachments', array( $media, 'on_query_attachments' ), 1 );
 		add_action( 'admin_init', array( $media, 'on_upload_attachment' ), 1 );
@@ -154,6 +155,28 @@ class BH_WP_Private_Uploads_Hooks {
 		$admin_assets = new Admin_Assets( $this->settings );
 
 		add_action( 'admin_init', array( $admin_assets, 'register_script' ), 1 );
+
+		$upload = new Upload( $this->settings, $media_request );
+
+		if ( ! $media_request->is_relevant_page() ) {
+			return;
+		}
+
+		$post_type = $this->settings->get_post_type_name();
+
+		if ( ! $media_request->request_uri_has_post_type( $post_type )
+			&& ! $media_request->referer_uri_has_post_type( $post_type ) ) {
+			return;
+		}
+
+		add_action( 'current_screen', array( $upload, 'current_screen' ) );
+		add_filter( 'query', array( $upload, 'replace_post_type_in_query' ) );
+		add_action( 'wp', array( $upload, 'wp' ) );
+		add_action( 'pre_get_posts', array( $upload, 'pre_get_posts' ) );
+		add_filter( 'the_posts', array( $upload, 'the_posts' ), 10, 2 );
+		add_filter( 'clean_url', array( $upload, 'clean_url' ) );
+		add_action( 'admin_init', array( $upload, 'admin_init' ) );
+		add_filter( 'manage_upload_columns', array( $upload, 'manage_upload_columns' ) );
 	}
 
 	/**
