@@ -191,20 +191,6 @@ class API implements API_Interface {
 	}
 
 	/**
-	 * NB: "Transient key names are limited to 191 characters".
-	 *
-	 * @see https://developer.wordpress.org/reference/functions/set_transient/
-	 *
-	 * @return string
-	 */
-	protected function get_is_private_transient_name(): string {
-		return sprintf(
-			'bh_wp_private_uploads_%s_is_private',
-			$this->settings->get_post_type_name()
-		);
-	}
-
-	/**
 	 * TODO: does this maybe happen automatically when the first file is moved?
 	 *
 	 * @hooked init
@@ -241,13 +227,32 @@ class API implements API_Interface {
 	}
 
 	/**
-	 * @hooked admin_init
+	 * NB: "Transient key names are limited to 191 characters".
+	 *
+	 * @see https://developer.wordpress.org/reference/functions/set_transient/
+	 */
+	protected function get_is_private_transient_name(): string {
+		return sprintf(
+			'bh_wp_private_uploads_%s_is_private',
+			$this->settings->get_post_type_name()
+		);
+	}
+
+	/**
 	 *
 	 * @used-by Admin_Notices::admin_notices()
 	 */
 	public function get_last_checked_is_url_private(): ?Is_Private_Result {
 
 		$transient_name = $this->get_is_private_transient_name();
+
+		$schedule_check = function () {
+			// Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
+			wp_schedule_single_event(
+				time(),
+				'private_uploads_check_url_' . $this->settings->get_post_type_name()
+			);
+		};
 
 		try {
 			/**
@@ -258,16 +263,14 @@ class API implements API_Interface {
 			if ( $transient_value instanceof Is_Private_Result ) {
 				return $transient_value;
 			}
+
+			$schedule_check();
 		} catch ( Throwable ) {
 			// If the transient class is modified, deserializing the old value will fail.
 			delete_transient( $transient_name );
-		}
 
-		// Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
-		wp_schedule_single_event(
-			time(),
-			'private_uploads_check_url_' . $this->settings->get_post_type_name()
-		);
+			$schedule_check();
+		}
 
 		return null;
 	}

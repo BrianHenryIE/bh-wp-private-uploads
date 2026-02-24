@@ -14,6 +14,8 @@ use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use WP_Error;
+use function BrianHenryIE\WP_Private_Uploads\str_hyphens_to_underscores;
 
 /**
  * Register jobs with `wp_schedule_event()` and handle the actions they call via `add_action()`.
@@ -39,23 +41,60 @@ class Cron {
 	}
 
 	/**
+	 * E.g. `my_plugin_private_uploads_check_url_file`.
+	 *
+	 * Every hook / option / transient / etc should start with the plugin name and then `private_uploads`, so
+	 * later we can use that for a debug page or uninstall script.
+	 */
+	protected function get_cron_hook_name(): string {
+		return str_hyphens_to_underscores(
+			sprintf(
+				'%s_private_uploads_check_url_%s',
+				$this->settings->get_plugin_slug(),
+				$this->settings->get_post_type_name()
+			)
+		);
+	}
+
+	/**
 	 *
 	 * @hooked init
 	 */
 	public function register_cron_job(): void {
 
-		$cron_hook = "private_uploads_check_url_{$this->settings->get_post_type_name()}";
+		$cron_hook = $this->get_cron_hook_name();
 
-		if ( false === wp_get_scheduled_event( $cron_hook ) ) {
-			wp_schedule_event( time(), 'hourly', $cron_hook );
-			$this->logger->info( "Registered the `{$cron_hook}` cron job." );
+		/** @var false|object{hook:string,timestamp:int,schedule:string|false,args:array<mixed>,interval:int} $schedule */
+		$schedule = wp_get_scheduled_event( $cron_hook );
+
+		if ( false === $schedule ) {
+			/** @var bool|WP_Error $schedule_event_result */
+			$schedule_event_result = wp_schedule_event( time(), 'hourly', $cron_hook ); /** @phpstan-ignore varTag.type */
+			if ( ! is_wp_error( $schedule_event_result ) ) {
+				$this->logger->info( "Registered the `{$cron_hook}` cron job." );
+			} else {
+				$this->logger->error(
+					"Failed to register the `{$cron_hook}` cron job: " . $schedule_event_result->get_error_message(),
+					array(
+						'cron_hook' => $cron_hook,
+						'error'     => $schedule_event_result,
+					)
+				);
+			}
+		} else {
+			$this->logger->debug(
+				'Cron job `{$cron_hook}` is already registered.',
+				array(
+					'scheduled_event' => $schedule,
+				)
+			);
 		}
 	}
 
 	/**
 	 * Handle the cron job.
 	 *
-	 * @hooked private_uploads_check_url_{post_type_name}
+	 * @hooked {plugin-slug}_private_uploads_check_url_{post_type_name}
 	 */
 	public function check_is_url_public(): void {
 		$action = current_action();

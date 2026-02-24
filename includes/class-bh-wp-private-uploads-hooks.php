@@ -106,6 +106,8 @@ class BH_WP_Private_Uploads_Hooks {
 	 */
 	protected function define_cron_job_hooks(): void {
 
+		// TODO: only run this on cron jobs to avoid unnecessary work on every `init`.
+
 		$cron = new Cron( $this->api, $this->settings, $this->logger );
 
 		add_action( 'init', array( $cron, 'register_cron_job' ) );
