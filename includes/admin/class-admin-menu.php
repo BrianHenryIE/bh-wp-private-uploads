@@ -1,6 +1,6 @@
 <?php
 /**
- * Add a submennu of Media linking to the Private Media Library.
+ * Add a submenu of Media linking to the Private Media Library.
  *
  * @package brianhenryie/bh-wp-private-uploads
  */
@@ -60,7 +60,7 @@ class Admin_Menu {
 	 * `upload.php` is the standard Media Library page.
 	 *
 	 * @hooked admin_menu
-	 * @see includes/menu.php
+	 * @see wp-admin/includes/menu.php
 	 */
 	public function add_private_media_library_menu(): void {
 
@@ -128,6 +128,7 @@ class Admin_Menu {
 	 * TODO: redirect wp-admin/edit.php?post_type=test_plugin_private to the library. @see edit.php:26.
 	 *
 	 * @hooked admin_menu
+	 * @see wp-admin/includes/menu.php
 	 */
 	public function remove_top_level_menu(): void {
 		remove_menu_page( "edit.php?post_type={$this->settings->get_post_type_name()}" );
