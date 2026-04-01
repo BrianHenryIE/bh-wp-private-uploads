@@ -33,14 +33,16 @@ if ( ! defined( 'WPINC' ) ) {
 	return;
 }
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once file_exists( __DIR__ . '/vendor/autoload.php' )
+	? __DIR__ . '/vendor/autoload.php'
+	: __DIR__ . '/../vendor/autoload.php';
 
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 Autoloader::generate(
-	'BrianHenryIE\\WP_Private_Uploads',
-	__DIR__ . '/../includes',
+	'BrianHenryIE\\WP_Private_Uploads_Development_Plugin',
+	__DIR__
 )->register();
 
 
