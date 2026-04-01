@@ -165,6 +165,6 @@ $disable_first_use_popups = function ( mixed $value, int $user_id, string $meta_
 	$meta_value['core']['enableChoosePatternModal'] = false;
 	$meta_value['core/edit-post']['welcomeGuide']   = false;
 
-	return $meta_value;
+	return array( $meta_value );
 };
 add_filter( 'get_user_metadata', $disable_first_use_popups, 10, 5 );
