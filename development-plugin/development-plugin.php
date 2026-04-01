@@ -110,3 +110,56 @@ $filter_correct_local_path = function ( string $url, string $_path, string $_plu
 	return $url;
 };
 add_filter( 'plugins_url', $filter_correct_local_path, 10, 3 );
+
+/**
+ * Filter user meta `{blog_id}_persisted_preferences` to disable the first-use modals on the post/page edit screen.
+ *
+ * E.g. `{"meta":{"persisted_preferences":{"core":{"isComplementaryAreaVisible":true,"enableChoosePatternModal":false},"_modified":"2026-04-01T19:39:20.828Z","core/edit-post":{"welcomeGuide":false,"fullscreenMode":false}}}}`
+ *
+ * @see wp_default_packages_inline_scripts()
+ * @see wp_register_persisted_preferences_meta()
+ * @see get_metadata_raw()
+ *
+ * @see https://github.com/WordPress/gutenberg/pull/39795
+ *
+ * @hooked get_user_metadata
+ *
+ * @param mixed $value The value to return, either a single metadata value or an array
+ *                           of values depending on the value of `$single`. Default null.
+ * @param int $user_id ID of the object metadata is for.
+ * @param string $meta_key Metadata key.
+ * @param bool $single Whether to return only the first value of the specified `$meta_key`.
+ * @param string $meta_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
+ *                           'user', or any other object type with an associated meta table.
+ */
+$disable_first_use_popups = function ( mixed $value, int $user_id, string $meta_key, bool $single, string $meta_type = 'user' ): mixed {
+	if ( ! str_ends_with( $meta_key, 'persisted_preferences' ) ) {
+		return $value;
+	}
+
+	/**
+	 * E.g. an array with [wp_persisted_preferences][0] being `a:3:{s:4:"core";a:2:{s:26:"isComplementaryAreaVisible";b:1;s:24:"enableChoosePatternModal";b:0;}s:9:"_modified";s:24:"2026-04-01T19:39:20.828Z";s:14:"core/edit-post";a:2:{s:12:"welcomeGuide";b:0;s:14:"fullscreenMode";b:0;}}`.
+	 */
+	$user_meta_cache = wp_cache_get( $user_id, $meta_type . '_meta' );
+	if (
+		! $user_meta_cache
+		|| ! is_array( $user_meta_cache )
+		|| ! isset( $user_meta_cache[ $meta_key ] )
+		|| ! is_array( $user_meta_cache[ $meta_key ] )
+		|| ! isset( $user_meta_cache[ $meta_key ][0] )
+		|| ! is_string( $user_meta_cache[ $meta_key ][0] )
+	) {
+		return $value;
+	}
+
+	$raw_meta_value = $user_meta_cache[ $meta_key ][0];
+
+	/** @var array{core:array<string,bool>,"core/edit-post":array<string,bool>} $meta_value */
+	$meta_value = maybe_unserialize( $raw_meta_value );
+
+	$meta_value['core']['enableChoosePatternModal'] = false;
+	$meta_value['core/edit-post']['welcomeGuide']   = false;
+
+	return $meta_value;
+};
+add_filter( 'get_user_metadata', $disable_first_use_popups, 10, 5 );
