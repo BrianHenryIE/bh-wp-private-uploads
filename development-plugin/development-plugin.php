@@ -113,6 +113,9 @@ $filter_correct_local_path = function ( string $url, string $_path, string $_plu
 };
 add_filter( 'plugins_url', $filter_correct_local_path, 10, 3 );
 
+// TODO: filter user meta: `recovery_mode_email_last_sent`.
+
+
 /**
  * Filter user meta `{blog_id}_persisted_preferences` to disable the first-use modals on the post/page edit screen.
  *
