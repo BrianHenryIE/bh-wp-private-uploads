@@ -107,7 +107,7 @@ add_filter(
 $filter_correct_local_path = function ( string $url, string $_path, string $_plugin ): string {
 
 	/** @phpstan-ignore-next-line phpstanWP.wpConstant.fetch */
-	$url = str_replace( WP_PLUGIN_URL . '/includes/admin', WP_PLUGIN_URL . '/', $url );
+	$url = str_replace( WP_PLUGIN_URL . '/development-plugin/includes/admin', WP_PLUGIN_URL . '/development-plugin', $url );
 
 	return $url;
 };
