@@ -74,9 +74,6 @@ jobs:
         if: failure()
         run: |
           WP_ENV_PATH=$(npx wp-env status --json | jq -r .installPath)
-          ls $WP_ENV_PATH/WordPress/wp-content/plugins
-          ls $WP_ENV_PATH/WordPress/wp-content/plugins/development-plugin
-          ls $WP_ENV_PATH/WordPress/wp-content/plugins/development-plugin/vendor
           npx wp-env run cli ls /var/www/html/wp-content/plugins/
           npx wp-env run cli ls /var/www/html/wp-content/plugins/development-plugin/
           npx wp-env run cli ls /var/www/html/wp-content/plugins/development-plugin/vendor
