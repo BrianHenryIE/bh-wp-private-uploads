@@ -57,6 +57,7 @@ class Cron {
 	}
 
 	/**
+	 * Schedule an hourly check to ensure the directory is not publicly accessible
 	 *
 	 * @hooked init
 	 */
@@ -67,25 +68,31 @@ class Cron {
 		/** @var false|object{hook:string,timestamp:int,schedule:string|false,args:array<mixed>,interval:int} $schedule */
 		$schedule = wp_get_scheduled_event( $cron_hook );
 
-		if ( false === $schedule ) {
-			/** @var bool|WP_Error $schedule_event_result */
-			$schedule_event_result = wp_schedule_event( time(), 'hourly', $cron_hook ); /** @phpstan-ignore varTag.type */
-			if ( ! is_wp_error( $schedule_event_result ) ) {
-				$this->logger->info( "Registered the `{$cron_hook}` cron job." );
-			} else {
-				$this->logger->error(
-					"Failed to register the `{$cron_hook}` cron job: " . $schedule_event_result->get_error_message(),
-					array(
-						'cron_hook' => $cron_hook,
-						'error'     => $schedule_event_result,
-					)
-				);
-			}
-		} else {
+		if ( false !== $schedule ) {
 			$this->logger->debug(
-				'Cron job `{$cron_hook}` is already registered.',
+				'Cron job `{cron_hook}` is already registered.',
 				array(
+					'cron_hook'       => $cron_hook,
 					'scheduled_event' => $schedule,
+				)
+			);
+			return;
+		}
+
+		/** @var bool|WP_Error $schedule_event_result */
+		$schedule_event_result = wp_schedule_event( time(), 'hourly', $cron_hook, array(), true ); /** @phpstan-ignore varTag.type */
+
+		if ( true === $schedule_event_result ) {
+			$this->logger->info( "Registered the `{$cron_hook}` cron job." );
+		} else {
+			$message = is_wp_error( $schedule_event_result )
+				? $schedule_event_result->get_error_message()
+				: (string) $schedule_event_result;
+			$this->logger->error(
+				"Failed to register the `{$cron_hook}` cron job: " . $message,
+				array(
+					'cron_hook' => $cron_hook,
+					'error'     => $schedule_event_result,
 				)
 			);
 		}
