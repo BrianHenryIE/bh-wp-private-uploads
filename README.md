@@ -31,9 +31,7 @@ The main feature in-progress is to allow files to be tied to a specific user, an
 
 `composer require brianhenryie/bh-wp-private-uploads`
 
-The logger is only a dev requirement for the test plugin.
-
-The following code expects you're prefixing your library namespaces with a tool such as [brianhenryie/strauss](https://github.com/BrianHenryIE/strauss/).
+The following code expects you're prefixing your libraries' namespaces with a tool such as [brianhenryie/strauss](https://github.com/BrianHenryIE/strauss/).
 
 ### Instantiate
 
@@ -113,7 +111,7 @@ $settings = new class() implements \BrianHenryIE\WP_Private_Uploads\API\Private_
 		return 'my-plugin';
 	}
 	
-    /**
+  /**
 	 * Defaults to the plugin slug when using Private_Uploads_Settings_Trait.
 	 */
 	public function get_uploads_subdirectory_name(): string {
@@ -169,21 +167,22 @@ To quickly test the URL is private with cURL:
 curl -o /dev/null --silent --head --write-out '%{http_code}\n' http://localhost:8080/bh-wp-private-uploads/wp-content/uploads/private/private.txt
 ```
 
+### Contributing
+
+See [CONTRIBUTING.md](https://github.com/BrianHenryIE/bh-wp-private-uploads/blob/master/CONTRIBUTING.md).
 
 ### Status
 
 TODO:
 
-1. Test API and serve private files classes
-2. Focus settings on the post type, not the plugin slug (maybe rename the settings interface to reflect this)
-3. Instantiate the hooks with API class as the parameter, not the Settings (i.e. avoid situation where wires could be crossed)
-4. Add documentation for the media upload UI
-5. Update this documentation to include post type object filter.
-5. Verify all test steps in this README
-6. Test with bh-wp-logger
-
-Some amount of PHPUnit, WPCS, PhpStan done, but lots to do.
-
+* Test API and serve private files classes
+* ~~Focus settings on the post type, not the plugin slug~~ (maybe rename the settings interface to reflect this)
+* Instantiate the hooks with API class as the parameter, not the Settings (i.e. avoid situation where wires could be crossed)
+* Add documentation & screenshots for the media upload UI
+* Update this documentation to include post type object filter.
+* Verify all test steps in this README
+* Test with bh-wp-logger
+* ~~Some amount of PHPUnit, WPCS, PhpStan done, but lots to do~~ Now thoroughly PHPCS + PHPStan and lots of PHPUnit + Playwright
 * User level permissions per file. (custom post type with filepath/url as GUID)
 * Acceptance tests: https://github.com/gamajo/codeception-redirects
 * Unit test REST endpoint
@@ -193,6 +192,7 @@ Some amount of PHPUnit, WPCS, PhpStan done, but lots to do.
 * GDPR deletion
 * REST API file upload -> webhook.
 * When viewing an individual post edit screen, it should display information about auto-deleting
+* Zip development plugin and add PLayground link on PRs & releases
 
 #### Permissions: 
 
@@ -200,4 +200,3 @@ We already have registered a post type for registering the REST endpoint.
 For files that need to be tied to a specific user, make them the author of the post
 For broader permissions, use the parent of the post--- e.g. set the parent post to be the WooCommerce order and anyone who is allowed to view the order can view the file.
 Also ties into privacy (GDPR deletion etc.)
-
