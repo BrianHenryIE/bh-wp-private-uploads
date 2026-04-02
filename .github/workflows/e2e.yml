@@ -67,6 +67,20 @@ jobs:
           npx wp-env run tests-cli -- wp plugin activate development-plugin
           npx wp-env run tests-cli -- wp rewrite structure '/%year%/%monthnum%/%postname%/' --hard
 
+      # It appears the symlink isn't mapping correctly in the container
+      # Obviously development-plugin is mapping, but vendor does not seem to be mapping ibnside
+      # Fatal error: Uncaught Error: Failed opening required '/var/www/html/wp-content/plugins/development-plugin/../vendor/autoload.php'
+      - name: On failure, ls the vendor directory
+        if: failure()
+        run: |
+          WP_ENV_PATH=$(npx wp-env status --json | jq -r .installPath)
+          ls $WP_ENV_PATH/WordPress/wp-content/plugins
+          ls $WP_ENV_PATH/WordPress/wp-content/plugins/development-plugin
+          ls $WP_ENV_PATH/WordPress/wp-content/plugins/development-plugin/vendor
+          npx wp-env run cli ls /var/www/html/wp-content/plugins/
+          npx wp-env run cli ls /var/www/html/wp-content/plugins/development-plugin/
+          npx wp-env run cli ls /var/www/html/wp-content/plugins/development-plugin/vendor
+
       - name: Run Playwright tests
         run: npx playwright test --reporter=github
         env:
