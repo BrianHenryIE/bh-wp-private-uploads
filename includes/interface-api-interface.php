@@ -49,7 +49,12 @@ interface API_Interface {
 	public function check_and_update_is_url_private(): ?Is_Private_Result;
 
 	/**
-	 * @return Create_Directory_Result
+	 * Get the most recent checked result. I.e. avoid synchronous HTTP calls.
+	 */
+	public function get_last_checked_is_url_private(): ?Is_Private_Result;
+
+	/**
+	 * Create the directory. TODO: this should be deferred until a file is saved there.
 	 */
 	public function create_directory(): Create_Directory_Result;
 }

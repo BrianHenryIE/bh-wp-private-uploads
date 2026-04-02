@@ -34,7 +34,14 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install sponge
+        run: sudo apt-get install moreutils
+
+      # The development plugin needs the PHP dev dependencies.
+      - name: Install PHP dependencies
+        run: composer install
+
+      - name: Install JS dependencies
         run: npm ci
 
       - name: Install Playwright browsers

@@ -31,7 +31,7 @@ class Admin_Notices_WPUnit_Test extends WPUnit_Testcase {
 		$api      = $this->makeEmpty(
 			API_Interface::class,
 			array(
-				'check_and_update_is_url_private' => Expected::once( $is_private_result ),
+				'get_last_checked_is_url_private' => Expected::once( $is_private_result ),
 			)
 		);
 		$settings = $this->makeEmpty(

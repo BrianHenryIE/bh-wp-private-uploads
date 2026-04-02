@@ -10,6 +10,7 @@ namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use WPTRT\AdminNotices\Notices;
@@ -43,7 +44,7 @@ class Admin_Notices extends Notices {
 	public function admin_notices(): void {
 
 		// This _should_ be returning the transient value.
-		$is_private_result = $this->api->check_and_update_is_url_private();
+		$is_private_result = $this->api->get_last_checked_is_url_private();
 
 		if ( null === $is_private_result ) {
 			return;
@@ -100,8 +101,8 @@ class Admin_Notices extends Notices {
 	 */
 	public function on_dismiss( $old_value, $value, string $option ): void {
 
-		$hook = "private_uploads_unsnooze_dismissed_notice_{$this->settings->get_post_type_name()}";
+		$hook = ( new Cron( $this->api, $this->settings, $this->logger ) )->get_unsnooze_notice_cron_hook_name();
 
-		wp_schedule_single_event( time() + WEEK_IN_SECONDS, $hook );
+		wp_schedule_single_event( time() + constant( 'WEEK_IN_SECONDS' ), $hook );
 	}
 }

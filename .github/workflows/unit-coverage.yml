@@ -205,18 +205,33 @@ jobs:
           echo "" >> coverage-comment.md
           echo "$(cat coverage-report.md)" >> coverage-comment.md
 
+      # This outputs `steps.pr_diff.outputs.diff_filename` and `steps.pr_diff.outputs.diff_contents`.
+      - name: Get the PR diff
+        id: pr_diff
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          FILENAME="${{ env.TARGET_BRANCH_REF_NAME }}-${{ github.event.pull_request.head.sha }}.diff"
+          git fetch origin ${{ env.TARGET_BRANCH_REF_NAME }}:refs/remotes/origin/${{ env.TARGET_BRANCH_REF_NAME }}
+          git diff origin/${{ env.TARGET_BRANCH_REF_NAME }} > tmp.diff
+          mv tmp.diff $FILENAME
+          echo "diff_filename=$FILENAME" >> $GITHUB_OUTPUT
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "diff_contents<<$EOF" >> $GITHUB_OUTPUT
+          echo "$(cat $FILENAME)" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+        env:
+          TARGET_BRANCH_REF_NAME: ${{ github.event.pull_request.base.ref }}
+
       - name: Add phpcov uncovered lines report to PR comment
         if: ${{ matrix.php == env.COVERAGE_PHP_VERSION && github.event_name == 'pull_request' }}
         continue-on-error: true # phpcov can fail if there are no uncovered lines
         run: |
-          BRANCHED_COMMIT=$(git rev-list master..HEAD | tail -n 1);
-          echo "BRANCHED_COMMIT=$BRANCHED_COMMIT"
-          git diff $BRANCHED_COMMIT...${{ github.event.pull_request.head.sha }} > branch.diff
-          cat branch.diff
-          OUTPUT=$(vendor/bin/phpcov patch-coverage --path-prefix $(pwd) ./gh-pages/${{ github.sha }}/phpunit/coveragephp.cov branch.diff || true)
+          OUTPUT=$(vendor/bin/phpcov patch-coverage --path-prefix $(pwd) ./gh-pages/${{ github.sha }}/phpunit/coveragephp.cov ${{ env.DIFF_FILENAME }} || true)
           echo $OUTPUT
           echo "" >> coverage-comment.md
           echo "$OUTPUT" >> coverage-comment.md
+        env:
+          DIFF_FILENAME: ${{ steps.pr_diff.outputs.diff_filename }}
 
       - name: Comment on PR
         uses: mshick/add-pr-comment@v2
