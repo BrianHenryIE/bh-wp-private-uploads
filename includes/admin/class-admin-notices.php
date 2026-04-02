@@ -103,6 +103,6 @@ class Admin_Notices extends Notices {
 
 		$hook = ( new Cron( $this->api, $this->settings, $this->logger ) )->get_unsnooze_notice_cron_hook_name();
 
-		wp_schedule_single_event( time() + WEEK_IN_SECONDS, $hook );
+		wp_schedule_single_event( time() + constant( 'WEEK_IN_SECONDS' ), $hook );
 	}
 }
