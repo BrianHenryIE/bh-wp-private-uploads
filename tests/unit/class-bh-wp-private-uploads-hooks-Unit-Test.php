@@ -119,7 +119,7 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 		);
 
 		\WP_Mock::expectActionAdded(
-			'the_plugin_slug_private_uploads_unsnooze_dismissed_notice',
+			'the_plugin_slug_private_uploads_unsnooze_dismissed_notice_the_post_type',
 			array( \WP_Mock\Functions::type( Cron::class ), 'unsnooze_dismissed_notice' )
 		);
 

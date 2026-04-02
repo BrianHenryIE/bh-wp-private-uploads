@@ -57,7 +57,7 @@ class Cron {
 	}
 
 	/**
-	 * `{plugin_slug}_private_uploads_unsnooze_dismissed_notice`
+	 * `{plugin_slug}_private_uploads_unsnooze_dismissed_notice_{post_type}`
 	 */
 	public function get_unsnooze_notice_cron_hook_name(): string {
 		return str_hyphens_to_underscores(
