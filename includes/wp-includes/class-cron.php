@@ -105,7 +105,12 @@ class Cron {
 	 */
 	public function check_is_url_public(): void {
 		$action = current_action();
-		$this->logger->debug( "Executing {$action} cron job." );
+		$this->logger->debug(
+			'Executing {action} cron job.',
+			array(
+				'action' => $action,
+			)
+		);
 
 		$this->api->check_and_update_is_url_private();
 	}

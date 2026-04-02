@@ -6,6 +6,7 @@ use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Unit_Testcase;
+use Codeception\Stub\Expected;
 use WP_Mock;
 
 /**
@@ -38,5 +39,30 @@ class Cron_Unit_Test extends Unit_Testcase {
 			->andReturn( 'anything' );
 
 		$sut->register_cron_job();
+	}
+
+	/**
+	 * @covers ::check_is_url_public
+	 */
+	public function test_check_is_url_public(): void {
+
+		$api      = $this->makeEmpty(
+			API_Interface::class,
+			array(
+				'check_and_update_is_url_private' => Expected::once(),
+			)
+		);
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+		$logger   = $this->logger;
+
+		$sut = new Cron( $api, $settings, $logger );
+
+		WP_Mock::userFunction( 'current_action' )
+			->once()
+			->andReturn( 'the_cron_hook_name' );
+
+		$sut->check_is_url_public();
+
+		$this->assertTrue( $logger->hasDebugThatContains( 'Executing {action} cron job.' ) );
 	}
 }
