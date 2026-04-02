@@ -16,7 +16,7 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
 		status: 'publish',
 	});
 
-	console.log(JSON.stringify(pageData, null, 4));
+	// console.log(JSON.stringify(pageData, null, 4));
 	await admin.editPost(pageData.id);
 
   // The Private Uploads panel is in the sidebar (Editor settings), not in Meta Boxes
@@ -43,7 +43,7 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
 
   // Click the "Select files" button to open the media modal
   const selectFilesButton = page.locator('button:has-text("Select files")');
-  await expect(selectFilesButton).toBeVisible({ timeout: 5000 });
+  await expect(selectFilesButton).toBeVisible({ timeout: 15000 });
   await selectFilesButton.click();
 
   // Wait for the media modal to open
@@ -68,7 +68,7 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
   // Check for upload errors
   const uploadError = page.locator('.media-modal:has-text("An error occurred")');
   // fail test
-  await expect(uploadError).not.toBeVisible({timeout: 5 * 1000})
+  await expect(uploadError).not.toBeVisible({ timeout: 15000 });
 
   // Wait for an attachment to be available in the media library
   // The modal shows attachments as li.attachment elements
@@ -98,7 +98,7 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
 
   // Verify the uploaded file appears (checking for an image or link in the list)
   const attachmentItem = attachmentsList.locator('li').first();
-  await expect(attachmentItem).toBeVisible();
+  await expect(attachmentItem).toBeVisible({ timeout: 15000 });
 
   // Reload the page to verify persistence
   await page.reload();

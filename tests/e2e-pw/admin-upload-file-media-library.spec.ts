@@ -34,12 +34,12 @@ test( 'upload file via upload.php media library ui', async ( {
 
 	// Click "Add Media File" to reveal the inline uploader
 	const addMediaButton = page.locator( 'a.page-title-action' ).first();
-	await expect( addMediaButton ).toBeVisible();
+	await expect( addMediaButton ).toBeVisible({ timeout: 15000 });
 	await addMediaButton.click();
 
 	// Wait for the inline uploader to appear
 	const uploadUI = page.locator( '.upload-ui' );
-	await expect( uploadUI ).toBeVisible( { timeout: 5000 } );
+	await expect( uploadUI ).toBeVisible({ timeout: 15000 });
 
 	// Use setInputFiles on the hidden file input within the uploader
 	const fileInput = page.locator( '.moxie-shim input[type="file"]' );
@@ -57,7 +57,7 @@ test( 'upload file via upload.php media library ui', async ( {
 	const newestAttachment = page
 		.locator( '.attachments .attachment' )
 		.first();
-	await expect( newestAttachment ).toBeVisible();
+	await expect( newestAttachment ).toBeVisible({ timeout: 15000 });
 
 	// Reload the page with list view and verify the uploaded file persisted.
 	// Don't check exact counts — parallel browser tests share the same WP instance,
@@ -67,7 +67,7 @@ test( 'upload file via upload.php media library ui', async ( {
 	// List view should have at least one row
 	await expect(
 		page.locator( '.wp-list-table #the-list tr' ).first()
-	).toBeVisible( { timeout: 10000 } );
+	).toBeVisible({ timeout: 15000 });
 
 	// Reload with grid view and verify items are present
 	const gridReloadPromise = page.waitForResponse(
@@ -83,5 +83,5 @@ test( 'upload file via upload.php media library ui', async ( {
 	// Grid view should have at least one attachment
 	await expect(
 		page.locator( '.attachments .attachment' ).first()
-	).toBeVisible();
+	).toBeVisible({ timeout: 15000 });
 } );

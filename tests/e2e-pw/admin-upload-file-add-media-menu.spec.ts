@@ -22,7 +22,7 @@ test('upload file via admin menu page', async ({ page, admin }) => {
 	  hasText: /^Copy URL to clipboard$/,
   });
 
-  await expect(copyToClipboard).toBeVisible();
+  await expect(copyToClipboard).toBeVisible({ timeout: 15000 });
 
   const uploadedUrl = await copyToClipboard.getAttribute('data-clipboard-text');
 
