@@ -62,8 +62,9 @@ class Cron {
 	public function get_unsnooze_notice_cron_hook_name(): string {
 		return str_hyphens_to_underscores(
 			sprintf(
-				'%s_private_uploads_unsnooze_dismissed_notice',
-				$this->settings->get_plugin_slug()
+				'%s_private_uploads_unsnooze_dismissed_notice_%s',
+				$this->settings->get_plugin_slug(),
+				$this->settings->get_post_type_name()
 			)
 		);
 	}
