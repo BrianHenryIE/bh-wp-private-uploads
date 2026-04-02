@@ -10,6 +10,7 @@ namespace BrianHenryIE\WP_Private_Uploads\API;
 
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
+use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -251,11 +252,18 @@ class API implements API_Interface {
 		$transient_name = $this->get_is_private_transient_name();
 
 		$schedule_check = function () {
-			// Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
-			wp_schedule_single_event(
-				time(),
-				'private_uploads_check_url_' . $this->settings->get_post_type_name()
-			);
+			/**
+			 * Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
+			 *
+			 * @see BH_WP_Private_Uploads_Hooks::define_cron_job_hooks()
+			 */
+			$cron_hook = 'private_uploads_check_url_' . $this->settings->get_post_type_name();
+			if ( ! wp_get_scheduled_event( $cron_hook ) ) {
+				wp_schedule_single_event(
+					time(),
+					$cron_hook
+				);
+			}
 		};
 
 		try {
