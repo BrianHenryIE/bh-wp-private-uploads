@@ -141,7 +141,11 @@ class API implements API_Interface {
 		$action          = 'wp_handle_private_upload';
 		$_POST['action'] = $action;
 
-		/** @var array{error:string}|array{file:string,url:string,type:string} $file */
+		/**
+		 * Because a custom error handler can be used, the array returned could potentially be any shape.
+		 *
+		 * @var array{error:string}|array{file?:string,url?:string,type?:string} $file
+		 */
 		$file = wp_handle_upload( $file, array( 'action' => $action ) );
 
 		if ( isset( $post_action_before ) ) {
