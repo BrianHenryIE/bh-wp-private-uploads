@@ -146,6 +146,10 @@ class BH_WP_Private_Uploads_Hooks {
 	 */
 	protected function define_media_library_hooks(): void {
 
+		if ( ! is_admin() && ! wp_doing_ajax() ) {
+			return;
+		}
+
 		$media_request = new Media_Request();
 
 		$media = new Media( $this->settings, $media_request );

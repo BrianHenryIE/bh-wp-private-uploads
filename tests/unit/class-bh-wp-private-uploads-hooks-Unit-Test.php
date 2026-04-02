@@ -22,11 +22,23 @@ use BrianHenryIE\WP_Private_Uploads\WP_Includes\Media;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite;
 use Codeception\Stub\Expected;
+use Mockery\CompositeExpectation;
+use Mockery\Expectation;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks
  */
 class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
+
+	protected CompositeExpectation&Expectation $is_admin;
+	protected CompositeExpectation&Expectation $wp_doing_ajax;
+
+	protected function setUp(): void {
+		parent::setUp();
+
+		$this->is_admin      = \WP_Mock::userFunction( 'is_admin' )->andReturnFalse();
+		$this->wp_doing_ajax = \WP_Mock::userFunction( 'wp_doing_ajax' )->andReturnFalse();
+	}
 
 	/**
 	 * @covers ::__construct
@@ -175,6 +187,10 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 	 * @covers ::define_media_library_hooks
 	 */
 	public function test_define_media_library_hooks(): void {
+
+		$this->is_admin->andReturnTrue();
+		$this->wp_doing_ajax->andReturnTrue();
+
 		\WP_Mock::expectActionAdded(
 			'wp_ajax_query-attachments',
 			array( \WP_Mock\Functions::type( Media::class ), 'on_query_attachments' ),
