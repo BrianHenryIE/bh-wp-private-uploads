@@ -10,6 +10,7 @@ namespace BrianHenryIE\WP_Private_Uploads\Admin;
 
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use WPTRT\AdminNotices\Notices;
@@ -100,7 +101,7 @@ class Admin_Notices extends Notices {
 	 */
 	public function on_dismiss( $old_value, $value, string $option ): void {
 
-		$hook = "private_uploads_unsnooze_dismissed_notice_{$this->settings->get_post_type_name()}";
+		$hook = ( new Cron( $this->api, $this->settings, $this->logger ) )->get_unsnooze_notice_cron_hook_name();
 
 		wp_schedule_single_event( time() + WEEK_IN_SECONDS, $hook );
 	}

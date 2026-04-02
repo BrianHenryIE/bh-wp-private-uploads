@@ -12,6 +12,7 @@ use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -260,13 +261,7 @@ class API implements API_Interface {
 			 *
 			 * @see BH_WP_Private_Uploads_Hooks::define_cron_job_hooks()
 			 */
-			$cron_hook = str_hyphens_to_underscores(
-				sprintf(
-					'%s_private_uploads_check_url_%s',
-					$this->settings->get_plugin_slug(),
-					$this->settings->get_post_type_name()
-				)
-			);
+			$cron_hook = ( new Cron( $this, $this->settings, $this->logger ) )->get_check_url_cron_hook_name();
 			if ( ! wp_get_scheduled_event( $cron_hook ) ) {
 				wp_schedule_single_event(
 					time(),

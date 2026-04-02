@@ -46,12 +46,24 @@ class Cron {
 	 * Every hook / option / transient / etc should start with the plugin name and then `private_uploads`, so
 	 * later we can use that for a debug page or uninstall script.
 	 */
-	protected function get_cron_hook_name(): string {
+	public function get_check_url_cron_hook_name(): string {
 		return str_hyphens_to_underscores(
 			sprintf(
 				'%s_private_uploads_check_url_%s',
 				$this->settings->get_plugin_slug(),
 				$this->settings->get_post_type_name()
+			)
+		);
+	}
+
+	/**
+	 * `{plugin_slug}_private_uploads_unsnooze_dismissed_notice`
+	 */
+	public function get_unsnooze_notice_cron_hook_name(): string {
+		return str_hyphens_to_underscores(
+			sprintf(
+				'%s_private_uploads_unsnooze_dismissed_notice',
+				$this->settings->get_plugin_slug()
 			)
 		);
 	}
@@ -63,7 +75,7 @@ class Cron {
 	 */
 	public function register_cron_job(): void {
 
-		$cron_hook = $this->get_cron_hook_name();
+		$cron_hook = $this->get_check_url_cron_hook_name();
 
 		/** @var false|object{hook:string,timestamp:int,schedule:string|false,args:array<mixed>,interval:int} $schedule */
 		$schedule = wp_get_scheduled_event( $cron_hook );
@@ -120,6 +132,7 @@ class Cron {
 	 * should not be dismissed forever.
 	 *
 	 * @see Admin_Notices::on_dismiss()
+	 * @see Cron::get_unsnooze_notice_cron_hook_name()
 	 * @hooked private_uploads_unsnooze_dismissed_notice_{post_type_name}
 	 */
 	public function unsnooze_dismissed_notice(): void {

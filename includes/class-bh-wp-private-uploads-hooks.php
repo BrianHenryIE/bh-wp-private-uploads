@@ -112,10 +112,9 @@ class BH_WP_Private_Uploads_Hooks {
 
 		add_action( 'init', array( $cron, 'register_cron_job' ) );
 
-		$cron_job_hook_name = "private_uploads_check_url_{$this->settings->get_post_type_name()}";
-		add_action( $cron_job_hook_name, array( $cron, 'check_is_url_public' ) );
+		add_action( $cron->get_check_url_cron_hook_name(), array( $cron, 'check_is_url_public' ) );
 
-		add_action( "private_uploads_unsnooze_dismissed_notice_{$this->settings->get_post_type_name()}", array( $cron, 'unsnooze_dismissed_notice' ) );
+		add_action( $cron->get_unsnooze_notice_cron_hook_name(), array( $cron, 'unsnooze_dismissed_notice' ) );
 	}
 
 	/**
