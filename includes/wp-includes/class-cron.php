@@ -134,7 +134,7 @@ class Cron {
 	 *
 	 * @see Admin_Notices::on_dismiss()
 	 * @see Cron::get_unsnooze_notice_cron_hook_name()
-	 * @hooked private_uploads_unsnooze_dismissed_notice_{post_type_name}
+	 * @hooked {plugin_slug}_private_uploads_unsnooze_dismissed_notice_{post_type_name}
 	 */
 	public function unsnooze_dismissed_notice(): void {
 
