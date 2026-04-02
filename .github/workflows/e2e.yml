@@ -34,6 +34,10 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Install sponge
+        run: sudo apt-get install moreutils
+
+      # The development plugin needs the PHP dev dependencies.
       - name: Install PHP dependencies
         run: composer install
 
