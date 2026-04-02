@@ -3,12 +3,12 @@
 namespace BrianHenryIE\WP_Private_Uploads;
 
 use BrianHenryIE\ColorLogger\ColorLogger;
-use Psr\Log\LoggerInterface;
+use Psr\Log\Test\TestLogger;
 use WP_Mock;
 
 class Unit_Testcase extends \Codeception\Test\Unit {
 
-	protected LoggerInterface $logger;
+	protected TestLogger $logger;
 
 	protected function setUp(): void {
 		parent::setUp();

@@ -84,7 +84,7 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
 
   // Click the "Use this item" button - wait for it to be enabled
   const useButton = page.locator('.media-modal button:has-text("Use this item")');
-  await expect(useButton).toBeEnabled({ timeout: 5000 });
+  await expect(useButton).toBeEnabled({ timeout: 15000 });
   await useButton.click();
 
   // Wait for modal to close

@@ -10,13 +10,16 @@ namespace BrianHenryIE\WP_Private_Uploads\API;
 
 use BrianHenryIE\WP_Private_Uploads\Admin\Admin_Notices;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
+use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
+use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Throwable;
+use function BrianHenryIE\WP_Private_Uploads\str_hyphens_to_underscores;
 
 /**
  * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
@@ -141,7 +144,11 @@ class API implements API_Interface {
 		$action          = 'wp_handle_private_upload';
 		$_POST['action'] = $action;
 
-		/** @var array{error:string}|array{file:string,url:string,type:string} $file */
+		/**
+		 * Because a custom error handler can be used, the array returned could potentially be any shape.
+		 *
+		 * @var array{error:string}|array{file?:string,url?:string,type?:string} $file
+		 */
 		$file = wp_handle_upload( $file, array( 'action' => $action ) );
 
 		if ( isset( $post_action_before ) ) {
@@ -191,20 +198,6 @@ class API implements API_Interface {
 	}
 
 	/**
-	 * NB: "Transient key names are limited to 191 characters".
-	 *
-	 * @see https://developer.wordpress.org/reference/functions/set_transient/
-	 *
-	 * @return string
-	 */
-	protected function get_is_private_transient_name(): string {
-		return sprintf(
-			'bh_wp_private_uploads_%s_is_private',
-			$this->settings->get_post_type_name()
-		);
-	}
-
-	/**
 	 * TODO: does this maybe happen automatically when the first file is moved?
 	 *
 	 * @hooked init
@@ -241,7 +234,18 @@ class API implements API_Interface {
 	}
 
 	/**
-	 * @hooked admin_init
+	 * NB: "Transient key names are limited to 191 characters".
+	 *
+	 * @see https://developer.wordpress.org/reference/functions/set_transient/
+	 */
+	protected function get_is_private_transient_name(): string {
+		return sprintf(
+			'bh_wp_private_uploads_%s_is_private',
+			$this->settings->get_post_type_name()
+		);
+	}
+
+	/**
 	 *
 	 * @used-by Admin_Notices::admin_notices()
 	 */
@@ -259,17 +263,31 @@ class API implements API_Interface {
 				return $transient_value;
 			}
 		} catch ( Throwable ) {
-			// If the transient class is modified, deserializing the old value will fail.
+			// If the `Is_Private_Result` class is modified, deserializing the transient value will fail.
 			delete_transient( $transient_name );
 		}
 
-		// Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
-		wp_schedule_single_event(
-			time(),
-			'private_uploads_check_url_' . $this->settings->get_post_type_name()
-		);
+		$this->schedule_single_check_is_url_private();
 
 		return null;
+	}
+
+	/**
+	 * Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
+	 *
+	 * `{plugin_slug}_private_uploads_check_url_{post_type}`.
+	 *
+	 * @see BH_WP_Private_Uploads_Hooks::define_cron_job_hooks()
+	 * @see Cron::check_is_url_public()
+	 */
+	protected function schedule_single_check_is_url_private(): void {
+		$cron_hook = ( new Cron( $this, $this->settings, $this->logger ) )->get_check_url_cron_hook_name();
+		if ( ! wp_get_scheduled_event( $cron_hook ) ) {
+			wp_schedule_single_event(
+				time(),
+				$cron_hook
+			);
+		}
 	}
 
 	/**

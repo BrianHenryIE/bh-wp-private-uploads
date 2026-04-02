@@ -22,11 +22,23 @@ use BrianHenryIE\WP_Private_Uploads\WP_Includes\Media;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Post_Type;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite;
 use Codeception\Stub\Expected;
+use Mockery\CompositeExpectation;
+use Mockery\Expectation;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks
  */
 class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
+
+	protected CompositeExpectation|Expectation $is_admin;
+	protected CompositeExpectation|Expectation $wp_doing_ajax;
+
+	protected function setUp(): void {
+		parent::setUp();
+
+		$this->is_admin      = \WP_Mock::userFunction( 'is_admin' )->andReturnFalse();
+		$this->wp_doing_ajax = \WP_Mock::userFunction( 'wp_doing_ajax' )->andReturnFalse();
+	}
 
 	/**
 	 * @covers ::__construct
@@ -114,12 +126,12 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 		);
 
 		\WP_Mock::expectActionAdded(
-			'private_uploads_check_url_test_post_type',
+			'the_plugin_slug_private_uploads_check_url_the_post_type',
 			array( \WP_Mock\Functions::type( Cron::class ), 'check_is_url_public' )
 		);
 
 		\WP_Mock::expectActionAdded(
-			'private_uploads_unsnooze_dismissed_notice_test_post_type',
+			'the_plugin_slug_private_uploads_unsnooze_dismissed_notice_the_post_type',
 			array( \WP_Mock\Functions::type( Cron::class ), 'unsnooze_dismissed_notice' )
 		);
 
@@ -128,7 +140,8 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 		$settings = $this->makeEmpty(
 			Private_Uploads_Settings_Interface::class,
 			array(
-				'get_post_type_name' => Expected::atLeastOnce( 'test_post_type' ),
+				'get_plugin_slug'    => Expected::atLeastOnce( 'the-plugin-slug' ),
+				'get_post_type_name' => Expected::atLeastOnce( 'the_post_type' ),
 			)
 		);
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
@@ -174,6 +187,12 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 	 * @covers ::define_media_library_hooks
 	 */
 	public function test_define_media_library_hooks(): void {
+
+		/** @phpstan-ignore-next-line method.notFound */
+		$this->is_admin->andReturnTrue();
+		/** @phpstan-ignore-next-line method.notFound */
+		$this->wp_doing_ajax->andReturnTrue();
+
 		\WP_Mock::expectActionAdded(
 			'wp_ajax_query-attachments',
 			array( \WP_Mock\Functions::type( Media::class ), 'on_query_attachments' ),
