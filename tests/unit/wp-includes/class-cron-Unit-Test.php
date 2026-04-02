@@ -2,7 +2,6 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
-use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Unit_Testcase;
