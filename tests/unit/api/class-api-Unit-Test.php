@@ -17,6 +17,7 @@ class API_Unit_Test extends Unit_Testcase {
 
 	/**
 	 * @covers ::get_last_checked_is_url_private
+	 * @covers ::get_is_private_transient_name
 	 */
 	public function test_get_last_checked_is_url_private_happy_path(): void {
 

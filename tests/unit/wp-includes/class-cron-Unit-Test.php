@@ -15,6 +15,7 @@ class Cron_Unit_Test extends Unit_Testcase {
 
 	/**
 	 * @covers ::get_check_url_cron_hook_name
+	 * @covers ::__construct
 	 */
 	public function test_get_check_url_cron_hook_name(): void {
 
