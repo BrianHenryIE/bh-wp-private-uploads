@@ -188,7 +188,9 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 	 */
 	public function test_define_media_library_hooks(): void {
 
+		/** @phpstan-ignore-next-line method.notFound */
 		$this->is_admin->andReturnTrue();
+		/** @phpstan-ignore-next-line method.notFound */
 		$this->wp_doing_ajax->andReturnTrue();
 
 		\WP_Mock::expectActionAdded(

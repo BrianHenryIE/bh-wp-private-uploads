@@ -262,14 +262,12 @@ class API implements API_Interface {
 			if ( $transient_value instanceof Is_Private_Result ) {
 				return $transient_value;
 			}
-
-			$this->schedule_single_check_is_url_private();
 		} catch ( Throwable ) {
 			// If the `Is_Private_Result` class is modified, deserializing the transient value will fail.
 			delete_transient( $transient_name );
-
-			$this->schedule_single_check_is_url_private();
 		}
+
+		$this->schedule_single_check_is_url_private();
 
 		return null;
 	}
