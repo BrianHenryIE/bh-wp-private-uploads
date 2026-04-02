@@ -16,7 +16,7 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
 		status: 'publish',
 	});
 
-	console.log(JSON.stringify(pageData, null, 4));
+	// console.log(JSON.stringify(pageData, null, 4));
 	await admin.editPost(pageData.id);
 
   // The Private Uploads panel is in the sidebar (Editor settings), not in Meta Boxes
