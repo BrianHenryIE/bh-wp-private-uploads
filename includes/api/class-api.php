@@ -18,6 +18,7 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Throwable;
+use function BrianHenryIE\WP_Private_Uploads\str_hyphens_to_underscores;
 
 /**
  * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
@@ -255,9 +256,17 @@ class API implements API_Interface {
 			/**
 			 * Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
 			 *
+			 * `{plugin_slug}_private_uploads_check_url_{post_type}`.
+			 *
 			 * @see BH_WP_Private_Uploads_Hooks::define_cron_job_hooks()
 			 */
-			$cron_hook = 'private_uploads_check_url_' . $this->settings->get_post_type_name();
+			$cron_hook = str_hyphens_to_underscores(
+				sprintf(
+					'%s_private_uploads_check_url_%s',
+					$this->settings->get_plugin_slug(),
+					$this->settings->get_post_type_name()
+				)
+			);
 			if ( ! wp_get_scheduled_event( $cron_hook ) ) {
 				wp_schedule_single_event(
 					time(),
