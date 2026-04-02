@@ -30,8 +30,8 @@ use Mockery\Expectation;
  */
 class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 
-	protected CompositeExpectation&Expectation $is_admin;
-	protected CompositeExpectation&Expectation $wp_doing_ajax;
+	protected CompositeExpectation|Expectation $is_admin;
+	protected CompositeExpectation|Expectation $wp_doing_ajax;
 
 	protected function setUp(): void {
 		parent::setUp();
