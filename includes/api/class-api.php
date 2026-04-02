@@ -253,23 +253,6 @@ class API implements API_Interface {
 
 		$transient_name = $this->get_is_private_transient_name();
 
-		$schedule_check = function () {
-			/**
-			 * Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
-			 *
-			 * `{plugin_slug}_private_uploads_check_url_{post_type}`.
-			 *
-			 * @see BH_WP_Private_Uploads_Hooks::define_cron_job_hooks()
-			 */
-			$cron_hook = ( new Cron( $this, $this->settings, $this->logger ) )->get_check_url_cron_hook_name();
-			if ( ! wp_get_scheduled_event( $cron_hook ) ) {
-				wp_schedule_single_event(
-					time(),
-					$cron_hook
-				);
-			}
-		};
-
 		try {
 			/**
 			 * @var false|Is_Private_Result $transient_value
@@ -280,15 +263,33 @@ class API implements API_Interface {
 				return $transient_value;
 			}
 
-			$schedule_check();
+			$this->schedule_single_check_is_url_private();
 		} catch ( Throwable ) {
 			// If the `Is_Private_Result` class is modified, deserializing the transient value will fail.
 			delete_transient( $transient_name );
 
-			$schedule_check();
+			$this->schedule_single_check_is_url_private();
 		}
 
 		return null;
+	}
+
+	/**
+	 * Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
+	 *
+	 * `{plugin_slug}_private_uploads_check_url_{post_type}`.
+	 *
+	 * @see BH_WP_Private_Uploads_Hooks::define_cron_job_hooks()
+	 * @see Cron::check_is_url_public()
+	 */
+	protected function schedule_single_check_is_url_private(): void {
+		$cron_hook = ( new Cron( $this, $this->settings, $this->logger ) )->get_check_url_cron_hook_name();
+		if ( ! wp_get_scheduled_event( $cron_hook ) ) {
+			wp_schedule_single_event(
+				time(),
+				$cron_hook
+			);
+		}
 	}
 
 	/**
