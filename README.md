@@ -158,7 +158,7 @@ There's no need to use the singleton.
 ```php
 $private_uploads = new Private_Uploads( $private_uploads_settings, $logger );
 // Add the hooks:
-new BH_WP_Private_Uploads( $private_uploads, $private_uploads_settings, $logger );
+new BH_WP_Private_Uploads_Hooks( $private_uploads, $private_uploads_settings, $logger );
 ```
 
 #### Quick Test
@@ -192,6 +192,7 @@ Some amount of PHPUnit, WPCS, PhpStan done, but lots to do.
 * Detect the user's hosting provider
 * GDPR deletion
 * REST API file upload -> webhook.
+* When viewing an individual post edit screen, it should display information about auto-deleting
 
 #### Permissions: 
 

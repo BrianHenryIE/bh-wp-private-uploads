@@ -46,7 +46,6 @@
             ]
         },
         "classmap": [
-            "development-plugin/",
             "tests/",
             "tests/_support/"
         ]
@@ -57,7 +56,7 @@
             "url": "https://wpackagist.org"
         },
         "wordpress/wordpress": {
-            "url": "https://github.com/WordPress/wordpress-develop",
+            "url": "https://github.com/wordpress/wordpress-develop.git",
             "type": "git"
         },
         "wp-cli/handbook": {
@@ -157,7 +156,8 @@
         ],
         "sync-composer-wpenv": [
             "for name in $(cat .wp-env.json | jq '.mappings | values[]' | sed -r 's/^\\\"|\\\"$//g'); do [ ! -d $name ] && [ ! -f $name ] && echo $name && jq 'del(.. | select(. ==\"'$name'\"))' .wp-env.json | sponge .wp-env.json || true; done",
-            "find wp-content/plugins -type d -depth 1 ! -type l | sort -h | jq -Rn '[inputs]' | jq 'reduce .[] as $item ({}; . + {$item:$item})' | jq '.[] |= \"./\\(.)\"' | jq '. | {mappings: .}' | jq --sort-keys -s '.[] * $existing[]' --slurpfile existing .wp-env.json | sponge .wp-env.json"
+            "find wp-content/plugins -type d -depth 1 ! -type l | sort -h | jq -Rn '[inputs]' | jq 'reduce .[] as $item ({}; . + {$item:$item})' | jq '.[] |= \"./\\(.)\"' | jq '. | {mappings: .}' | jq --sort-keys -s '.[] * $existing[]' --slurpfile existing .wp-env.json | sponge .wp-env.json",
+            "INSTALLED_WORDPRESS_VERSION=$(cat composer.lock | jq --raw-output '.\"packages-dev\"[] | select(.name==\"johnpbloch/wordpress-core\") | .version'); cat .wp-env.json| jq '.core=\"WordPress/WordPress#'$INSTALLED_WORDPRESS_VERSION'\"' | sponge .wp-env.json"
         ],
         "generate-openapi": [
             "npx wp-env run cli /var/www/html/wp-content/plugins/development-plugin/vendor/bin/wp openapi-generator export-file development-plugin/v1 --destination=./openapi/development-plugin-openapi.json --extract-common-types;",

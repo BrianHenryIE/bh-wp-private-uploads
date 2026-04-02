@@ -33,14 +33,16 @@ if ( ! defined( 'WPINC' ) ) {
 	return;
 }
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once file_exists( __DIR__ . '/vendor/autoload.php' )
+	? __DIR__ . '/vendor/autoload.php'
+	: __DIR__ . '/../vendor/autoload.php';
 
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 Autoloader::generate(
-	'BrianHenryIE\\WP_Private_Uploads',
-	__DIR__ . '/../includes',
+	'BrianHenryIE\\WP_Private_Uploads_Development_Plugin',
+	__DIR__
 )->register();
 
 
@@ -105,8 +107,64 @@ add_filter(
 $filter_correct_local_path = function ( string $url, string $_path, string $_plugin ): string {
 
 	/** @phpstan-ignore-next-line phpstanWP.wpConstant.fetch */
-	$url = str_replace( WP_PLUGIN_URL . '/includes/admin', WP_PLUGIN_URL . '/', $url );
+	$url = str_replace( WP_PLUGIN_URL . '/development-plugin/includes/admin', WP_PLUGIN_URL . '/development-plugin', $url );
 
 	return $url;
 };
 add_filter( 'plugins_url', $filter_correct_local_path, 10, 3 );
+
+// TODO: filter user meta: `recovery_mode_email_last_sent`.
+
+
+/**
+ * Filter user meta `{blog_id}_persisted_preferences` to disable the first-use modals on the post/page edit screen.
+ *
+ * E.g. `{"meta":{"persisted_preferences":{"core":{"isComplementaryAreaVisible":true,"enableChoosePatternModal":false},"_modified":"2026-04-01T19:39:20.828Z","core/edit-post":{"welcomeGuide":false,"fullscreenMode":false}}}}`
+ *
+ * @see wp_default_packages_inline_scripts()
+ * @see wp_register_persisted_preferences_meta()
+ * @see get_metadata_raw()
+ *
+ * @see https://github.com/WordPress/gutenberg/pull/39795
+ *
+ * @hooked get_user_metadata
+ *
+ * @param mixed $value The value to return, either a single metadata value or an array
+ *                           of values depending on the value of `$single`. Default null.
+ * @param int $user_id ID of the object metadata is for.
+ * @param string $meta_key Metadata key.
+ * @param bool $single Whether to return only the first value of the specified `$meta_key`.
+ * @param string $meta_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
+ *                           'user', or any other object type with an associated meta table.
+ */
+$disable_first_use_popups = function ( mixed $value, int $user_id, string $meta_key, bool $single, string $meta_type = 'user' ): mixed {
+	if ( ! str_ends_with( $meta_key, 'persisted_preferences' ) ) {
+		return $value;
+	}
+
+	/**
+	 * E.g. an array with [wp_persisted_preferences][0] being `a:3:{s:4:"core";a:2:{s:26:"isComplementaryAreaVisible";b:1;s:24:"enableChoosePatternModal";b:0;}s:9:"_modified";s:24:"2026-04-01T19:39:20.828Z";s:14:"core/edit-post";a:2:{s:12:"welcomeGuide";b:0;s:14:"fullscreenMode";b:0;}}`.
+	 */
+	$user_meta_cache = wp_cache_get( $user_id, $meta_type . '_meta' );
+	if (
+		! $user_meta_cache
+		|| ! is_array( $user_meta_cache )
+		|| ! isset( $user_meta_cache[ $meta_key ] )
+		|| ! is_array( $user_meta_cache[ $meta_key ] )
+		|| ! isset( $user_meta_cache[ $meta_key ][0] )
+		|| ! is_string( $user_meta_cache[ $meta_key ][0] )
+	) {
+		return $value;
+	}
+
+	$raw_meta_value = $user_meta_cache[ $meta_key ][0];
+
+	/** @var array{core:array<string,bool>,"core/edit-post":array<string,bool>} $meta_value */
+	$meta_value = maybe_unserialize( $raw_meta_value );
+
+	$meta_value['core']['enableChoosePatternModal'] = false;
+	$meta_value['core/edit-post']['welcomeGuide']   = false;
+
+	return array( $meta_value );
+};
+add_filter( 'get_user_metadata', $disable_first_use_popups, 10, 5 );

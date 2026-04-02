@@ -2,6 +2,9 @@
 /**
  * Adds WP CLI commands for downloading files to the private uploads directory.
  *
+ * TODO: check is URL public
+ * TODO: unsnooze admin notice
+ *
  * @package brianhenryie/bh-wp-private-uploads
  */
 
