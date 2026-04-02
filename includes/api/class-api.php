@@ -287,7 +287,7 @@ class API implements API_Interface {
 
 			$schedule_check();
 		} catch ( Throwable ) {
-			// If the transient class is modified, deserializing the old value will fail.
+			// If the `Is_Private_Result` class is modified, deserializing the transient value will fail.
 			delete_transient( $transient_name );
 
 			$schedule_check();
