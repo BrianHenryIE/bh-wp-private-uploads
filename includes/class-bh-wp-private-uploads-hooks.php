@@ -158,8 +158,6 @@ class BH_WP_Private_Uploads_Hooks {
 
 		add_action( 'admin_init', array( $admin_assets, 'register_script' ), 1 );
 
-		$upload = new Upload( $this->settings, $media_request );
-
 		if ( ! $media_request->is_relevant_page() ) {
 			return;
 		}
@@ -170,6 +168,8 @@ class BH_WP_Private_Uploads_Hooks {
 			&& ! $media_request->referer_uri_has_post_type( $post_type ) ) {
 			return;
 		}
+
+		$upload = new Upload( $this->settings, $media_request );
 
 		add_action( 'current_screen', array( $upload, 'current_screen' ) );
 		add_filter( 'query', array( $upload, 'replace_post_type_in_query' ) );
