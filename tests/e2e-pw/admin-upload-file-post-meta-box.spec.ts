@@ -101,7 +101,7 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
   await expect(attachmentItem).toBeVisible({ timeout: 15000 });
 
   // Reload the page to verify persistence
-  await page.reload();
+  await page.reload({ waitUntil: 'networkidle' });
 
   // Wait for editor to load again - look for the page title in the header area
   await page.waitForSelector('.edit-post-header, .editor-header', { timeout: 15000 });
