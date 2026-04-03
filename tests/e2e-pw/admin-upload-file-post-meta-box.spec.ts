@@ -100,6 +100,9 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
   const attachmentItem = attachmentsList.locator('li').first();
   await expect(attachmentItem).toBeVisible({ timeout: 15000 });
 
+  // Trying to fix "Error: page.waitForSelector: Target page, context or browser has been closed" on WebKit on GitHub Actions.
+  await page.waitForTimeout(500);
+
   // Reload the page to verify persistence
   await page.reload({ waitUntil: 'networkidle' });
 
