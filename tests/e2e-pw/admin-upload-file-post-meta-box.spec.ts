@@ -106,6 +106,9 @@ test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
   // Reload the page to verify persistence
   await page.reload({ waitUntil: 'networkidle' });
 
+  // Trying to fix "Error: page.waitForSelector: Target page, context or browser has been closed" on WebKit on GitHub Actions.
+  await page.waitForTimeout(500);
+
   // Wait for editor to load again - look for the page title in the header area
   await page.waitForSelector('.edit-post-header, .editor-header', { timeout: 15000 });
 
