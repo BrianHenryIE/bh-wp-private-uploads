@@ -6,12 +6,14 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 import { loginAsAdmin } from './helpers/ui/login';
 
 
-test('upload file via post meta-box', async ({ page, admin, requestUtils }) => {
+test('upload file via post meta-box', async ({ context, page, admin, requestUtils }) => {
 
 	// "Error: page.waitForSelector: Target page, context or browser has been closed" on WebKit on GitHub Actions.
 	const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
+	const browser = context.browser().browserType().name();
+
 	test.skip(
-		isGitHubActions && process.env.BROWSER === 'webkit',
+		isGitHubActions && browser === 'webkit',
 		'Skipping test on WebKit in GitHub Actions'
 	);
 
