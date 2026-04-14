@@ -7544,16 +7544,16 @@
         },
         {
             "name": "symfony/polyfill-php80",
-            "version": "v1.33.0",
+            "version": "v1.34.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-php80.git",
-                "reference": "0cc9dd0f17f61d8131e7df6b84bd344899fe2608"
+                "reference": "dfb55726c3a76ea3b6459fcfda1ec2d80a682411"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/0cc9dd0f17f61d8131e7df6b84bd344899fe2608",
-                "reference": "0cc9dd0f17f61d8131e7df6b84bd344899fe2608",
+                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/dfb55726c3a76ea3b6459fcfda1ec2d80a682411",
+                "reference": "dfb55726c3a76ea3b6459fcfda1ec2d80a682411",
                 "shasum": ""
             },
             "require": {
@@ -7604,7 +7604,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-php80/tree/v1.33.0"
+                "source": "https://github.com/symfony/polyfill-php80/tree/v1.34.0"
             },
             "funding": [
                 {
@@ -7624,7 +7624,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-01-02T08:10:11+00:00"
+            "time": "2026-04-10T16:19:22+00:00"
         },
         {
             "name": "symfony/polyfill-php81",
@@ -9163,16 +9163,16 @@
         },
         {
             "name": "wp-cli/dist-archive-command",
-            "version": "v3.2.1",
+            "version": "v3.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/dist-archive-command.git",
-                "reference": "19b92d3d17234e352f05ea74bceee1726c61a5e8"
+                "reference": "d789557847ef2a84d0e707571ccbfcb6d0cd8793"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/dist-archive-command/zipball/19b92d3d17234e352f05ea74bceee1726c61a5e8",
-                "reference": "19b92d3d17234e352f05ea74bceee1726c61a5e8",
+                "url": "https://api.github.com/repos/wp-cli/dist-archive-command/zipball/d789557847ef2a84d0e707571ccbfcb6d0cd8793",
+                "reference": "d789557847ef2a84d0e707571ccbfcb6d0cd8793",
                 "shasum": ""
             },
             "require": {
@@ -9220,9 +9220,9 @@
             "homepage": "https://github.com/wp-cli/dist-archive-command/",
             "support": {
                 "issues": "https://github.com/wp-cli/dist-archive-command/issues",
-                "source": "https://github.com/wp-cli/dist-archive-command/tree/v3.2.1"
+                "source": "https://github.com/wp-cli/dist-archive-command/tree/v3.2.2"
             },
-            "time": "2026-03-16T15:14:58+00:00"
+            "time": "2026-03-30T13:48:40+00:00"
         },
         {
             "name": "wp-cli/embed-command",
@@ -10876,12 +10876,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/wp-cli.git",
-                "reference": "71de10fbf84c88cfe550f9f4c0664bad3f03796c"
+                "reference": "140b55835b893c2cf4244ef282cd2145cde372ac"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/71de10fbf84c88cfe550f9f4c0664bad3f03796c",
-                "reference": "71de10fbf84c88cfe550f9f4c0664bad3f03796c",
+                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/140b55835b893c2cf4244ef282cd2145cde372ac",
+                "reference": "140b55835b893c2cf4244ef282cd2145cde372ac",
                 "shasum": ""
             },
             "require": {
@@ -10952,7 +10952,7 @@
                 "issues": "https://github.com/wp-cli/wp-cli/issues",
                 "source": "https://github.com/wp-cli/wp-cli"
             },
-            "time": "2026-03-27T12:10:55+00:00"
+            "time": "2026-04-13T19:30:57+00:00"
         },
         {
             "name": "wp-cli/wp-cli-bundle",
@@ -11449,5 +11449,5 @@
     "platform-overrides": {
         "php": "8.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
