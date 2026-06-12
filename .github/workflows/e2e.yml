@@ -72,7 +72,7 @@ jobs:
           npx wp-env run tests-cli -- wp rewrite structure '/%year%/%monthnum%/%postname%/' --hard
 
       - name: Run Playwright tests
-        run: npx playwright test --reporter=github
+        run: npm run test:e2e -- --reporter=github
         env:
           CI: true
 
