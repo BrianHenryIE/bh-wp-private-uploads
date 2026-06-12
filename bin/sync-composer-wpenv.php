@@ -47,11 +47,11 @@ if ( is_dir( $pluginsDir ) ) {
 }
 
 // 3. Update WordPress core version from composer.lock.
-$composerLockFileontents = file_get_contents( $composerLockPath );
-if ( ! is_string( $composerLockFileontents ) ) {
+$composerLockFileContents = file_get_contents( $composerLockPath );
+if ( ! is_string( $composerLockFileContents ) ) {
 	throw new \RuntimeException( 'Failed to get contents of ' . $composerLockPath );
 }
-$composerLock = json_decode( $composerLockFileontents, true );
+$composerLock = json_decode( $composerLockFileContents, true );
 if ( $composerLock === null ) {
 	fwrite( STDERR, "Failed to parse {$composerLockPath}\n" );
 	exit( 1 );

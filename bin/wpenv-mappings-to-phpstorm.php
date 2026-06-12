@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 /**
  * Reads .wp-env.json mappings and updates .idea/workspace.xml with a PhpStorm
@@ -5,7 +6,7 @@
  *
  * Run from the project root or the bin/ directory.
  *
- * @package BrianHenryIE\WP_Mailboxes
+ * @package brianenryie/bh-wp-private-uploads
  */
 
 // TODO: How to map WP CLI?

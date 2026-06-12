@@ -280,10 +280,11 @@ class API implements API_Interface {
 				return $data;
 			};
 		add_filter( 'wp_insert_attachment_data', $set_post_type, 10, 1 );
-
-		$post_id = wp_insert_attachment( $args, $upload->file, $post_parent_id ?? 0, true );
-
-		remove_filter( 'wp_insert_attachment_data', $set_post_type );
+		try {
+			$post_id = wp_insert_attachment( $args, $upload->file, $post_parent_id ?? 0, true );
+		} finally {
+			remove_filter( 'wp_insert_attachment_data', $set_post_type );
+		}
 
 		if ( is_wp_error( $post_id ) ) {
 			throw new Private_Uploads_Exception(
