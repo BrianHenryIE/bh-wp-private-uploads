@@ -242,4 +242,75 @@ class API_Unit_Test extends Unit_Testcase {
 			filename: 'sample.pdf',
 		);
 	}
+
+	/**
+	 * The `upload_dir` filter should add the private subdirectory to `basedir`/`baseurl` and
+	 * rebuild `path`/`url` from them, preserving the yyyy/mm `subdir`.
+	 *
+	 * @covers ::set_private_uploads_path
+	 */
+	public function test_set_private_uploads_path(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => 'the-private-directory',
+			)
+		);
+
+		$sut = new API( $settings, $this->logger );
+
+		$upload_dir_data = array(
+			'path'    => '/var/www/wp-content/uploads/2026/06',
+			'url'     => 'https://example.org/wp-content/uploads/2026/06',
+			'subdir'  => '/2026/06',
+			'basedir' => '/var/www/wp-content/uploads',
+			'baseurl' => 'https://example.org/wp-content/uploads',
+			'error'   => false,
+		);
+
+		$result = $sut->set_private_uploads_path( $upload_dir_data );
+
+		$this->assertSame( '/var/www/wp-content/uploads/the-private-directory', $result['basedir'] );
+		$this->assertSame( 'https://example.org/wp-content/uploads/the-private-directory', $result['baseurl'] );
+		$this->assertSame( '/var/www/wp-content/uploads/the-private-directory/2026/06', $result['path'] );
+		$this->assertSame( 'https://example.org/wp-content/uploads/the-private-directory/2026/06', $result['url'] );
+
+		// Unrelated keys should be unchanged.
+		$this->assertSame( '/2026/06', $result['subdir'] );
+		$this->assertFalse( $result['error'] );
+	}
+
+	/**
+	 * When "uploads use year/month folders" is off, `subdir` is an empty string —
+	 * `path`/`url` should then equal `basedir`/`baseurl`.
+	 *
+	 * @covers ::set_private_uploads_path
+	 */
+	public function test_set_private_uploads_path_empty_subdir(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => 'the-private-directory',
+			)
+		);
+
+		$sut = new API( $settings, $this->logger );
+
+		$upload_dir_data = array(
+			'path'    => '/var/www/wp-content/uploads',
+			'url'     => 'https://example.org/wp-content/uploads',
+			'subdir'  => '',
+			'basedir' => '/var/www/wp-content/uploads',
+			'baseurl' => 'https://example.org/wp-content/uploads',
+			'error'   => false,
+		);
+
+		$result = $sut->set_private_uploads_path( $upload_dir_data );
+
+		$this->assertSame( '/var/www/wp-content/uploads/the-private-directory', $result['basedir'] );
+		$this->assertSame( '/var/www/wp-content/uploads/the-private-directory', $result['path'] );
+		$this->assertSame( 'https://example.org/wp-content/uploads/the-private-directory', $result['url'] );
+	}
 }
