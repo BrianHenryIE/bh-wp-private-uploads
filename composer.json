@@ -84,7 +84,7 @@
         "lucatume/wp-browser": "^4",
         "phpstan/extension-installer": "*",
         "phpunit/phpcov": "*",
-        "rector/rector": "^2.3",
+        "rector/rector": "^2.4",
         "squizlabs/php_codesniffer": "*",
         "szepeviktor/phpstan-wordpress": "*",
         "wordpress/wordpress": "*",
