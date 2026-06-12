@@ -34,9 +34,6 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install sponge
-        run: sudo apt-get install moreutils
-
       # The development plugin needs the PHP dev dependencies.
       - name: Install PHP dependencies
         run: composer install
@@ -45,7 +42,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: yarn playwright install --with-deps
+        run: npx playwright install --with-deps
 
       - name: Start wp-env
         run: npm run wp-env

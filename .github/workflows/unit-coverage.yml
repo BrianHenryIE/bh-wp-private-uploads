@@ -1,4 +1,6 @@
 name: Code Coverage Report Comment
+# Coverage is measured over the unit + wpunit suites only.
+# The threshold below is a ratchet: it must not decrease. Raise it as tests are added.
 
 on:
   pull_request:
@@ -13,6 +15,7 @@ concurrency:
 
 env:
   COVERAGE_PHP_VERSION: '8.0'
+  MINIMUM_COVERAGE_PERCENTAGE: '33'
 
 jobs:
   php-tests:
@@ -38,7 +41,7 @@ jobs:
         php: [ '8.0', '8.1', '8.2', '8.3' ,'8.4' ]
 
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v4.3.1
+      - uses: actions/checkout@v6
         with:
           # Value already defaults to true, but `persist-credentials` is required to push new commits to the repository.
           persist-credentials: true
@@ -46,13 +49,13 @@ jobs:
 
       - name: Checkout GitHub Pages branch for code coverage report
         if: ${{ matrix.php == env.COVERAGE_PHP_VERSION }}
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v4.3.1
+        uses: actions/checkout@v6
         with:
           ref: gh-pages
           path: gh-pages
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@2.37.2
         with:
           php-version: ${{ matrix.php }}
           coverage: ${{ matrix.php == env.COVERAGE_PHP_VERSION && 'xdebug' || 'none' }}
@@ -67,9 +70,6 @@ jobs:
         uses: c-py/action-dotenv-to-setenv@v5
         with:
           env-file: .env.testing
-
-      - name: Install sponge
-        run: sudo apt-get install moreutils
 
       # TODO: merge master into this branch and run tests against what master will become, not just the isolated branch.
       # NB: how would that affect tj-actions/changed-files?
@@ -121,8 +121,9 @@ jobs:
         uses: johanvanhelden/gha-clover-test-coverage-check@2543c79a701f179bd63aa14c16c6938c509b2cec # v1
         id: coverage-percentage
         with:
-          percentage: 25
-          exit: false
+          percentage: ${{ env.MINIMUM_COVERAGE_PERCENTAGE }}
+          exit: true
+          metric: statements
           filename: tests/_output/clover.xml
           rounded-precision: "0"
 

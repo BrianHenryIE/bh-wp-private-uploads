@@ -32,14 +32,11 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@2.37.2
         with:
           php-version: ${{ matrix.php }}
           tools: composer, cs2pr
           extensions: zip
-
-      - name: Install sponge
-        run: sudo apt-get install moreutils
 
       - name: Run composer install
         run: composer install
@@ -56,7 +53,53 @@ jobs:
 
       - name: Run PHPCS to add annotations to the code
         continue-on-error: true
-        run: vendor/bin/phpcs -q --report=checkstyle | cs2pr
+        run: |
+          vendor/bin/phpcs -q --report=checkstyle > phpcs-checkstyle.xml
+          cat phpcs-checkstyle.xml
+          cat phpcs-checkstyle.xml | cs2pr
 
-      - name: Fail if there are still phpcs errors in the production code
-        run: vendor/bin/phpcs includes
+      - name: Fail if there are still phpcs errors in the production code (master/main)
+        if: ${{ github.event_name != 'pull_request' }}
+        run: vendor/bin/phpcs includes -v
+
+      - name: Get the PR diff
+        id: pr_diff
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          FILENAME="${{ env.TARGET_BRANCH_REF_NAME }}-${{ github.event.pull_request.head.sha }}.diff"
+          git fetch origin ${{ env.TARGET_BRANCH_REF_NAME }}:refs/remotes/origin/${{ env.TARGET_BRANCH_REF_NAME }}
+          git diff origin/${{ env.TARGET_BRANCH_REF_NAME }} > tmp.diff
+          mv tmp.diff $FILENAME
+          echo "diff_filename=$FILENAME" >> $GITHUB_OUTPUT
+        env:
+          TARGET_BRANCH_REF_NAME: ${{ github.event.pull_request.base.ref }}
+
+      - name: Filter to only phpcs errors in the modified files (pr)
+        continue-on-error: true # @see https://github.com/kamazee/pr-filter/issues/13
+        if: ${{ github.event_name == 'pull_request' }}
+        run: vendor/bin/prf filter-checkstyle ${{ env.DIFF_FILENAME }} ${{ env.CHECKSTYLE_FILENAME }} filtered-checkstyle.xml --base-path=$(pwd)
+        env:
+          DIFF_FILENAME: ${{ steps.pr_diff.outputs.diff_filename }}
+          CHECKSTYLE_FILENAME: "phpcs-checkstyle.xml"
+
+      - name: Fail on error in modified files (pr)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: cat filtered-checkstyle.xml | cs2pr
+
+      # On PRs, print out the xml for debug.
+      - name: Debug log filtered-checkstyle.xml
+        if: ${{ failure() && github.event_name == 'pull_request' }}
+        run: cat ${{ env.CHECKSTYLE_FILENAME }}
+        env:
+          CHECKSTYLE_FILENAME: "filtered-checkstyle.xml"
+
+      - name: Upload run artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: phpcbf-artifacts-${{ github.run_id }}
+          path: |
+            phpcs-checkstyle.xml
+            filtered-checkstyle.xml
+            *.diff
+          if-no-files-found: ignore
