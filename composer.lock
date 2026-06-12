@@ -457,16 +457,16 @@
         },
         {
             "name": "brianhenryie/color-logger",
-            "version": "3.0.0",
+            "version": "3.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BrianHenryIE/bh-color-logger.git",
-                "reference": "564764dad7b82ed28f06fe4c8a3c595cb90209b5"
+                "reference": "5c7dbd4b2a658dfb102bb7ced04db3fbd197165f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BrianHenryIE/bh-color-logger/zipball/564764dad7b82ed28f06fe4c8a3c595cb90209b5",
-                "reference": "564764dad7b82ed28f06fe4c8a3c595cb90209b5",
+                "url": "https://api.github.com/repos/BrianHenryIE/bh-color-logger/zipball/5c7dbd4b2a658dfb102bb7ced04db3fbd197165f",
+                "reference": "5c7dbd4b2a658dfb102bb7ced04db3fbd197165f",
                 "shasum": ""
             },
             "require": {
@@ -496,9 +496,9 @@
             "description": "A PSR logger that prints to the console in colour. For tests.",
             "support": {
                 "issues": "https://github.com/BrianHenryIE/bh-color-logger/issues",
-                "source": "https://github.com/BrianHenryIE/bh-color-logger/tree/3.0.0"
+                "source": "https://github.com/BrianHenryIE/bh-color-logger/tree/3.0.1"
             },
-            "time": "2025-11-30T01:05:14+00:00"
+            "time": "2026-06-11T17:38:19+00:00"
         },
         {
             "name": "brianhenryie/php-codecoverage-markdown",
