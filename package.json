@@ -45,7 +45,7 @@
     "@wordpress/env": "^11.3.0",
     "@wordpress/scripts": "^31.8.0",
     "dotenv": "^17.4",
-    "lint-staged": "^16.2.7",
+    "lint-staged": "^17.0.7",
     "tsx": "^4.22.4"
   },
   "dependencies": {
