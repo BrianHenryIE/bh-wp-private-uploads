@@ -115,7 +115,7 @@ class CLI {
 
 		$post_author_id = null;
 		if ( isset( $assoc_args['post_author'] ) ) {
-			if ( ! is_numeric( $assoc_args['post_author'] ) ) {
+			if ( ! is_string( $assoc_args['post_author'] ) || ! ctype_digit( $assoc_args['post_author'] ) ) {
 				WP_CLI::error( 'Invalid --post_author; expected a numeric user id.' );
 			}
 			$post_author_id = (int) $assoc_args['post_author'];
@@ -123,7 +123,7 @@ class CLI {
 
 		$post_parent_id = null;
 		if ( isset( $assoc_args['post_parent'] ) ) {
-			if ( ! is_numeric( $assoc_args['post_parent'] ) ) {
+			if ( ! is_string( $assoc_args['post_parent'] ) || ! ctype_digit( $assoc_args['post_parent'] ) ) {
 				WP_CLI::error( 'Invalid --post_parent; expected a numeric post id.' );
 			}
 			$post_parent_id = (int) $assoc_args['post_parent'];
@@ -144,7 +144,7 @@ class CLI {
 
 		// Don't print progress if the user wants a machine-readable format.
 		if ( 'table' === $format ) {
-			WP_CLI::log( 'Beginning download of  ' . $filtered_url );
+			WP_CLI::log( 'Beginning download of ' . $filtered_url );
 		}
 
 		try {

@@ -15,7 +15,7 @@ concurrency:
 
 env:
   COVERAGE_PHP_VERSION: '8.0'
-  MINIMUM_COVERAGE_PERCENTAGE: '33'
+  MINIMUM_COVERAGE_PERCENTAGE: '40'
 
 jobs:
   php-tests:

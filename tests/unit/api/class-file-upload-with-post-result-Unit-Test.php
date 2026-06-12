@@ -2,13 +2,7 @@
 
 namespace BrianHenryIE\WP_Private_Uploads\API;
 
-use BrianHenryIE\WP_Private_Uploads\API\Media_Request;
-use BrianHenryIE\WP_Private_Uploads\API_Interface;
-use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Unit_Testcase;
-use Codeception\Stub\Expected;
-use DateTimeImmutable;
-use WP_Mock;
 
 /**
  * @coversDefaultClass \BrianHenryIE\WP_Private_Uploads\API\File_Upload_With_Post_Result

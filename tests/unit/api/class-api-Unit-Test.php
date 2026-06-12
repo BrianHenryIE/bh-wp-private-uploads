@@ -313,4 +313,143 @@ class API_Unit_Test extends Unit_Testcase {
 		$this->assertSame( '/var/www/wp-content/uploads/the-private-directory', $result['path'] );
 		$this->assertSame( 'https://example.org/wp-content/uploads/the-private-directory', $result['url'] );
 	}
+
+	/**
+	 * Point the `WP_CONTENT_DIR` constant at a test-controlled directory.
+	 *
+	 * `constant` is in patchwork.json's redefinable-internals (and is why the production code uses
+	 * `constant( 'WP_CONTENT_DIR' )` rather than the bare constant). Restored by tearDown's
+	 * `\Patchwork\restoreAll()`.
+	 *
+	 * @param string $wp_content_dir The directory to use as WP_CONTENT_DIR.
+	 */
+	protected function redefine_wp_content_dir( string $wp_content_dir ): void {
+		\Patchwork\redefine(
+			'constant',
+			function ( string $name ) use ( $wp_content_dir ) {
+				return 'WP_CONTENT_DIR' === $name ? $wp_content_dir : \Patchwork\relay();
+			}
+		);
+	}
+
+	/**
+	 * When the directory already exists, it should not be created again (`wp_mkdir_p()` is not
+	 * mocked, so calling it would be a fatal undefined-function error).
+	 *
+	 * @covers ::create_directory
+	 */
+	public function test_create_directory_already_exists(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => 'the-private-directory',
+			)
+		);
+
+		$sut = new API( $settings, $this->logger );
+
+		$wp_content_dir = sys_get_temp_dir() . '/' . uniqid( 'wp-content' );
+		$expected_dir   = $wp_content_dir . '/uploads/the-private-directory';
+
+		mkdir( $expected_dir, 0777, true );
+		$this->redefine_wp_content_dir( $wp_content_dir );
+
+		$result = $sut->create_directory();
+
+		$this->assertSame( $expected_dir, $result->dir );
+		$this->assertFalse( $result->created );
+		$this->assertSame( 'Already exists', $result->message );
+
+		rmdir( $expected_dir );
+	}
+
+	/**
+	 * @covers ::create_directory
+	 */
+	public function test_create_directory_creates(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => 'the-private-directory',
+			)
+		);
+
+		$sut = new API( $settings, $this->logger );
+
+		// Never created on disk, so the `file_exists()` check is false.
+		$wp_content_dir = sys_get_temp_dir() . '/' . uniqid( 'wp-content' );
+		$expected_dir   = $wp_content_dir . '/uploads/the-private-directory';
+
+		$this->redefine_wp_content_dir( $wp_content_dir );
+
+		WP_Mock::userFunction( 'wp_mkdir_p' )
+				->once()
+				->with( $expected_dir )
+				->andReturnTrue();
+
+		$result = $sut->create_directory();
+
+		$this->assertSame( $expected_dir, $result->dir );
+		$this->assertTrue( $result->created );
+		$this->assertSame( 'Created', $result->message );
+	}
+
+	/**
+	 * When `wp_mkdir_p()` fails, an exception should be thrown and an error logged.
+	 *
+	 * @covers ::create_directory
+	 */
+	public function test_create_directory_failure_logs_and_throws(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => 'the-private-directory',
+			)
+		);
+
+		$sut = new API( $settings, $this->logger );
+
+		$wp_content_dir = sys_get_temp_dir() . '/' . uniqid( 'wp-content' );
+
+		$this->redefine_wp_content_dir( $wp_content_dir );
+
+		WP_Mock::userFunction( 'wp_mkdir_p' )
+				->once()
+				->andReturnFalse();
+
+		try {
+			$sut->create_directory();
+			$this->fail( 'Expected Private_Uploads_Exception' );
+		} catch ( Private_Uploads_Exception $exception ) {
+			$this->assertStringContainsString( 'Failed to create directory', $exception->getMessage() );
+		}
+
+		$this->assertTrue( $this->logger->hasErrorRecords() );
+	}
+
+	/**
+	 * When the download step fails, the exception should propagate and no post should be created.
+	 * (`wp_insert_attachment()` is not mocked, so reaching post-creation would be a fatal
+	 * undefined-function error.)
+	 *
+	 * @covers ::download_remote_file_to_private_uploads_and_create_post
+	 */
+	public function test_download_remote_and_create_post_download_failure_creates_no_post(): void {
+
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+
+		$sut = new API( $settings, $this->logger );
+
+		WP_Mock::userFunction( 'current_user_can' )
+				->once()
+				->with( 'upload_files' )
+				->andReturnFalse();
+
+		$this->expectException( Private_Uploads_Exception::class );
+
+		$sut->download_remote_file_to_private_uploads_and_create_post( file_url: 'https://example.org/file.pdf' );
+	}
 }

@@ -6,7 +6,7 @@
  *
  * Run from the project root or the bin/ directory.
  *
- * @package brianenryie/bh-wp-private-uploads
+ * @package brianhenryie/bh-wp-private-uploads
  */
 
 // TODO: How to map WP CLI?

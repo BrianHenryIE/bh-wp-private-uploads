@@ -93,3 +93,11 @@ Feature: Download files to private uploads directory via WP-CLI
       """
       Invalid --post_author
       """
+
+  Scenario: Download with invalid post_parent
+    When I try `wp my_plugin private_media download https://www.brianhenry.ie/resume/ --post_parent=not-a-number --user=admin`
+    Then the return code should not be 0
+    And STDERR should contain:
+      """
+      Invalid --post_parent
+      """

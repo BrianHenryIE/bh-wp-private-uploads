@@ -262,6 +262,7 @@ class API implements API_Interface {
 			'post_content'   => '',
 			'post_excerpt'   => '',
 			'post_author'    => $post_author_id ?? 0,
+			'post_status'    => 'inherit', // What core forces for `attachment`, which our filtered post type would otherwise rely on.
 		);
 
 		if ( ! is_null( $post_parent_id ) ) {
@@ -269,17 +270,21 @@ class API implements API_Interface {
 		}
 
 		// `wp_insert_attachment()` hardcodes the post type to `attachment`, so filter it to our custom post type.
+		// The guid match scopes the swap to this exact insert, in case hooks inside `wp_insert_post()` insert further attachments.
 		$post_type     = $this->settings->get_post_type_name();
 		$set_post_type =
 			/**
 			 * @param array<string,mixed> $data An array of slashed, sanitized, and processed attachment post data.
+			 * @param array<string,mixed> $postarr An array of slashed and sanitized attachment post data, but not processed.
 			 * @return array<string,mixed>
 			 */
-			function ( array $data ) use ( $post_type ): array {
-				$data['post_type'] = $post_type;
+			function ( array $data, array $postarr ) use ( $post_type, $upload ): array {
+				if ( ( $postarr['guid'] ?? '' ) === $upload->url ) {
+					$data['post_type'] = $post_type;
+				}
 				return $data;
 			};
-		add_filter( 'wp_insert_attachment_data', $set_post_type, 10, 1 );
+		add_filter( 'wp_insert_attachment_data', $set_post_type, 10, 2 );
 		try {
 			$post_id = wp_insert_attachment( $args, $upload->file, $post_parent_id ?? 0, true );
 		} finally {
