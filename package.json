@@ -23,7 +23,7 @@
     "lint:pkg-json": "wp-scripts lint-pkg-json",
     "packages-update": "wp-scripts packages-update",
     "plugin-zip": "wp-scripts plugin-zip",
-    "test:e2e": "wp-scripts test-e2e",
+    "test:e2e": "tsx node_modules/.bin/playwright test",
     "test:unit": "wp-scripts test-unit-js",
     "lint:staged": "lint-staged"
   },
@@ -45,7 +45,8 @@
     "@wordpress/env": "^11.3.0",
     "@wordpress/scripts": "^31.8.0",
     "dotenv": "^17.4",
-    "lint-staged": "^16.2.7"
+    "lint-staged": "^16.2.7",
+    "tsx": "^4.22.4"
   },
   "dependencies": {
     "@wordpress/components": "^32.1.0"

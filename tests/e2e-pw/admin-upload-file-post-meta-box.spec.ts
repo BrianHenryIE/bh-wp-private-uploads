@@ -17,12 +17,6 @@ test('upload file via post meta-box', async ({ context, page, admin, requestUtil
 		'Skipping test on WebKit in GitHub Actions'
 	);
 
-	// TODO: This _was_ working, right?!
-	test.skip(
-		!isGitHubActions && browser === 'chromium',
-		'Skipping test on WebKit in GitHub Actions'
-	);
-
 	await loginAsAdmin( page );
 
 	const pageData = await requestUtils.createPage({
@@ -114,8 +108,10 @@ test('upload file via post meta-box', async ({ context, page, admin, requestUtil
   const attachmentItem = attachmentsList.locator('li').first();
   await expect(attachmentItem).toBeVisible({ timeout: 15000 });
 
-  // Reload the page to verify persistence
-  await page.reload({ waitUntil: 'networkidle' });
+  // Reload the page to verify persistence.
+  // NB: not `waitUntil: 'networkidle'` — the editor's background requests (heartbeat etc.)
+  // mean the network may never go quiet; the selector wait below is the readiness signal.
+  await page.reload();
 
   // Wait for editor to load again - look for the page title in the header area
   await page.waitForSelector('.edit-post-header, .editor-header', { timeout: 15000 });

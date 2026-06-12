@@ -174,6 +174,140 @@ class API implements API_Interface {
 	}
 
 	/**
+	 * Downloads a file, saves it in private uploads, and creates a post of the configured custom
+	 * post type to record it, assigning an owner (post_author).
+	 *
+	 * @param string             $file_url Remote URL to download file from.
+	 * @param ?string            $filename Destination filename.
+	 * @param ?int               $post_author_id User id to assign as owner. Default: none (`post_author` = `0`).
+	 * @param ?int               $post_parent_id Post id to attach the file's post to, e.g. a WooCommerce order id.
+	 * @param ?DateTimeInterface $datetime Destination uploads subdir date. Does not affect the post's date.
+	 *
+	 * @throws Private_Uploads_Exception On permissions failure|WordPress download_url() failure|post creation failure.
+	 */
+	public function download_remote_file_to_private_uploads_and_create_post(
+		string $file_url,
+		?string $filename = null,
+		?int $post_author_id = null,
+		?int $post_parent_id = null,
+		?DateTimeInterface $datetime = null
+	): File_Upload_With_Post_Result {
+
+		$result = $this->download_remote_file_to_private_uploads( $file_url, $filename, $datetime );
+
+		$post_id = $this->create_post_for_file( $result, $post_author_id, $post_parent_id );
+
+		return new File_Upload_With_Post_Result(
+			file: $result->file,
+			url: $result->url,
+			type: $result->type,
+			post_id: $post_id,
+		);
+	}
+
+	/**
+	 * Moves a local file to private uploads and creates a post of the configured custom post type
+	 * to record it, assigning an owner (post_author).
+	 *
+	 * @param string             $tmp_file The full filepath of the existing file to move.
+	 * @param string             $filename The preferred name of the destination file (will be appended with -1, -2 etc. as needed).
+	 * @param ?int               $post_author_id User id to assign as owner. Default: none (`post_author` = `0`).
+	 * @param ?int               $post_parent_id Post id to attach the file's post to, e.g. a WooCommerce order id.
+	 * @param ?DateTimeInterface $datetime A DateTime for which folder the file should be put in, i.e. 2022/22 etc. Does not affect the post's date.
+	 * @param ?int               $filesize The size in bytes. Calculated automatically.
+	 *
+	 * @throws Private_Uploads_Exception On permissions failure|file exists failure|post creation failure.
+	 */
+	public function move_file_to_private_uploads_and_create_post(
+		string $tmp_file,
+		string $filename,
+		?int $post_author_id = null,
+		?int $post_parent_id = null,
+		?DateTimeInterface $datetime = null,
+		?int $filesize = null
+	): File_Upload_With_Post_Result {
+
+		$result = $this->move_file_to_private_uploads( $tmp_file, $filename, $datetime, $filesize );
+
+		$post_id = $this->create_post_for_file( $result, $post_author_id, $post_parent_id );
+
+		return new File_Upload_With_Post_Result(
+			file: $result->file,
+			url: $result->url,
+			type: $result->type,
+			post_id: $post_id,
+		);
+	}
+
+	/**
+	 * Create a post of the configured custom post type recording a file already in private uploads.
+	 *
+	 * Follows the same steps as {@see media_handle_upload()} after {@see wp_handle_upload()}, with the
+	 * post type swapped from `attachment` to the configured custom post type, as is done for web UI
+	 * uploads in {@see \BrianHenryIE\WP_Private_Uploads\WP_Includes\Media::set_post_type_on_insert_attachment()}.
+	 *
+	 * @param File_Upload_Result $upload The already-moved file's path, URL and MIME type.
+	 * @param ?int               $post_author_id User id to assign as owner. Default: none (`post_author` = `0`).
+	 * @param ?int               $post_parent_id Post id to attach the file's post to.
+	 *
+	 * @return int The new post's id.
+	 * @throws Private_Uploads_Exception When wp_insert_attachment() fails.
+	 */
+	protected function create_post_for_file( File_Upload_Result $upload, ?int $post_author_id = null, ?int $post_parent_id = null ): int {
+
+		$args = array(
+			'post_mime_type' => $upload->type,
+			'guid'           => $upload->url,
+			'post_title'     => sanitize_text_field( wp_basename( $upload->file, '.' . pathinfo( $upload->file, PATHINFO_EXTENSION ) ) ),
+			'post_content'   => '',
+			'post_excerpt'   => '',
+			'post_author'    => $post_author_id ?? 0,
+			'post_status'    => 'inherit', // What core forces for `attachment`, which our filtered post type would otherwise rely on.
+		);
+
+		if ( ! is_null( $post_parent_id ) ) {
+			$args['post_parent'] = $post_parent_id;
+		}
+
+		// `wp_insert_attachment()` hardcodes the post type to `attachment`, so filter it to our custom post type.
+		// The guid match scopes the swap to this exact insert, in case hooks inside `wp_insert_post()` insert further attachments.
+		$post_type     = $this->settings->get_post_type_name();
+		$set_post_type =
+			/**
+			 * @param array<string,mixed> $data An array of slashed, sanitized, and processed attachment post data.
+			 * @param array<string,mixed> $postarr An array of slashed and sanitized attachment post data, but not processed.
+			 * @return array<string,mixed>
+			 */
+			function ( array $data, array $postarr ) use ( $post_type, $upload ): array {
+				if ( ( $postarr['guid'] ?? '' ) === $upload->url ) {
+					$data['post_type'] = $post_type;
+				}
+				return $data;
+			};
+		add_filter( 'wp_insert_attachment_data', $set_post_type, 10, 2 );
+		try {
+			$post_id = wp_insert_attachment( $args, $upload->file, $post_parent_id ?? 0, true );
+		} finally {
+			remove_filter( 'wp_insert_attachment_data', $set_post_type );
+		}
+
+		if ( is_wp_error( $post_id ) ) {
+			throw new Private_Uploads_Exception(
+				message: 'Failed to create post for private upload: ' . $post_id->get_error_message(),
+				wp_error: $post_id,
+			);
+		}
+
+		// Core pattern, see WP_REST_Attachments_Controller::create_item().
+		require_once constant( 'ABSPATH' ) . 'wp-admin/includes/media.php';
+		require_once constant( 'ABSPATH' ) . 'wp-admin/includes/image.php';
+
+		wp_update_attachment_metadata( $post_id, wp_generate_attachment_metadata( $post_id, $upload->file ) );
+
+		return $post_id;
+	}
+
+	/**
 	 * Filters the uploads directory data to add the uploads/{private-dir} subdirectory path.
 	 *
 	 * @see wp_upload_dir()

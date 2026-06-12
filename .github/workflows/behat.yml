@@ -1,0 +1,46 @@
+name: Behat
+
+# Runs WP-CLI Behat feature tests.
+#
+# WP_CLI_TEST_DBTYPE=sqlite vendor/bin/behat
+#
+# Uses SQLite, so no MySQL service is needed.
+#
+# @author BrianHenryIE
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  behat:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: [ '8.1' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@2.37.2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+          extensions: zip, sqlite3
+
+      - name: Install PHP dependencies
+        run: composer install --verbose
+
+      - name: Run Behat tests
+        run: composer behat
