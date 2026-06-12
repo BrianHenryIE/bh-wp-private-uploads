@@ -75,6 +75,26 @@ if ( $result->is_success() ) {
 }
 ```
 
+The `..._and_create_post` variants additionally create a post of the registered custom post type recording the file – so it appears in the private media library UI – and assign it an owner (`post_author`) and optionally a parent post:
+
+```php
+// Move the file and record it with a post owned by the user, attached to e.g. a WooCommerce order.
+$result = $private_uploads->move_file_to_private_uploads_and_create_post(
+    tmp_file: '/local/path/to/doc.pdf',
+    filename: 'target-filename.pdf',
+    post_author_id: $user_id, // Omit for no owner (`post_author` = `0`).
+    post_parent_id: $order_id,
+);
+$post_id = $result->post_id;
+
+// Download a remote file and record it with a post.
+$result = $private_uploads->download_remote_file_to_private_uploads_and_create_post(
+    file_url: 'https://example.org/doc.pdf',
+    filename: 'target-filename.pdf',
+    post_author_id: $user_id,
+);
+```
+
 By default, administrators can access the files via their URL. This can be widened to more users with the filter:
 
 ```php

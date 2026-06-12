@@ -158,4 +158,88 @@ class API_Unit_Test extends Unit_Testcase {
 
 		$this->assertNull( $result );
 	}
+
+	/**
+	 * When `wp_insert_attachment()` fails, the `WP_Error` should be wrapped in a `Private_Uploads_Exception`.
+	 *
+	 * @covers ::move_file_to_private_uploads_and_create_post
+	 * @covers ::create_post_for_file
+	 */
+	public function test_create_post_for_file_throws_on_wp_error(): void {
+
+		require_once codecept_root_dir( 'vendor/wordpress/wordpress/src/wp-includes/class-wp-error.php' );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => 'the-uploads-subdirectory',
+				'get_post_type_name'            => 'the_post_type_name',
+			)
+		);
+		$logger   = $this->logger;
+
+		$sut = new API( $settings, $logger );
+
+		$tmp_file = tempnam( sys_get_temp_dir(), 'private-uploads-test-' );
+		assert( false !== $tmp_file );
+		file_put_contents( $tmp_file, 'file contents' );
+
+		WP_Mock::userFunction( 'current_user_can' )
+				->once()
+				->with( 'upload_files' )
+				->andReturnTrue();
+
+		WP_Mock::userFunction( 'sanitize_file_name' )
+				->once()
+				->with( 'sample.pdf' )
+				->andReturn( 'sample.pdf' );
+
+		WP_Mock::userFunction( 'wp_check_filetype' )
+				->once()
+				->andReturn(
+					array(
+						'ext'  => 'pdf',
+						'type' => 'application/pdf',
+					)
+				);
+
+		WP_Mock::userFunction( 'wp_handle_upload' )
+				->once()
+				->andReturn(
+					array(
+						'file' => '/path/to/uploads/the-uploads-subdirectory/2026/06/sample.pdf',
+						'url'  => 'https://example.org/wp-content/uploads/the-uploads-subdirectory/2026/06/sample.pdf',
+						'type' => 'application/pdf',
+					)
+				);
+
+		WP_Mock::userFunction( 'remove_filter' )
+				->twice()
+				->andReturnTrue();
+
+		WP_Mock::userFunction( 'wp_basename' )
+				->once()
+				->andReturn( 'sample' );
+
+		WP_Mock::userFunction( 'sanitize_text_field' )
+				->once()
+				->with( 'sample' )
+				->andReturn( 'sample' );
+
+		WP_Mock::userFunction( 'wp_insert_attachment' )
+				->once()
+				->andReturn( new \WP_Error() );
+
+		WP_Mock::userFunction( 'is_wp_error' )
+				->once()
+				->andReturnTrue();
+
+		$this->expectException( Private_Uploads_Exception::class );
+		$this->expectExceptionMessageMatches( '/^Failed to create post for private upload/' );
+
+		$sut->move_file_to_private_uploads_and_create_post(
+			tmp_file: $tmp_file,
+			filename: 'sample.pdf',
+		);
+	}
 }
