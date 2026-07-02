@@ -39,7 +39,8 @@ class Admin_Assets {
 
 		$version = '1.0.0';
 
-		$js_url = plugins_url( '/assets/bh-wp-private-uploads-admin.js', __FILE__ );
+		// TODO: Check that this `/../..` is correct when used in a packaged plugin.
+		$js_url = plugins_url( '/../../assets/bh-wp-private-uploads-admin.js', __FILE__ );
 
 		wp_register_script(
 			$handle,

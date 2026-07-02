@@ -23,15 +23,10 @@ build_plugin_unix() {
   # First the script that is common to both environments:
   echo "run npx wp-env run cli ../setup/initialize-internal.sh $PLUGIN_SLUG;"
   npx wp-env run cli ../setup/initialize-internal.sh $PLUGIN_SLUG;
-  echo "run npx wp-env run tests-cli ../setup/initialize-internal.sh $PLUGIN_SLUG;"
-  npx wp-env run tests-cli ../setup/initialize-internal.sh $PLUGIN_SLUG;
 
   # The scripts individual to each environment:
   echo "run npx wp-env run cli ../setup/initialize-internal-dev.sh $PLUGIN_SLUG;"
   npx wp-env run cli ../setup/initialize-internal-dev.sh $PLUGIN_SLUG;
-
-  echo "run npx wp-env run tests-cli ../setup/initialize-internal-tests.sh $PLUGIN_SLUG;"
-  npx wp-env run tests-cli ../setup/initialize-internal-tests.sh $PLUGIN_SLUG;
 }
 
 # Function to build the plugin for Windows
@@ -40,15 +35,10 @@ build_plugin_windows() {
   # First the script that is common to both environments:
   echo "run npx wp-env run cli setup/initialize-internal.sh $PLUGIN_SLUG;"
   npx wp-env run cli setup/initialize-internal.sh $PLUGIN_SLUG;
-  echo "run npx wp-env run tests-cli setup/initialize-internal.sh $PLUGIN_SLUG;"
-  npx wp-env run tests-cli setup/initialize-internal.sh $PLUGIN_SLUG;
 
   # The scripts individual to each environment:
   echo "run npx wp-env run cli setup/initialize-internal-dev.sh $PLUGIN_SLUG;"
   npx wp-env run cli setup/initialize-internal-dev.sh $PLUGIN_SLUG;
-
-  echo "run npx wp-env run tests-cli setup/initialize-internal-tests.sh $PLUGIN_SLUG;"
-  npx wp-env run tests-cli setup/initialize-internal-tests.sh $PLUGIN_SLUG;
 }
 
 # OS-specific actions

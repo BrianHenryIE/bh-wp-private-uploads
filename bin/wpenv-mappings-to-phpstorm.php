@@ -21,7 +21,7 @@ $workspace_file = $project_dir . '/.idea/workspace.xml';
 if ( ! file_exists( $wp_env_file ) ) {
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	echo "Error: .wp-env.json not found at {$wp_env_file}\n";
-	exit( 1 );
+	exit( 0 );
 }
 
 if ( ! file_exists( $workspace_file ) ) {

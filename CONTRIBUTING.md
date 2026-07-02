@@ -11,7 +11,6 @@ codecept run unit
 npm install
 chmod +x tests/_wp-env/initialize-external.sh
 chmod +x tests/_wp-env/initialize-internal.sh
-chmod +x tests/_wp-env/initialize-internal-tests.sh
 npx wp-env start
 codecept run wpunit
 npx playwright install

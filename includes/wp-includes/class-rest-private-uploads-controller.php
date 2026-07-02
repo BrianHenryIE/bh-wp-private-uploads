@@ -69,6 +69,10 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		// Register the standard create attachment route (and more).
 		parent::register_routes();
 
+		if ( empty( $this->namespace ) ) {
+			return;
+		}
+
 		// Register an "upload_item" route that uploads to private uploads but does not create an attachment/post.
 		// Defaults to `plugin-slug/v1/plugin-slug-uploads` or `plugin-slug/v1/post-type-name`.
 		register_rest_route(

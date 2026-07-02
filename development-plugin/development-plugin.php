@@ -33,9 +33,12 @@ if ( ! defined( 'WPINC' ) ) {
 	return;
 }
 
-require_once file_exists( __DIR__ . '/vendor/autoload.php' )
-	? __DIR__ . '/vendor/autoload.php'
-	: __DIR__ . '/../vendor/autoload.php';
+$in_wp_env_vendor_autoload_path  = WP_CONTENT_DIR . '/uploads/development-plugin/vendor/autoload.php';
+$in_project_vendor_autoload_path = __DIR__ . '/../vendor/autoload.php';
+
+require_once file_exists( $in_wp_env_vendor_autoload_path )
+	? $in_wp_env_vendor_autoload_path
+	: $in_project_vendor_autoload_path;
 
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -64,6 +67,19 @@ add_filter(
 		if ( $settings->get_post_type_name() !== $post_type ) {
 				return $args;
 		}
+
+		// Options.
+		//
+		// `show_in_menu`: Should the admin menu Media submenu be displayed?
+		// `label`: The name for the admin menu Media submenu item.
+		// `show_in_rest`: Default is true.
+		// `rest_namespace`: Default is `plugin-slug/v1`.
+		// `rest_base`: Default is `uploads`.
+		// `taxonomies`: E.g. `category`, `post_tag`.
+		// `delete_with_user`: Delete all posts of this type authored by a user when that user is deleted.
+		//
+		// `array{show_in_menu:bool, label:string, show_in_rest:bool, rest_namespace:string, rest_base:string, taxonomies:mixed, delete_with_user:bool}`.
+
 		$args['show_in_menu'] = true;          // Should the admin menu Media submenu be displayed?
 		$args['show_in_rest'] = true;          // Default is true.
 		// ...
@@ -73,51 +89,16 @@ add_filter(
 	2
 );
 
-// Options.
-//
-// `show_in_menu`: Should the admin menu Media submenu be displayed?
-// `label`: The name for the admin menu Media submenu item.
-// `show_in_rest`: Default is true.
-// `rest_namespace`: Default is `plugin-slug/v1`.
-// `rest_base`: Default is `uploads`.
-// `taxonomies`: E.g. `category`, `post_tag`.
-// `delete_with_user`: Delete all posts of this type authored by a user when that user is deleted.
-//
-// `array{show_in_menu:bool, label:string, show_in_rest:bool, rest_namespace:string, rest_base:string, taxonomies:mixed, delete_with_user:bool}`.
+( new Mappings() )->register_hooks();
 
-/**
- * Because of the relative filepaths mapped inside Docker, we need to fix the plugin urls.
- *
- * `assets`, `include`, `vendor` are mapped to the wp-content/plugins directory, not the development-plugin subdir.
- *
- * @see .wp-env.json
- *
- * "http://localhost:8888/wp-content/plugins/includes/admin/assets/bh-wp-private-uploads-admin.js?ver=1.0.0"
- * should be
- * "http://localhost:8888/wp-content/plugins/assets/bh-wp-private-uploads-admin.js?ver=1.0.0"
- *
- * @hooked plugins_url
- * @see plugins_url()
- * This is only called from that one core action (so I will just copy the param docs verbatim).
- *
- * @param string $url The complete URL to the plugins directory including scheme and path.
- * @param string $_path Path relative to the URL to the plugins directory. Blank string if no path is specified.
- * @param string $_plugin The plugin file path to be relative to. Blank string if no plugin is specified.
- */
-$filter_correct_local_path = function ( string $url, string $_path, string $_plugin ): string {
-
-	/** @phpstan-ignore-next-line phpstanWP.wpConstant.fetch */
-	$url = str_replace( WP_PLUGIN_URL . '/development-plugin/includes/admin', WP_PLUGIN_URL . '/development-plugin', $url );
-
-	return $url;
-};
-add_filter( 'plugins_url', $filter_correct_local_path, 10, 3 );
 
 // TODO: filter user meta: `recovery_mode_email_last_sent`.
 
 
 /**
- * Filter user meta `{blog_id}_persisted_preferences` to disable the first-use modals on the post/page edit screen.
+ * Disable the post/page edit screens' first-use modals.
+ *
+ * Filters user meta `{blog_id}_persisted_preferences`.
  *
  * E.g. `{"meta":{"persisted_preferences":{"core":{"isComplementaryAreaVisible":true,"enableChoosePatternModal":false},"_modified":"2026-04-01T19:39:20.828Z","core/edit-post":{"welcomeGuide":false,"fullscreenMode":false}}}}`
  *

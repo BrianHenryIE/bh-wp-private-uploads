@@ -77,11 +77,9 @@
         "antecedent/patchwork": "^2.1",
         "behat/behat": "^3.15.0",
         "brianhenryie/color-logger": "*",
-        "brianhenryie/php-codecoverage-markdown": "^0.2",
         "dealerdirect/phpcodesniffer-composer-installer": "*",
         "dvdoug/behat-code-coverage": "^5.3",
         "johnpbloch/wordpress": "*",
-        "kamazee/pr-filter": "^1.1",
         "lucatume/wp-browser": "^4",
         "phpstan/extension-installer": "*",
         "phpunit/phpcov": "*",
@@ -104,10 +102,12 @@
     },
     "scripts": {
         "post-install-cmd": [
-            "@sync-composer-wpenv"
+            "@sync-composer-wpenv",
+            "@sync-wpenv-phpstorm"
         ],
         "post-update-cmd": [
-            "@sync-composer-wpenv"
+            "@sync-composer-wpenv",
+            "@sync-wpenv-phpstorm"
         ],
         "test": [
             "codecept run unit",
@@ -157,6 +157,9 @@
         ],
         "sync-composer-wpenv": [
             "php ./bin/sync-composer-wpenv.php"
+        ],
+        "sync-wpenv-phpstorm": [
+            "php bin/wpenv-mappings-to-phpstorm.php"
         ],
         "generate-openapi": [
             "npx wp-env run cli /var/www/html/wp-content/plugins/development-plugin/vendor/bin/wp openapi-generator export-file development-plugin/v1 --destination=./openapi/development-plugin-openapi.json --extract-common-types;",
