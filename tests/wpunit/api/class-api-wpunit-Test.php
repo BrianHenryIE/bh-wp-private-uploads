@@ -724,6 +724,10 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$this->assertFileExists( "{$dir}/.htaccess" );
 		$this->assertFileExists( "{$dir}/index.php" );
 		$this->assertStringContainsString( 'Require all denied', (string) file_get_contents( "{$dir}/.htaccess" ) );
+
+		unlink( "{$dir}/.htaccess" );
+		unlink( "{$dir}/index.php" );
+		rmdir( $dir );
 	}
 
 	/**
@@ -761,6 +765,9 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		$this->assertFalse( $second->created );
 		$this->assertFileDoesNotExist( "{$dir}/.htaccess" );
+
+		unlink( "{$dir}/index.php" );
+		rmdir( $dir );
 	}
 
 	/**
@@ -791,5 +798,15 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		$this->assertDirectoryExists( $dir );
 		$this->assertFileExists( "{$dir}/.htaccess" );
+
+		// Clean up the uploaded file (in a yyyy/mm subdir), the guard files, and the directory.
+		array_map( 'unlink', glob( "{$dir}/*/*/*" ) ?: array() );
+		array_map( 'rmdir', glob( "{$dir}/*/*", GLOB_ONLYDIR ) ?: array() );
+		array_map( 'rmdir', glob( "{$dir}/*", GLOB_ONLYDIR ) ?: array() );
+		array_map( 'unlink', glob( "{$dir}/*" ) ?: array() );
+		if ( file_exists( "{$dir}/.htaccess" ) ) {
+			unlink( "{$dir}/.htaccess" );
+		}
+		rmdir( $dir );
 	}
 }

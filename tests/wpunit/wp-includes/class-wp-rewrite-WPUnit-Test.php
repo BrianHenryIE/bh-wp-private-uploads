@@ -121,9 +121,14 @@ class WP_Rewrite_WPUnit_Test extends WPUnit_Testcase {
 			)
 		);
 
-		$upload   = wp_upload_dir();
-		$relative = str_replace( constant( 'ABSPATH' ), '', $upload['basedir'] . '/' . $subdir . '/' );
-		$regex    = "{$relative}(.*)$";
+		// The rule regex is derived from the uploads URL path, relative to the site's home path.
+		$upload           = wp_upload_dir();
+		$uploads_url_path = (string) wp_parse_url( trailingslashit( $upload['baseurl'] ) . $subdir, PHP_URL_PATH );
+		$home_url_path    = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+		if ( '' !== $home_url_path && str_starts_with( $uploads_url_path, $home_url_path ) ) {
+			$uploads_url_path = substr( $uploads_url_path, strlen( $home_url_path ) );
+		}
+		$regex = trailingslashit( ltrim( $uploads_url_path, '/' ) ) . '(.*)$';
 
 		update_option( 'bh_wp_private_uploads_rewrite_noflush_test_rewrite_flushed', $regex, true );
 

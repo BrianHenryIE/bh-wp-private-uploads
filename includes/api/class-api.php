@@ -442,9 +442,12 @@ class API implements API_Interface {
 			$created = true;
 		}
 
-		$this->write_guard_files( $dir );
-
-		update_option( $option_name, $signature, false );
+		// Only record success (skipping future filesystem work) once the guard files are actually in place;
+		// otherwise a transient write failure would be cached and the directory left unprotected.
+		// Store as autoloaded so the `init`-time `get_option()` check does not hit the database each request.
+		if ( $this->write_guard_files( $dir ) ) {
+			update_option( $option_name, $signature, true );
+		}
 
 		return new Create_Directory_Result(
 			dir: $dir,
@@ -457,11 +460,12 @@ class API implements API_Interface {
 	 * Write the `.htaccess` and `index.php` guard files into the directory if they are not already present.
 	 *
 	 * @param string $dir The private uploads directory path.
+	 * @return bool True when both guard files are present (already existed or were written successfully).
 	 */
-	protected function write_guard_files( string $dir ): void {
+	protected function write_guard_files( string $dir ): bool {
 
 		if ( ! is_dir( $dir ) ) {
-			return;
+			return false;
 		}
 
 		/**
@@ -471,14 +475,16 @@ class API implements API_Interface {
 		 * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		 */
 		$htaccess = $dir . '/.htaccess';
-		if ( ! file_exists( $htaccess ) ) {
-			file_put_contents( $htaccess, $this->get_htaccess_contents() );
+		if ( ! file_exists( $htaccess ) && false === file_put_contents( $htaccess, $this->get_htaccess_contents() ) ) {
+			return false;
 		}
 
 		$index = $dir . '/index.php';
-		if ( ! file_exists( $index ) ) {
-			file_put_contents( $index, "<?php\n// Silence is golden.\n" );
+		if ( ! file_exists( $index ) && false === file_put_contents( $index, "<?php\n// Silence is golden.\n" ) ) {
+			return false;
 		}
+
+		return true;
 	}
 
 	/**
