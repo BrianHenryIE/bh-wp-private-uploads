@@ -15,6 +15,8 @@ $GLOBALS['wordpress_root_dir'] = $project_root_dir . '/wordpress';
 
 define( 'WP_CONTENT_URL', $_ENV['TEST_SITE_WP_URL'] . '/wp-content' ); /** @phpstan-ignore binaryOp.invalid */
 
+require_once __DIR__ . '/../vendor-wp-cli/autoload.php';
+
 Autoloader::generate(
 	'BrianHenryIE\\WP_Private_Uploads',
 	__DIR__ . '/../includes',

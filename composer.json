@@ -58,10 +58,6 @@
         "wordpress/wordpress": {
             "url": "https://github.com/wordpress/wordpress-develop.git",
             "type": "git"
-        },
-        "wp-cli/handbook": {
-            "url": "https://github.com/wp-cli/handbook",
-            "type": "git"
         }
     },
     "require": {
@@ -87,10 +83,6 @@
         "squizlabs/php_codesniffer": "*",
         "szepeviktor/phpstan-wordpress": "*",
         "wordpress/wordpress": "*",
-        "wp-cli/dist-archive-command": "*",
-        "wp-cli/handbook": "dev-main",
-        "wp-cli/wp-cli-bundle": "*",
-        "wp-cli/wp-cli-tests": "^5",
         "wp-coding-standards/wpcs": "*",
         "wpackagist-plugin/debug-log-manager": "*",
         "wpackagist-plugin/document-generator-for-openapi": "*",
@@ -103,11 +95,13 @@
     "scripts": {
         "post-install-cmd": [
             "@sync-composer-wpenv",
-            "@sync-wpenv-phpstorm"
+            "@sync-wpenv-phpstorm",
+            "@install-wp-cli"
         ],
         "post-update-cmd": [
             "@sync-composer-wpenv",
-            "@sync-wpenv-phpstorm"
+            "@sync-wpenv-phpstorm",
+            "@install-wp-cli"
         ],
         "test": [
             "codecept run unit",
@@ -154,6 +148,10 @@
         ],
         "github-actions": [
             "act -P ubuntu-latest=shivammathur/node:latest"
+        ],
+        "install-wp-cli": [
+            "php ./bin/set-composer-provides.php",
+            "COMPOSER=composer-wp-cli.json composer update"
         ],
         "sync-composer-wpenv": [
             "php ./bin/sync-composer-wpenv.php"
