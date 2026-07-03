@@ -127,6 +127,11 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 		$attached_path = get_attached_file( $post_id );
 		$this->assertStringContainsString( "/{$subdir}/", (string) $attached_path );
 		$this->assertFileExists( (string) $attached_path );
+
+		// Uploaded files are on disk (not rolled back with the DB); remove it.
+		if ( is_string( $attached_path ) && file_exists( $attached_path ) ) {
+			unlink( $attached_path );
+		}
 	}
 
 	/**
@@ -180,6 +185,11 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 			)
 		);
 		$this->assertCount( count( $posts_before ), $posts_after );
+
+		// Uploaded file is on disk (not rolled back with the DB); remove it.
+		if ( file_exists( $result['file']['file'] ) ) {
+			unlink( $result['file']['file'] );
+		}
 	}
 
 	/**
@@ -219,5 +229,11 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 		$this->assertInstanceOf( \WP_Post::class, $post );
 		$this->assertEquals( $author_id, $post->post_author );
 		$this->assertSame( $parent_id, $post->post_parent );
+
+		// Uploaded file is on disk (not rolled back with the DB); remove it.
+		$attached_path = get_attached_file( $post_id );
+		if ( is_string( $attached_path ) && file_exists( $attached_path ) ) {
+			unlink( $attached_path );
+		}
 	}
 }
