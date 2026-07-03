@@ -39,6 +39,15 @@ class Admin_Notices extends Notices {
 	}
 
 	/**
+	 * `sprintf()` format for the notice id: the hyphenated post type name interpolated into the `%s`.
+	 *
+	 * Referenced by {@see Cron::get_dismissed_notice_option_name()} so it can build the option name
+	 * without instantiating this class (which would create a circular dependency, since `on_dismiss()`
+	 * instantiates `Cron`).
+	 */
+	public const NOTICE_ID_FORMAT = '%s-private-uploads-url-is-public';
+
+	/**
 	 * The WPTRT notice id, i.e. the CSS id and – prefixed with `wptrt_notice_dismissed_` – the option
 	 * name the dismissal is stored under.
 	 *
@@ -46,7 +55,7 @@ class Admin_Notices extends Notices {
 	 */
 	public function get_notice_id(): string {
 		return sprintf(
-			'%s-private-uploads-url-is-public',
+			self::NOTICE_ID_FORMAT,
 			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
 		);
 	}
