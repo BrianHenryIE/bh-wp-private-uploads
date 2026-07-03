@@ -104,6 +104,11 @@ class Serve_Private_File {
 		}
 
 		if ( null !== $response->file_to_stream ) {
+			// Discard any active output buffers (prepended whitespace, notices, …) so they cannot corrupt
+			// the streamed file.
+			while ( ob_get_level() > 0 ) {
+				ob_end_clean();
+			}
 			/**
 			 * WP_Filesystem is only loaded for admin requests, not applicable here.
 			 *
@@ -198,7 +203,15 @@ class Serve_Private_File {
 			'Cache-Control' => 'private, max-age=3600',
 		);
 
-		if ( $this->etag_matches( $etag ) || $this->is_not_modified_since( $last_modified_unix ) ) {
+		/**
+		 * Per RFC 7232 §3.3, a recipient must ignore `If-Modified-Since` when `If-None-Match` is present,
+		 * so evaluate `If-Modified-Since` only when there is no `If-None-Match` header.
+		 */
+		$is_not_modified = $this->has_if_none_match()
+			? $this->etag_matches( $etag )
+			: $this->is_not_modified_since( $last_modified_unix );
+
+		if ( $is_not_modified ) {
 			/**
 			 * Return 'not modified' header.
 			 *
@@ -217,6 +230,15 @@ class Serve_Private_File {
 			headers: $headers,
 			file_to_stream: $path,
 		);
+	}
+
+	/**
+	 * Whether the request carries an `If-None-Match` header. When it does, `If-Modified-Since` must be
+	 * ignored (RFC 7232 §3.3).
+	 */
+	protected function has_if_none_match(): bool {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return ! empty( $_SERVER['HTTP_IF_NONE_MATCH'] ) && is_string( $_SERVER['HTTP_IF_NONE_MATCH'] );
 	}
 
 	/**

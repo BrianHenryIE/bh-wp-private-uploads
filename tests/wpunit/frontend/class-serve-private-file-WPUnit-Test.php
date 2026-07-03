@@ -242,4 +242,26 @@ class Serve_Private_File_WPUnit_Test extends WPUnit_Testcase {
 
 		$this->assertSame( 200, $response->status_code );
 	}
+
+	/**
+	 * Per RFC 7232, when `If-None-Match` is present it takes precedence: a non-matching ETag serves the
+	 * file (200) even if `If-Modified-Since` alone would produce a 304.
+	 *
+	 * @covers ::get_response_for_request
+	 * @covers ::has_if_none_match
+	 */
+	public function test_if_none_match_takes_precedence_over_if_modified_since(): void {
+
+		list( $sut, $file, $absolute ) = $this->make_sut_with_file();
+
+		wp_set_current_user( 1 );
+
+		// Non-matching ETag, but an If-Modified-Since that is newer than the file.
+		$_SERVER['HTTP_IF_NONE_MATCH']     = '"a-mismatched-etag"';
+		$_SERVER['HTTP_IF_MODIFIED_SINCE'] = gmdate( 'D, d M Y H:i:s T', (int) filemtime( $absolute ) + 10 );
+
+		$response = $this->get_response( $sut, $file );
+
+		$this->assertSame( 200, $response->status_code );
+	}
 }
