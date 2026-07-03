@@ -40,7 +40,6 @@ class WP_Rewrite_WPUnit_Test extends WPUnit_Testcase {
 
 		/** @var \WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;
-		$wp_rewrite->non_wp_rules = array();
 
 		$sut = new WP_Rewrite( $settings, $this->logger );
 		$sut->register_rewrite_rule();
