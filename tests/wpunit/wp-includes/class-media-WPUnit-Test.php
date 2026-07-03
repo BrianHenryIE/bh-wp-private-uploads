@@ -339,4 +339,93 @@ class Media_WPUnit_Test extends WPUnit_Testcase {
 
 		$this->assertSame( 'private_media', $result['post_type'] );
 	}
+
+	/**
+	 * Build a `Media` whose settings use the given post type.
+	 *
+	 * @param string $post_type_name The private uploads post type name.
+	 */
+	protected function get_media_for_post_type( string $post_type_name ): Media {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name'            => $post_type_name,
+				'get_uploads_subdirectory_name' => 'private-media',
+			)
+		);
+
+		return new Media( $settings, new Media_Request() );
+	}
+
+	/**
+	 * With a valid `media-form` nonce and a matching `post_type` POST value, `on_upload_attachment()`
+	 * adds its three redirect-to-private hooks.
+	 *
+	 * phpcs:disable WordPress.Security.NonceVerification.Missing
+	 *
+	 * @covers ::on_upload_attachment
+	 * @covers ::is_private_upload_via_post
+	 */
+	public function test_on_upload_attachment_adds_hooks_with_valid_nonce_and_post_type(): void {
+
+		$sut = $this->get_media_for_post_type( 'media_upload_test' );
+
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'media-form' );
+		$_POST['post_type']   = 'media_upload_test';
+
+		$sut->on_upload_attachment();
+
+		$this->assertNotFalse( has_filter( 'upload_dir', array( $sut, 'set_uploads_subdirectory' ) ) );
+		$this->assertNotFalse( has_filter( 'wp_insert_attachment_data', array( $sut, 'set_post_type_on_insert_attachment' ) ) );
+		$this->assertNotFalse( has_action( 'add_attachment', array( $sut, 'change_post_type_to_attachment_in_cache' ) ) );
+
+		unset( $_REQUEST['_wpnonce'], $_POST['post_type'] );
+	}
+
+	/**
+	 * Without a nonce, `on_upload_attachment()` does nothing (a plain attachment upload is unaffected).
+	 *
+	 * phpcs:disable WordPress.Security.NonceVerification.Missing
+	 *
+	 * @covers ::on_upload_attachment
+	 * @covers ::is_private_upload_via_post
+	 */
+	public function test_on_upload_attachment_does_nothing_without_nonce(): void {
+
+		$sut = $this->get_media_for_post_type( 'media_upload_test' );
+
+		unset( $_REQUEST['_wpnonce'] );
+		$_POST['post_type'] = 'media_upload_test';
+
+		$sut->on_upload_attachment();
+
+		$this->assertFalse( has_filter( 'upload_dir', array( $sut, 'set_uploads_subdirectory' ) ) );
+
+		unset( $_POST['post_type'] );
+	}
+
+	/**
+	 * The `async-upload.php` referer branch also triggers the redirect-to-private hooks.
+	 *
+	 * @covers ::on_upload_attachment
+	 * @covers ::is_private_upload_via_referer
+	 */
+	public function test_on_upload_attachment_referer_branch_adds_hooks(): void {
+
+		$sut = $this->get_media_for_post_type( 'media_upload_test' );
+
+		global $pagenow;
+		$pagenow_before = $pagenow;
+		$pagenow        = 'async-upload.php';
+
+		$_SERVER['HTTP_REFERER'] = 'http://example.org/wp-admin/media-new.php?post_type=media_upload_test';
+
+		$sut->on_upload_attachment();
+
+		$this->assertNotFalse( has_filter( 'upload_dir', array( $sut, 'set_uploads_subdirectory' ) ) );
+
+		unset( $_SERVER['HTTP_REFERER'] );
+		$pagenow = $pagenow_before;
+	}
 }

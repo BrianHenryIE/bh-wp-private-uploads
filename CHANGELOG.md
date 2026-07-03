@@ -12,6 +12,12 @@
 
 * Defence-in-depth for the private directory: `create_directory()` now writes a deny-all `.htaccess` and an empty `index.php` guard file, so the directory is protected even before/without a rewrite flush and on servers that don't honour rewrites. `init`-time directory work is throttled via an option (and run lazily from `move_file_to_private_uploads()`), and the rewrite rule is now flushed to `.htaccess` once when first added.
 
+* Removed the unused `API::is_url_public_for_admin()` method (dead code that forwarded raw `$_COOKIE` values).
+
 ### Changed
 
 * `Serve_Private_File` now grants access with the `manage_options` capability rather than the `administrator` role name, so multisite super admins without an explicit site role are covered (potential behavior change for sites relying on the exact role check).
+
+### Tests
+
+* Added test coverage for previously-untested classes: `Post_Type`, `REST_Private_Uploads_Controller`, `Admin_Meta_Boxes`, `WP_Rewrite`, and `Serve_Private_File`, plus `Media::on_upload_attachment()`'s nonce and referer branches.

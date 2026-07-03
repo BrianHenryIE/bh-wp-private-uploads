@@ -31,12 +31,4 @@ class Example_Private_Uploads extends API {
 
 		new BH_WP_Private_Uploads_Hooks( $this, $settings, $logger );
 	}
-
-	/**
-	 * @return array{is_private:bool|null}
-	 */
-	public function get_is_url_public_for_admin(): array {
-		$url = content_url( '/uploads/' . $this->settings->get_uploads_subdirectory_name() . '/' );
-		return $this->is_url_public_for_admin( $url );
-	}
 }
