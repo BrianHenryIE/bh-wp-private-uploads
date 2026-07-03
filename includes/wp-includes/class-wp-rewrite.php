@@ -36,12 +36,19 @@ class WP_Rewrite {
 	 */
 	public function register_rewrite_rule(): void {
 
-		// Derive from `wp_upload_dir()` rather than `WP_CONTENT_DIR` so the rule is correct on multisite
-		// and relocated-uploads installs. `wp_upload_dir( null, false )` avoids the directory-creation side effect.
+		// Derive the rule from the uploads URL (not the filesystem path) so it is correct on multisite and
+		// relocated-uploads installs, and robust on Windows (filesystem paths use `\`, URLs use `/`).
+		// `wp_upload_dir( null, false )` avoids the directory-creation side effect.
 		$upload_dir = wp_upload_dir( null, false );
-		$path       = $upload_dir['basedir'] . '/' . $this->settings->get_uploads_subdirectory_name() . '/';
+		$subdir     = trim( $this->settings->get_uploads_subdirectory_name(), '/' );
 
-		$relative_path = str_replace( constant( 'ABSPATH' ), '', $path );
+		// The uploads directory's URL path, made relative to the site's home path (the rewrite base).
+		$uploads_url_path = (string) wp_parse_url( trailingslashit( $upload_dir['baseurl'] ) . $subdir, PHP_URL_PATH );
+		$home_url_path    = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+		if ( '' !== $home_url_path && str_starts_with( $uploads_url_path, $home_url_path ) ) {
+			$uploads_url_path = substr( $uploads_url_path, strlen( $home_url_path ) );
+		}
+		$relative_path = trailingslashit( ltrim( $uploads_url_path, '/' ) );
 
 		// TODO: Maybe this should be `.+` instead of `.*` – then it will only redirect for files and subfolders.
 		// i.e. admins get a ~"no such file" message when browsing to the folder rather than a file.

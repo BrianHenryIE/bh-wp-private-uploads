@@ -21,11 +21,11 @@ class WP_Rewrite_WPUnit_Test extends WPUnit_Testcase {
 
 		$subdir = uniqid( 'rewritetest' );
 
-		// Relocate the uploads basedir under ABSPATH so `str_replace( ABSPATH, ... )` yields a clean relative path.
-		$relocated_basedir = constant( 'ABSPATH' ) . 'relocated-uploads-' . $subdir;
+		// Relocate the uploads baseurl under the site root; the rule is derived from the URL path.
+		$relocated_baseurl = home_url( '/relocated-uploads-' . $subdir );
 
-		$relocate = function ( array $uploads ) use ( $relocated_basedir ): array {
-			$uploads['basedir'] = $relocated_basedir;
+		$relocate = function ( array $uploads ) use ( $relocated_baseurl ): array {
+			$uploads['baseurl'] = $relocated_baseurl;
 			return $uploads;
 		};
 		add_filter( 'upload_dir', $relocate );

@@ -355,7 +355,8 @@ class API implements API_Interface {
 	 */
 	protected function get_private_uploads_directory_path(): string {
 		$upload_dir = wp_upload_dir( null, false );
-		return $upload_dir['basedir'] . '/' . $this->settings->get_uploads_subdirectory_name();
+		$subdir     = trim( $this->settings->get_uploads_subdirectory_name(), '/' );
+		return rtrim( $upload_dir['basedir'], '/' ) . '/' . $subdir;
 	}
 
 	/**
@@ -363,7 +364,8 @@ class API implements API_Interface {
 	 */
 	protected function get_private_uploads_directory_url(): string {
 		$upload_dir = wp_upload_dir( null, false );
-		return $upload_dir['baseurl'] . '/' . $this->settings->get_uploads_subdirectory_name();
+		$subdir     = trim( $this->settings->get_uploads_subdirectory_name(), '/' );
+		return rtrim( $upload_dir['baseurl'], '/' ) . '/' . $subdir;
 	}
 
 	/**
