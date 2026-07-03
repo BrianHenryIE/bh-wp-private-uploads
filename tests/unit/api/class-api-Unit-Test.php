@@ -184,11 +184,6 @@ class API_Unit_Test extends Unit_Testcase {
 		assert( false !== $tmp_file );
 		file_put_contents( $tmp_file, 'file contents' );
 
-		WP_Mock::userFunction( 'current_user_can' )
-				->once()
-				->with( 'upload_files' )
-				->andReturnTrue();
-
 		WP_Mock::userFunction( 'sanitize_file_name' )
 				->once()
 				->with( 'sample.pdf' )
@@ -436,17 +431,24 @@ class API_Unit_Test extends Unit_Testcase {
 	 * undefined-function error.)
 	 *
 	 * @covers ::download_remote_file_to_private_uploads_and_create_post
+	 * @covers ::download_remote_file_to_private_uploads
 	 */
 	public function test_download_remote_and_create_post_download_failure_creates_no_post(): void {
+
+		require_once codecept_root_dir( 'vendor/wordpress/wordpress/src/wp-includes/class-wp-error.php' );
 
 		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
 
 		$sut = new API( $settings, $this->logger );
 
-		WP_Mock::userFunction( 'current_user_can' )
+		WP_Mock::userFunction( 'download_url' )
 				->once()
-				->with( 'upload_files' )
-				->andReturnFalse();
+				->with( 'https://example.org/file.pdf' )
+				->andReturn( new \WP_Error( 'http_404', 'Not found' ) );
+
+		WP_Mock::userFunction( 'is_wp_error' )
+				->once()
+				->andReturnTrue();
 
 		$this->expectException( Private_Uploads_Exception::class );
 

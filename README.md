@@ -75,6 +75,9 @@ if ( $result->is_success() ) {
 }
 ```
 
+> [!IMPORTANT]
+> The `API` class performs **no user-capability checks**. This is deliberate: uploads frequently happen on cron and WP-CLI where there is no logged-in user (user id `0`), and requiring `upload_files` would break those flows. Authorization is enforced at each request boundary instead (the REST controller's `create_item_permissions_check()`, admin-ajax capability checks, and WP-CLI being trusted). **If you expose these methods to a web request, check capabilities yourself first.** Consumer plugins that want an additional guard can hook the `bh_wp_private_uploads_{post_type}_can_upload` filter (return `false` to reject an upload).
+
 The `..._and_create_post` variants additionally create a post of the registered custom post type recording the file – so it appears in the private media library UI – and assign it an owner (`post_author`) and optionally a parent post:
 
 ```php

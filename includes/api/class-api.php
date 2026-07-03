@@ -50,13 +50,9 @@ class API implements API_Interface {
 	 *
 	 * @return File_Upload_Result On success, returns file attributes.
 	 *                            On failure, returns error message.
-	 * @throws Private_Uploads_Exception On permissions failure|WordPress download_url() failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_*_can_upload` filter returns false|WordPress download_url() failure.
 	 */
 	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): File_Upload_Result {
-
-		if ( ! current_user_can( 'upload_files' ) ) {
-			throw new Private_Uploads_Exception( 'Current user does not have permissions to upload files.' );
-		}
 
 		$tmp_file = download_url( $file_url );
 
@@ -91,12 +87,23 @@ class API implements API_Interface {
 	 *
 	 * @return File_Upload_Result On success, returns file attributes.
 	 *
-	 * @throws Private_Uploads_Exception On permissions failure|file exists failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_*_can_upload` filter returns false|file exists failure.
 	 */
 	public function move_file_to_private_uploads( string $tmp_file, string $filename, ?DateTimeInterface $datetime = null, ?int $filesize = null ): File_Upload_Result {
 
-		if ( ! current_user_can( 'upload_files' ) ) {
-			throw new Private_Uploads_Exception( 'Current user does not have permissions to upload files.' );
+		/**
+		 * Filter whether this file may be moved into private uploads.
+		 *
+		 * Authorization is the responsibility of the calling code / request handler
+		 * (REST permission_callback, admin-ajax capability checks, CLI). This filter
+		 * exists for consumer plugins that want an additional guard.
+		 *
+		 * @param bool   $can_upload Default true.
+		 * @param string $tmp_file   Source filepath.
+		 * @param string $filename   Destination filename.
+		 */
+		if ( ! apply_filters( "bh_wp_private_uploads_{$this->settings->get_post_type_name()}_can_upload", true, $tmp_file, $filename ) ) {
+			throw new Private_Uploads_Exception( 'Upload rejected by bh_wp_private_uploads_*_can_upload filter.' );
 		}
 
 		if ( ! is_readable( $tmp_file ) ) {
@@ -183,7 +190,7 @@ class API implements API_Interface {
 	 * @param ?int               $post_parent_id Post id to attach the file's post to, e.g. a WooCommerce order id.
 	 * @param ?DateTimeInterface $datetime Destination uploads subdir date. Does not affect the post's date.
 	 *
-	 * @throws Private_Uploads_Exception On permissions failure|WordPress download_url() failure|post creation failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_*_can_upload` filter returns false|WordPress download_url() failure|post creation failure.
 	 */
 	public function download_remote_file_to_private_uploads_and_create_post(
 		string $file_url,
@@ -216,7 +223,7 @@ class API implements API_Interface {
 	 * @param ?DateTimeInterface $datetime A DateTime for which folder the file should be put in, i.e. 2022/22 etc. Does not affect the post's date.
 	 * @param ?int               $filesize The size in bytes. Calculated automatically.
 	 *
-	 * @throws Private_Uploads_Exception On permissions failure|file exists failure|post creation failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_*_can_upload` filter returns false|file exists failure|post creation failure.
 	 */
 	public function move_file_to_private_uploads_and_create_post(
 		string $tmp_file,

@@ -435,21 +435,66 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
-	 * @covers ::move_file_to_private_uploads_and_create_post
+	 * Uploads happen on cron and WP-CLI where there is no logged-in user (user id 0). The API class must not
+	 * require the `upload_files` capability – authorization is the caller's responsibility. This is the
+	 * regression that motivated removing the capability check.
+	 *
+	 * @covers ::move_file_to_private_uploads
 	 */
-	public function test_move_file_and_create_post_throws_without_upload_files_capability(): void {
+	public function test_move_file_to_private_uploads_succeeds_with_no_logged_in_user_during_cron(): void {
 
-		$test_uploads_directory_name = uniqid( 'movecreatenocap' );
+		$test_uploads_directory_name = uniqid( 'movenologinuser' );
 
 		$api = $this->get_api_with_post_type( $test_uploads_directory_name );
 
+		// Simulate a cron request: no logged-in user.
 		wp_set_current_user( 0 );
+		if ( ! defined( 'DOING_CRON' ) ) {
+			define( 'DOING_CRON', true );
+		}
+
+		assert( ! current_user_can( 'upload_files' ) );
+
+		$tmp_file = $this->copy_fixture_to_tmp_file( 'sample.pdf' );
+
+		$result = $api->move_file_to_private_uploads(
+			tmp_file: $tmp_file,
+			filename: 'sample.pdf',
+		);
+
+		$yyyymm = ( new \DateTimeImmutable() )->format( 'Y/m' );
+
+		$expected_file_path = sprintf(
+			'%s/uploads/%s/%s/sample.pdf',
+			constant( 'WP_CONTENT_DIR' ),
+			$test_uploads_directory_name,
+			$yyyymm
+		);
+
+		$this->assertSame( $expected_file_path, $result->file );
+		$this->assertFileExists( $result->file );
+	}
+
+	/**
+	 * Consumer plugins can veto an upload via the `bh_wp_private_uploads_{post_type}_can_upload` filter.
+	 *
+	 * @covers ::move_file_to_private_uploads
+	 */
+	public function test_move_file_to_private_uploads_throws_when_can_upload_filter_returns_false(): void {
+
+		$test_uploads_directory_name = uniqid( 'movecannotupload' );
+
+		$api = $this->get_api_with_post_type( $test_uploads_directory_name );
+
+		wp_set_current_user( 1 );
+
+		add_filter( 'bh_wp_private_uploads_api_test_private_can_upload', '__return_false' );
 
 		$tmp_file = $this->copy_fixture_to_tmp_file( 'sample.pdf' );
 
 		$this->expectException( Private_Uploads_Exception::class );
 
-		$api->move_file_to_private_uploads_and_create_post(
+		$api->move_file_to_private_uploads(
 			tmp_file: $tmp_file,
 			filename: 'sample.pdf',
 		);
