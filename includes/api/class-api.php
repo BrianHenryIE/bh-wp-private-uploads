@@ -143,34 +143,40 @@ class API implements API_Interface {
 		 * phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		 * phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		 */
-		if ( isset( $_POST['action'] ) ) {
-			$post_action_before = $_POST['action'];
-		}
+		$post_action_was_set = isset( $_POST['action'] );
+		$post_action_before  = $post_action_was_set ? $_POST['action'] : null;
 
 		$action          = 'wp_handle_private_upload';
 		$_POST['action'] = $action;
 
-		/**
-		 * Because a custom error handler can be used, the array returned could potentially be any shape.
-		 *
-		 * @var array{error:string}|array{file?:string,url?:string,type?:string} $file
-		 */
-		$file = wp_handle_upload( $file, array( 'action' => $action ) );
+		// The filter must always be removed and `$_POST['action']` restored, even when `wp_handle_upload()`
+		// fails; otherwise the `upload_dir` filter stays attached for the rest of the request, silently
+		// redirecting all subsequent uploads into the private directory.
+		try {
+			/**
+			 * Because a custom error handler can be used, the array returned could potentially be any shape.
+			 *
+			 * @var array{error:string}|array{file?:string,url?:string,type?:string} $file
+			 */
+			$file = wp_handle_upload( $file, array( 'action' => $action ) );
 
-		if ( isset( $post_action_before ) ) {
-			$_POST['action'] = $post_action_before;
+			if ( isset( $file['error'] ) ) {
+				throw new Private_Uploads_Exception( $file['error'] );
+			}
+
+			if ( ! isset( $file['file'], $file['url'], $file['type'] ) ) {
+				$missing = array_diff( array( 'file', 'url', 'type' ), array_keys( $file ) );
+				throw new Private_Uploads_Exception( 'Missing keys from wp_handle_upload() result: ' . implode( ', ', $missing ) );
+			}
+		} finally {
+			remove_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ) );
+
+			if ( $post_action_was_set ) {
+				$_POST['action'] = $post_action_before;
+			} else {
+				unset( $_POST['action'] );
+			}
 		}
-
-		if ( isset( $file['error'] ) ) {
-			throw new Private_Uploads_Exception( $file['error'] );
-		}
-
-		if ( ! isset( $file['file'], $file['url'], $file['type'] ) ) {
-			$missing = array_diff( array( 'file', 'url', 'type' ), array_keys( $file ) );
-			throw new Private_Uploads_Exception( 'Missing keys from wp_handle_upload() result: ' . implode( ', ', $missing ) );
-		}
-
-		remove_filter( 'upload_dir', array( $this, 'set_private_uploads_path' ) );
 
 		return new File_Upload_Result(
 			file: $file['file'],
