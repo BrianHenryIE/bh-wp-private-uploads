@@ -50,7 +50,7 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 
 		\WP_Mock::expectActionAdded(
 			'init',
-			array( $api, 'create_directory' )
+			array( \WP_Mock\Functions::type( BH_WP_Private_Uploads_Hooks::class ), 'create_private_uploads_directory' )
 		);
 
 		$logger   = $this->logger;
