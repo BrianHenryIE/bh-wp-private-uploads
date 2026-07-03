@@ -531,6 +531,10 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 			$this->assertStringContainsString( 'Forced upload_dir error for test.', $exception->getMessage() );
 		} finally {
 			remove_filter( 'upload_dir', $force_error, 20 );
+			// `wp_handle_upload()` was forced to fail, so the temp file was never moved – clean it up.
+			if ( file_exists( $tmp_file ) ) {
+				unlink( $tmp_file );
+			}
 		}
 
 		$this->assertFalse( has_filter( 'upload_dir', array( $api, 'set_private_uploads_path' ) ) );
