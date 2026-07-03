@@ -57,6 +57,21 @@ class Cron {
 	}
 
 	/**
+	 * The `wp_options` name the wp-trt/admin-notices library stores the dismissal under, i.e.
+	 * `wptrt_notice_dismissed_` prefixed to the notice id.
+	 *
+	 * Shared between {@see BH_WP_Private_Uploads_Hooks::define_admin_notices_hooks()} (which hooks
+	 * `add_option_{$option}`/`update_option_{$option}`) and {@see self::unsnooze_dismissed_notice()}
+	 * (which deletes it), so the two cannot drift.
+	 *
+	 * @see Admin_Notices::get_notice_id()
+	 */
+	public function get_dismissed_notice_option_name(): string {
+		$notice_id = ( new Admin_Notices( $this->api, $this->settings, $this->logger ) )->get_notice_id();
+		return "wptrt_notice_dismissed_{$notice_id}";
+	}
+
+	/**
 	 * `{plugin_slug}_private_uploads_unsnooze_dismissed_notice_{post_type}`
 	 */
 	public function get_unsnooze_notice_cron_hook_name(): string {
@@ -138,12 +153,7 @@ class Cron {
 	 */
 	public function unsnooze_dismissed_notice(): void {
 
-		$delete_dismissed_notice_option_name = sprintf(
-			'wptrt_notice_dismissed_%s_private_uploads_public_url',
-			$this->settings->get_post_type_name()
-		);
-
 		// TODO: Move into API and add CLI command.
-		delete_option( $delete_dismissed_notice_option_name );
+		delete_option( $this->get_dismissed_notice_option_name() );
 	}
 }

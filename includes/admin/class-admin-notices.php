@@ -39,6 +39,19 @@ class Admin_Notices extends Notices {
 	}
 
 	/**
+	 * The WPTRT notice id, i.e. the CSS id and – prefixed with `wptrt_notice_dismissed_` – the option
+	 * name the dismissal is stored under.
+	 *
+	 * @see Cron::get_dismissed_notice_option_name()
+	 */
+	public function get_notice_id(): string {
+		return sprintf(
+			'%s-private-uploads-url-is-public',
+			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
+		);
+	}
+
+	/**
 	 * @hooked admin_notices
 	 */
 	public function admin_notices(): void {
@@ -58,10 +71,7 @@ class Admin_Notices extends Notices {
 			return;
 		}
 
-		$notice_id = sprintf(
-			'%s-private-uploads-url-is-public',
-			str_underscores_to_hyphens( $this->settings->get_post_type_name() )
-		);
+		$notice_id = $this->get_notice_id();
 
 		$href = '<a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a>';
 		// translators: %s is a HTML link to the directory's URL.
@@ -92,14 +102,20 @@ class Admin_Notices extends Notices {
 	 * I.e. when the dismissed option is created, schedule a cron job to delete it in a week.
 	 * If the directory is correctly inaccessible, the notice will never appear.
 	 *
-	 * @hooked update_option_wptrt_notice_dismissed_<posttype-name>_private_uploads_public_url
+	 * Registered on both `add_option_{$option}` (fires with `( $option, $value )`) and
+	 * `update_option_{$option}` (fires with `( $old_value, $value, $option )`), so the arguments are
+	 * ignored and typed loosely to tolerate either signature.
+	 *
+	 * @see Cron::get_dismissed_notice_option_name()
+	 * @see BH_WP_Private_Uploads_Hooks::define_admin_notices_hooks()
+	 * @see add_option()
 	 * @see update_option()
 	 *
-	 * @param mixed  $old_value The old option value.
-	 * @param mixed  $value     The new option value.
-	 * @param string $option    Option name.
+	 * @param mixed $arg_1 Either the option name (`add_option`) or the old value (`update_option`).
+	 * @param mixed $arg_2 The new option value.
+	 * @param mixed $arg_3 The option name (`update_option` only).
 	 */
-	public function on_dismiss( $old_value, $value, string $option ): void {
+	public function on_dismiss( $arg_1 = null, $arg_2 = null, $arg_3 = null ): void {
 
 		$hook = ( new Cron( $this->api, $this->settings, $this->logger ) )->get_unsnooze_notice_cron_hook_name();
 
