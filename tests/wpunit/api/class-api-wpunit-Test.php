@@ -630,6 +630,9 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$this->assertSame( "{$relocated_basedir}/{$subdir}", $result->dir );
 		$this->assertDirectoryExists( "{$relocated_basedir}/{$subdir}" );
 
+		// create_directory() also writes guard files; remove them before rmdir.
+		array_map( 'unlink', glob( "{$relocated_basedir}/{$subdir}/*" ) ?: array() );
+		array_map( 'unlink', glob( "{$relocated_basedir}/{$subdir}/.htaccess" ) ?: array() );
 		rmdir( "{$relocated_basedir}/{$subdir}" );
 		rmdir( $relocated_basedir );
 	}
@@ -688,5 +691,105 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		unlink( "{$relocated_basedir}/{$subdir}/index.php" );
 		rmdir( "{$relocated_basedir}/{$subdir}" );
 		rmdir( $relocated_basedir );
+	}
+
+	/**
+	 * `create_directory()` writes a deny-all `.htaccess` and an `index.php` guard file.
+	 *
+	 * @covers ::create_directory
+	 * @covers ::write_guard_files
+	 */
+	public function test_create_directory_writes_guard_files(): void {
+
+		$subdir = uniqid( 'guardfiles' );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name'            => 'guard_test',
+				'get_uploads_subdirectory_name' => $subdir,
+			)
+		);
+
+		delete_option( 'bh_wp_private_uploads_guard_test_directory_created' );
+
+		$api = new API( $settings, $this->logger );
+
+		$result = $api->create_directory();
+
+		$upload = wp_upload_dir();
+		$dir    = $upload['basedir'] . '/' . $subdir;
+
+		$this->assertTrue( $result->created );
+		$this->assertFileExists( "{$dir}/.htaccess" );
+		$this->assertFileExists( "{$dir}/index.php" );
+		$this->assertStringContainsString( 'Require all denied', (string) file_get_contents( "{$dir}/.htaccess" ) );
+	}
+
+	/**
+	 * A second `create_directory()` call is throttled: it does no filesystem work (a deleted guard file is
+	 * not recreated).
+	 *
+	 * @covers ::create_directory
+	 */
+	public function test_create_directory_second_call_is_a_no_op(): void {
+
+		$subdir = uniqid( 'guardnoop' );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name'            => 'guard_noop_test',
+				'get_uploads_subdirectory_name' => $subdir,
+			)
+		);
+
+		delete_option( 'bh_wp_private_uploads_guard_noop_test_directory_created' );
+
+		$api = new API( $settings, $this->logger );
+
+		$first = $api->create_directory();
+		$this->assertTrue( $first->created );
+
+		$upload = wp_upload_dir();
+		$dir    = $upload['basedir'] . '/' . $subdir;
+
+		// Remove a guard file; a throttled second call must not touch the filesystem to recreate it.
+		unlink( "{$dir}/.htaccess" );
+
+		$second = $api->create_directory();
+
+		$this->assertFalse( $second->created );
+		$this->assertFileDoesNotExist( "{$dir}/.htaccess" );
+	}
+
+	/**
+	 * Uploading via `move_file_to_private_uploads()` creates the private directory (and guard files) when
+	 * it does not yet exist, so cron / WP-CLI uploads work even if `init`-time creation was skipped.
+	 *
+	 * @covers ::move_file_to_private_uploads
+	 * @covers ::create_directory
+	 */
+	public function test_move_file_creates_directory_when_missing(): void {
+
+		$subdir = uniqid( 'movecreatesdir' );
+
+		$api = $this->get_api_with_post_type( $subdir );
+
+		delete_option( 'bh_wp_private_uploads_api_test_private_directory_created' );
+
+		wp_set_current_user( 1 );
+
+		$upload = wp_upload_dir();
+		$dir    = $upload['basedir'] . '/' . $subdir;
+
+		$this->assertDirectoryDoesNotExist( $dir );
+
+		$tmp_file = $this->copy_fixture_to_tmp_file( 'sample.pdf' );
+
+		$api->move_file_to_private_uploads( $tmp_file, 'sample.pdf' );
+
+		$this->assertDirectoryExists( $dir );
+		$this->assertFileExists( "{$dir}/.htaccess" );
 	}
 }

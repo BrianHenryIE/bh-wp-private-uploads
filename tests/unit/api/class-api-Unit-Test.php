@@ -184,6 +184,20 @@ class API_Unit_Test extends Unit_Testcase {
 		assert( false !== $tmp_file );
 		file_put_contents( $tmp_file, 'file contents' );
 
+		// `move_file_to_private_uploads()` lazily calls `create_directory()`; the stored option matching the
+		// signature makes it a no-op. `|g1` mirrors API::GUARD_FILES_VERSION.
+		WP_Mock::userFunction( 'wp_upload_dir' )
+				->with( null, false )
+				->andReturn(
+					array(
+						'basedir' => '/path/to/wp-content/uploads',
+						'baseurl' => 'https://example.org/wp-content/uploads',
+					)
+				);
+		WP_Mock::userFunction( 'get_option' )
+				->with( 'bh_wp_private_uploads_the_post_type_name_directory_created' )
+				->andReturn( '/path/to/wp-content/uploads/the-uploads-subdirectory|g1' );
+
 		WP_Mock::userFunction( 'sanitize_file_name' )
 				->once()
 				->with( 'sample.pdf' )
@@ -350,6 +364,8 @@ class API_Unit_Test extends Unit_Testcase {
 
 		mkdir( $expected_dir, 0777, true );
 		$this->mock_wp_upload_dir( $basedir );
+		WP_Mock::userFunction( 'get_option' )->andReturnFalse();
+		WP_Mock::userFunction( 'update_option' )->andReturnTrue();
 
 		$result = $sut->create_directory();
 
@@ -357,6 +373,12 @@ class API_Unit_Test extends Unit_Testcase {
 		$this->assertFalse( $result->created );
 		$this->assertSame( 'Already exists', $result->message );
 
+		// The guard files should have been written into the existing directory.
+		$this->assertFileExists( $expected_dir . '/.htaccess' );
+		$this->assertFileExists( $expected_dir . '/index.php' );
+
+		unlink( $expected_dir . '/.htaccess' );
+		unlink( $expected_dir . '/index.php' );
 		rmdir( $expected_dir );
 	}
 
@@ -380,6 +402,8 @@ class API_Unit_Test extends Unit_Testcase {
 		$expected_dir = $basedir . '/the-private-directory';
 
 		$this->mock_wp_upload_dir( $basedir );
+		WP_Mock::userFunction( 'get_option' )->andReturnFalse();
+		WP_Mock::userFunction( 'update_option' )->andReturnTrue();
 
 		WP_Mock::userFunction( 'wp_mkdir_p' )
 				->once()
@@ -412,6 +436,7 @@ class API_Unit_Test extends Unit_Testcase {
 		$basedir = sys_get_temp_dir() . '/' . uniqid( 'uploads' );
 
 		$this->mock_wp_upload_dir( $basedir );
+		WP_Mock::userFunction( 'get_option' )->andReturnFalse();
 
 		WP_Mock::userFunction( 'wp_mkdir_p' )
 				->once()

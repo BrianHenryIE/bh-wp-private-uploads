@@ -61,10 +61,49 @@ class WP_Rewrite {
 		/** @var \WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;
 
+		$rule_already_present = ( $wp_rewrite->non_wp_rules[ $regex ] ?? null ) === $query;
+
 		$wp_rewrite->add_external_rule( $regex, $query );
 
-		// TODO: Check is the rule saved or added each time? If it is saved, log this info message the first time it is saved.
+		// `add_external_rule()` only updates the in-memory rules; without a flush the rule is never written
+		// to `.htaccess`, so the file-level protection only takes effect if the user re-saves permalinks.
+		// Schedule a one-time flush (guarded by an option) the first time this rule is added.
+		if ( ! $rule_already_present ) {
+			$this->maybe_flush_rewrite_rules( $regex );
+		}
+	}
 
-		// TODO: Also delete the transient if this is the first time the rule is added.
+	/**
+	 * The `wp_options` name recording that the rewrite rule has been flushed to `.htaccess`.
+	 */
+	protected function get_rewrite_flushed_option_name(): string {
+		return sprintf(
+			'bh_wp_private_uploads_%s_rewrite_flushed',
+			$this->settings->get_post_type_name()
+		);
+	}
+
+	/**
+	 * Flush rewrite rules once (on `shutdown`, after all rules are registered) so the external rule is
+	 * written to `.htaccess`. Guarded by an option keyed on the rule, so it never runs on every request.
+	 *
+	 * @param string $regex The external rewrite rule regex just added.
+	 */
+	protected function maybe_flush_rewrite_rules( string $regex ): void {
+
+		$option_name = $this->get_rewrite_flushed_option_name();
+
+		if ( get_option( $option_name ) === $regex ) {
+			return;
+		}
+
+		add_action(
+			'shutdown',
+			function () use ( $option_name, $regex ): void {
+				flush_rewrite_rules();
+				update_option( $option_name, $regex, true );
+				$this->logger->info( 'Flushed rewrite rules to write the private uploads .htaccess rule.' );
+			}
+		);
 	}
 }

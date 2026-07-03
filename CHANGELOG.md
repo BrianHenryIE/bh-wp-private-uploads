@@ -10,6 +10,8 @@
 * The private uploads directory path/URL and the rewrite rule are now derived from `wp_upload_dir()` instead of hard-coded `WP_CONTENT_DIR`/`WP_CONTENT_URL`, fixing directory creation, the public-URL check, and the rewrite rule on multisite (per-site upload directories) and relocated-uploads installs.
 * `Serve_Private_File` fixes: the ETag `If-None-Match` comparison now strips surrounding quotes and an optional `W/` weak prefix (the 304 branch previously never fired); logged-out visitors are redirected to wp-login instead of receiving a bare 403; `Cache-Control: private, max-age=3600` and `Content-Length` headers are sent. The decision logic was extracted into a testable pure method (first tests for this class).
 
+* Defence-in-depth for the private directory: `create_directory()` now writes a deny-all `.htaccess` and an empty `index.php` guard file, so the directory is protected even before/without a rewrite flush and on servers that don't honour rewrites. `init`-time directory work is throttled via an option (and run lazily from `move_file_to_private_uploads()`), and the rewrite rule is now flushed to `.htaccess` once when first added.
+
 ### Changed
 
 * `Serve_Private_File` now grants access with the `manage_options` capability rather than the `administrator` role name, so multisite super admins without an explicit site role are covered (potential behavior change for sites relying on the exact role check).
