@@ -344,6 +344,29 @@ class API implements API_Interface {
 	}
 
 	/**
+	 * The absolute filesystem path to the private uploads directory.
+	 *
+	 * Derived from `wp_upload_dir()` rather than `WP_CONTENT_DIR` so it is correct on multisite
+	 * (per-site `sites/{blog_id}` directories) and relocated-uploads (`UPLOADS` constant) installs, and
+	 * matches where {@see \BrianHenryIE\WP_Private_Uploads\Frontend\Serve_Private_File::send_private_file()}
+	 * reads files from.
+	 *
+	 * `wp_upload_dir( null, false )` avoids the directory-creation side effect where only the path is needed.
+	 */
+	protected function get_private_uploads_directory_path(): string {
+		$upload_dir = wp_upload_dir( null, false );
+		return $upload_dir['basedir'] . '/' . $this->settings->get_uploads_subdirectory_name();
+	}
+
+	/**
+	 * The URL of the private uploads directory. Companion to {@see self::get_private_uploads_directory_path()}.
+	 */
+	protected function get_private_uploads_directory_url(): string {
+		$upload_dir = wp_upload_dir( null, false );
+		return $upload_dir['baseurl'] . '/' . $this->settings->get_uploads_subdirectory_name();
+	}
+
+	/**
 	 * TODO: does this maybe happen automatically when the first file is moved?
 	 *
 	 * @hooked init
@@ -355,7 +378,7 @@ class API implements API_Interface {
 	 * @throws Private_Uploads_Exception When PHP fails to create the missing directory.
 	 */
 	public function create_directory(): Create_Directory_Result {
-		$dir = constant( 'WP_CONTENT_DIR' ) . '/uploads/' . $this->settings->get_uploads_subdirectory_name();
+		$dir = $this->get_private_uploads_directory_path();
 
 		if ( file_exists( $dir ) ) {
 			return new Create_Directory_Result(
@@ -452,11 +475,7 @@ class API implements API_Interface {
 	 */
 	public function check_and_update_is_url_private(): ?Is_Private_Result {
 
-		$dir = sprintf(
-			'%s/uploads/%s/',
-			constant( 'WP_CONTENT_DIR' ),
-			$this->settings->get_uploads_subdirectory_name()
-		);
+		$dir = $this->get_private_uploads_directory_path() . '/';
 
 		// If the folder does not exist, it does not exist to be private or public, so return null.
 		if ( ! is_dir( $dir ) ) {
@@ -465,11 +484,7 @@ class API implements API_Interface {
 		}
 
 		// NB: Browsing to the folder could request_response in 403 while browsing to a particular filename might not.
-		$url = sprintf(
-			'%s/uploads/%s/',
-			constant( 'WP_CONTENT_URL' ),
-			$this->settings->get_uploads_subdirectory_name()
-		);
+		$url = $this->get_private_uploads_directory_url() . '/';
 
 		// Get the directory listing, except for `.` and `..`.
 		$files = array_diff( scandir( $dir ) ?: array(), array( '..', '.' ) );

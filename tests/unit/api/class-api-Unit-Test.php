@@ -310,21 +310,21 @@ class API_Unit_Test extends Unit_Testcase {
 	}
 
 	/**
-	 * Point the `WP_CONTENT_DIR` constant at a test-controlled directory.
+	 * Mock `wp_upload_dir( null, false )` to report a test-controlled uploads `basedir`, so the
+	 * private-directory path is built from `wp_upload_dir()` (multisite / relocated-uploads safe)
+	 * rather than a hard-coded constant.
 	 *
-	 * `constant` is in patchwork.json's redefinable-internals (and is why the production code uses
-	 * `constant( 'WP_CONTENT_DIR' )` rather than the bare constant). Restored by tearDown's
-	 * `\Patchwork\restoreAll()`.
-	 *
-	 * @param string $wp_content_dir The directory to use as WP_CONTENT_DIR.
+	 * @param string $basedir The directory to use as the uploads `basedir`.
 	 */
-	protected function redefine_wp_content_dir( string $wp_content_dir ): void {
-		\Patchwork\redefine(
-			'constant',
-			function ( string $name ) use ( $wp_content_dir ) {
-				return 'WP_CONTENT_DIR' === $name ? $wp_content_dir : \Patchwork\relay();
-			}
-		);
+	protected function mock_wp_upload_dir( string $basedir ): void {
+		WP_Mock::userFunction( 'wp_upload_dir' )
+				->with( null, false )
+				->andReturn(
+					array(
+						'basedir' => $basedir,
+						'baseurl' => 'https://example.org/wp-content/uploads',
+					)
+				);
 	}
 
 	/**
@@ -332,6 +332,7 @@ class API_Unit_Test extends Unit_Testcase {
 	 * mocked, so calling it would be a fatal undefined-function error).
 	 *
 	 * @covers ::create_directory
+	 * @covers ::get_private_uploads_directory_path
 	 */
 	public function test_create_directory_already_exists(): void {
 
@@ -344,11 +345,11 @@ class API_Unit_Test extends Unit_Testcase {
 
 		$sut = new API( $settings, $this->logger );
 
-		$wp_content_dir = sys_get_temp_dir() . '/' . uniqid( 'wp-content' );
-		$expected_dir   = $wp_content_dir . '/uploads/the-private-directory';
+		$basedir      = sys_get_temp_dir() . '/' . uniqid( 'uploads' );
+		$expected_dir = $basedir . '/the-private-directory';
 
 		mkdir( $expected_dir, 0777, true );
-		$this->redefine_wp_content_dir( $wp_content_dir );
+		$this->mock_wp_upload_dir( $basedir );
 
 		$result = $sut->create_directory();
 
@@ -361,6 +362,7 @@ class API_Unit_Test extends Unit_Testcase {
 
 	/**
 	 * @covers ::create_directory
+	 * @covers ::get_private_uploads_directory_path
 	 */
 	public function test_create_directory_creates(): void {
 
@@ -374,10 +376,10 @@ class API_Unit_Test extends Unit_Testcase {
 		$sut = new API( $settings, $this->logger );
 
 		// Never created on disk, so the `file_exists()` check is false.
-		$wp_content_dir = sys_get_temp_dir() . '/' . uniqid( 'wp-content' );
-		$expected_dir   = $wp_content_dir . '/uploads/the-private-directory';
+		$basedir      = sys_get_temp_dir() . '/' . uniqid( 'uploads' );
+		$expected_dir = $basedir . '/the-private-directory';
 
-		$this->redefine_wp_content_dir( $wp_content_dir );
+		$this->mock_wp_upload_dir( $basedir );
 
 		WP_Mock::userFunction( 'wp_mkdir_p' )
 				->once()
@@ -407,9 +409,9 @@ class API_Unit_Test extends Unit_Testcase {
 
 		$sut = new API( $settings, $this->logger );
 
-		$wp_content_dir = sys_get_temp_dir() . '/' . uniqid( 'wp-content' );
+		$basedir = sys_get_temp_dir() . '/' . uniqid( 'uploads' );
 
-		$this->redefine_wp_content_dir( $wp_content_dir );
+		$this->mock_wp_upload_dir( $basedir );
 
 		WP_Mock::userFunction( 'wp_mkdir_p' )
 				->once()

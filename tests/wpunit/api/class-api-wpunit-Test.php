@@ -592,4 +592,101 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		unset( $_POST['action'] );
 	}
+
+	/**
+	 * `create_directory()` must build the path from `wp_upload_dir()`, so it is created inside the
+	 * relocated uploads directory on multisite / relocated-uploads installs (not `WP_CONTENT_DIR/uploads`).
+	 *
+	 * @covers ::create_directory
+	 * @covers ::get_private_uploads_directory_path
+	 */
+	public function test_create_directory_uses_relocated_upload_dir(): void {
+
+		$subdir            = uniqid( 'relocatedcreate' );
+		$relocated_basedir = sys_get_temp_dir() . '/' . uniqid( 'relocated-uploads' );
+		mkdir( $relocated_basedir, 0777, true );
+
+		$relocate = function ( array $uploads ) use ( $relocated_basedir ): array {
+			$uploads['basedir'] = $relocated_basedir;
+			$uploads['baseurl'] = 'https://example.org/relocated-uploads';
+			return $uploads;
+		};
+		add_filter( 'upload_dir', $relocate );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => $subdir,
+			)
+		);
+
+		$api = new API( $settings, $this->logger );
+
+		$result = $api->create_directory();
+
+		remove_filter( 'upload_dir', $relocate );
+
+		$this->assertTrue( $result->created );
+		$this->assertSame( "{$relocated_basedir}/{$subdir}", $result->dir );
+		$this->assertDirectoryExists( "{$relocated_basedir}/{$subdir}" );
+
+		rmdir( "{$relocated_basedir}/{$subdir}" );
+		rmdir( $relocated_basedir );
+	}
+
+	/**
+	 * `check_and_update_is_url_private()` must probe the URL built from `wp_upload_dir()`, so it targets
+	 * the relocated uploads URL rather than `WP_CONTENT_URL/uploads`.
+	 *
+	 * @covers ::check_and_update_is_url_private
+	 * @covers ::get_private_uploads_directory_path
+	 * @covers ::get_private_uploads_directory_url
+	 */
+	public function test_check_url_uses_relocated_upload_dir_url(): void {
+
+		$subdir            = uniqid( 'relocatedcheck' );
+		$relocated_basedir = sys_get_temp_dir() . '/' . uniqid( 'relocated-uploads' );
+		$relocated_baseurl = 'https://relocated.example.org/files';
+		mkdir( "{$relocated_basedir}/{$subdir}", 0777, true );
+		file_put_contents( "{$relocated_basedir}/{$subdir}/index.php", '<?php' );
+
+		$relocate = function ( array $uploads ) use ( $relocated_basedir, $relocated_baseurl ): array {
+			$uploads['basedir'] = $relocated_basedir;
+			$uploads['baseurl'] = $relocated_baseurl;
+			return $uploads;
+		};
+		add_filter( 'upload_dir', $relocate );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => $subdir,
+				'get_plugin_slug'               => 'relocated-test',
+			)
+		);
+
+		$api = new API( $settings, $this->logger );
+
+		$requested_url = null;
+		$capture_url   = function ( $preempt, array $args, string $url ) use ( &$requested_url ) {
+			$requested_url = $url;
+			return array(
+				'body'     => '',
+				'response' => array( 'code' => 403 ),
+			);
+		};
+		add_filter( 'pre_http_request', $capture_url, 10, 3 );
+
+		$result = $api->check_and_update_is_url_private();
+
+		remove_filter( 'pre_http_request', $capture_url, 10 );
+		remove_filter( 'upload_dir', $relocate );
+
+		$this->assertNotNull( $result );
+		$this->assertStringStartsWith( "{$relocated_baseurl}/{$subdir}/", (string) $requested_url );
+
+		unlink( "{$relocated_basedir}/{$subdir}/index.php" );
+		rmdir( "{$relocated_basedir}/{$subdir}" );
+		rmdir( $relocated_basedir );
+	}
 }
