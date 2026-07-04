@@ -25,7 +25,7 @@
             "phpstan/extension-installer": true
         },
         "platform": {
-            "php": "8.0"
+            "php": "8.1"
         }
     },
     "autoload": {
@@ -61,7 +61,7 @@
         }
     },
     "require": {
-        "php": ">=8.0",
+        "php": ">=8.1",
         "ext-fileinfo": "*",
         "psr/log": "^1 || ^2 || ^3",
         "wptrt/admin-notices": "^1.0"
@@ -71,7 +71,7 @@
         "10up/wp_mock": "^1.0",
         "alleyinteractive/wordpress-autoloader": "^1.1",
         "antecedent/patchwork": "^2.1",
-        "behat/behat": "^3.15.0",
+        "behat/behat": "^3.29",
         "brianhenryie/color-logger": "*",
         "dealerdirect/phpcodesniffer-composer-installer": "*",
         "dvdoug/behat-code-coverage": "^5.3",
