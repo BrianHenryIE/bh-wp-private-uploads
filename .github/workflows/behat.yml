@@ -36,7 +36,7 @@ jobs:
         uses: shivammathur/setup-php@2.37.2
         with:
           php-version: ${{ matrix.php }}
-          tools: composer
+          tools: composer, wp-cli
           extensions: zip, sqlite3
 
       - name: Install PHP dependencies
