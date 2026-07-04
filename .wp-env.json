@@ -23,6 +23,6 @@
     "wp-content/uploads/development-plugin/includes": "./includes",
     "wp-content/uploads/development-plugin/vendor": "./vendor"
   },
-  "phpVersion": "8.0",
+  "phpVersion": "8.1",
   "testsEnvironment": false
 }
