@@ -68,6 +68,15 @@ jobs:
           # Set up permalinks for REST API
           npx wp-env run cli -- wp rewrite structure '/%year%/%monthnum%/%postname%/' --hard
 
+      - name: Make the uploads directory writable by the web server
+        # The CLI commands above run as root and eagerly create
+        # wp-content/uploads/private-media (on `init`) owned by root, mode 0755.
+        # Uploads run as the web-server user (www-data), which then cannot create
+        # the dated sub-directory inside it. macOS Docker Desktop hides this
+        # because it does not enforce bind-mount ownership; the Linux CI runner
+        # does, so grant write access before the tests upload any files.
+        run: npx wp-env run cli -- chmod -R 0777 wp-content/uploads
+
       - name: Run Playwright tests
         run: npm run test:e2e -- --reporter=github
         env:
