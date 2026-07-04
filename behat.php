@@ -10,12 +10,19 @@ use Behat\Config\Profile;
 use Behat\Config\Suite;
 use DVDoug\Behat\CodeCoverage\Extension;
 
+/**
+ * @see \WP_CLI\Tests\Context\FeatureContext::get_vendor_dir()
+ * @see \BrianHenryIE\WP_Private_Uploads\FeatureContext::prepare()
+ */
 require_once __DIR__ . '/vendor-wp-cli/autoload.php';
+
+putenv('WP_CLI_BIN_DIR=' . __DIR__ . 'vendor-wp-cli/wp-cli/wp-cli/bin');
 
 define( 'WP_CLI_ROOT', __DIR__ . '/vendor-wp-cli/wp-cli/wp-cli' );
 
 require_once WP_CLI_ROOT . '/php/utils.php';
-$utils_path = WP_CLI_ROOT . '/php/utils.php';
+require_once WP_CLI_ROOT . '/php/WP_CLI/Process.php';
+require_once WP_CLI_ROOT . '/php/WP_CLI/ProcessRun.php';
 
 return ( new Config() )
 	->withProfile(

@@ -7,14 +7,26 @@
 
 namespace BrianHenryIE\WP_Private_Uploads;
 
+use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use RuntimeException;
-use WP_CLI;
 
 /**
  * Extends WP-CLI's FeatureContext to add custom step definitions for testing
  * the private uploads CLI commands.
  */
 class FeatureContext extends \WP_CLI\Tests\Context\FeatureContext {
+
+	/**
+	 * @BeforeSuite
+	 *
+	 * @see \WP_CLI\Tests\Context\FeatureContext::prepare()
+	 * @see \WP_CLI\Tests\Context\FeatureContext::bootstrap_feature_context()
+	 */
+	public static function prepare( BeforeSuiteScope $scope ): void {
+
+		// No-op to stop the superclass from running.
+		// If it does it fails to determine the whack vendor directory we're using here.
+	}
 
 	/**
 	 * Install a plugin by creating symlinks to the project directories.
