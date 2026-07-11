@@ -418,9 +418,9 @@ class API_Unit_Test extends Unit_Testcase {
 
 		$sut = new API( $settings, $this->logger );
 
-		$wp_content_dir = sys_get_temp_dir() . '/' . uniqid( 'wp-content' );
-		$expected_dir   = $wp_content_dir . '/uploads/the-private-directory';
-		$basedir = sys_get_temp_dir() . '/' . uniqid( 'uploads' );
+		// Never created on disk, so `wp_mkdir_p()` is reached, and mocked to fail.
+		$basedir      = sys_get_temp_dir() . '/' . uniqid( 'uploads' );
+		$expected_dir = $basedir . '/the-private-directory';
 
 		$this->mock_wp_upload_dir( $basedir );
 
@@ -430,6 +430,7 @@ class API_Unit_Test extends Unit_Testcase {
 
 		WP_Mock::userFunction( 'wp_mkdir_p' )
 				->once()
+				->with( $expected_dir )
 				->andReturnFalse();
 
 		$result = $sut->create_directory();
@@ -448,6 +449,7 @@ class API_Unit_Test extends Unit_Testcase {
 	 * `wp_mkdir_p()` is not mocked, so reaching it would be a fatal undefined-function error.
 	 *
 	 * @covers ::create_directory
+	 * @covers ::get_private_uploads_directory_path
 	 */
 	public function test_create_directory_skipped_on_frontend_init(): void {
 
@@ -460,10 +462,10 @@ class API_Unit_Test extends Unit_Testcase {
 
 		$sut = new API( $settings, $this->logger );
 
-		$wp_content_dir = sys_get_temp_dir() . '/' . uniqid( 'wp-content' );
-		$expected_dir   = $wp_content_dir . '/uploads/the-private-directory';
+		$basedir      = sys_get_temp_dir() . '/' . uniqid( 'uploads' );
+		$expected_dir = $basedir . '/the-private-directory';
 
-		$this->redefine_wp_content_dir( $wp_content_dir );
+		$this->mock_wp_upload_dir( $basedir );
 
 		WP_Mock::userFunction( 'doing_action' )
 				->with( 'init' )
