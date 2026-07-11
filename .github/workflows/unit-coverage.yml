@@ -59,6 +59,9 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: ${{ matrix.php == env.COVERAGE_PHP_VERSION && 'xdebug' || 'none' }}
+          # Codeception reads its arguments from $argv and refuses to start without this. setup-php
+          # enables it by default on the older versions but not on 8.5+.
+          ini-values: register_argc_argv=On
 
       - name: Update .env.testing config for GitHub Actions
         env:
