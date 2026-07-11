@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a332325e4b11c6af00faececb803bfcd",
+    "content-hash": "38c5a2e811004de696a2b6551185f669",
     "packages": [
         {
             "name": "psr/log",
@@ -2473,6 +2473,122 @@
             "time": "2020-04-16T21:44:57+00:00"
         },
         {
+            "name": "kamazee/pr-filter",
+            "version": "1.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kamazee/pr-filter.git",
+                "reference": "5dc6a743d4cd4cc21452efbc0499383746648547"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kamazee/pr-filter/zipball/5dc6a743d4cd4cc21452efbc0499383746648547",
+                "reference": "5dc6a743d4cd4cc21452efbc0499383746648547",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "mnapoli/silly": "^1.7",
+                "php": "^7.2 || ^8.0",
+                "php-di/php-di": "^6.0 || ^7.1",
+                "ptlis/diff-parser": "^1.0"
+            },
+            "require-dev": {
+                "mikey179/vfsstream": "^1.6",
+                "phpunit/phpunit": "^9.6 || ^10.5 || ^11.5",
+                "squizlabs/php_codesniffer": "^3.2"
+            },
+            "bin": [
+                "bin/prf",
+                "bin/prf.php"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Kamazee\\PrFilter\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Tool for narrowing code quality tools reporting for pull requests",
+            "keywords": [
+                "checkstyle",
+                "diff",
+                "filter",
+                "phan",
+                "phpcs",
+                "pull request"
+            ],
+            "support": {
+                "issues": "https://github.com/kamazee/pr-filter/issues",
+                "source": "https://github.com/kamazee/pr-filter/tree/1.1.1"
+            },
+            "time": "2026-07-04T09:40:46+00:00"
+        },
+        {
+            "name": "laravel/serializable-closure",
+            "version": "v2.0.13",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/serializable-closure.git",
+                "reference": "b566ee0dd251f3c4078bed003a7ce015f5ea6dce"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/serializable-closure/zipball/b566ee0dd251f3c4078bed003a7ce015f5ea6dce",
+                "reference": "b566ee0dd251f3c4078bed003a7ce015f5ea6dce",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+                "nesbot/carbon": "^2.67|^3.0",
+                "pestphp/pest": "^2.36|^3.0|^4.0",
+                "phpstan/phpstan": "^2.0",
+                "symfony/var-dumper": "^6.2.0|^7.0.0|^8.0.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laravel\\SerializableClosure\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                },
+                {
+                    "name": "Nuno Maduro",
+                    "email": "nuno@laravel.com"
+                }
+            ],
+            "description": "Laravel Serializable Closure provides an easy and secure way to serialize closures in PHP.",
+            "keywords": [
+                "closure",
+                "laravel",
+                "serializable"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/serializable-closure/issues",
+                "source": "https://github.com/laravel/serializable-closure"
+            },
+            "time": "2026-04-16T14:03:50+00:00"
+        },
+        {
             "name": "lucatume/wp-browser",
             "version": "4.7.1",
             "source": {
@@ -2574,6 +2690,66 @@
                 }
             ],
             "time": "2026-06-30T10:20:21+00:00"
+        },
+        {
+            "name": "mnapoli/silly",
+            "version": "1.10.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mnapoli/silly.git",
+                "reference": "2f071460967ec2353845d10e38b7eaf4000fb450"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mnapoli/silly/zipball/2f071460967ec2353845d10e38b7eaf4000fb450",
+                "reference": "2f071460967ec2353845d10e38b7eaf4000fb450",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.4",
+                "php-di/invoker": "~2.0",
+                "psr/container": "^1.0|^2.0",
+                "symfony/console": "~3.0|~4.0|~5.0|~6.0|~7.0|~8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3",
+                "mnapoli/phpunit-easymock": "~1.0",
+                "phpunit/phpunit": "^6.4|^7|^8|^9|^10"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Silly\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Silly CLI micro-framework based on Symfony Console",
+            "keywords": [
+                "PSR-11",
+                "cli",
+                "console",
+                "framework",
+                "micro-framework",
+                "silly"
+            ],
+            "support": {
+                "issues": "https://github.com/mnapoli/silly/issues",
+                "source": "https://github.com/mnapoli/silly/tree/1.10.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/mnapoli",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/mnapoli/silly",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-06-29T12:35:24+00:00"
         },
         {
             "name": "mockery/mockery",
@@ -2893,6 +3069,134 @@
                 "source": "https://github.com/phar-io/version/tree/3.2.1"
             },
             "time": "2022-02-21T01:04:05+00:00"
+        },
+        {
+            "name": "php-di/invoker",
+            "version": "2.3.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-DI/Invoker.git",
+                "reference": "3c1ddfdef181431fbc4be83378f6d036d59e81e1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-DI/Invoker/zipball/3c1ddfdef181431fbc4be83378f6d036d59e81e1",
+                "reference": "3c1ddfdef181431fbc4be83378f6d036d59e81e1",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.3",
+                "psr/container": "^1.0|^2.0"
+            },
+            "require-dev": {
+                "athletic/athletic": "~0.1.8",
+                "mnapoli/hard-mode": "~0.3.0",
+                "phpunit/phpunit": "^9.0 || ^10 || ^11 || ^12"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Invoker\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Generic and extensible callable invoker",
+            "homepage": "https://github.com/PHP-DI/Invoker",
+            "keywords": [
+                "callable",
+                "dependency",
+                "dependency-injection",
+                "injection",
+                "invoke",
+                "invoker"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-DI/Invoker/issues",
+                "source": "https://github.com/PHP-DI/Invoker/tree/2.3.7"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/mnapoli",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-08-30T10:22:22+00:00"
+        },
+        {
+            "name": "php-di/php-di",
+            "version": "7.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-DI/PHP-DI.git",
+                "reference": "f88054cc052e40dbe7b383c8817c19442d480352"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-DI/PHP-DI/zipball/f88054cc052e40dbe7b383c8817c19442d480352",
+                "reference": "f88054cc052e40dbe7b383c8817c19442d480352",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/serializable-closure": "^1.0 || ^2.0",
+                "php": ">=8.0",
+                "php-di/invoker": "^2.0",
+                "psr/container": "^1.1 || ^2.0"
+            },
+            "provide": {
+                "psr/container-implementation": "^1.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3",
+                "friendsofphp/proxy-manager-lts": "^1",
+                "mnapoli/phpunit-easymock": "^1.3",
+                "phpunit/phpunit": "^9.6 || ^10 || ^11",
+                "vimeo/psalm": "^5|^6"
+            },
+            "suggest": {
+                "friendsofphp/proxy-manager-lts": "Install it if you want to use lazy injection (version ^1)"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions.php"
+                ],
+                "psr-4": {
+                    "DI\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "The dependency injection container for humans",
+            "homepage": "https://php-di.org/",
+            "keywords": [
+                "PSR-11",
+                "container",
+                "container-interop",
+                "dependency injection",
+                "di",
+                "ioc",
+                "psr11"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-DI/PHP-DI/issues",
+                "source": "https://github.com/PHP-DI/PHP-DI/tree/7.1.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/mnapoli",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/php-di/php-di",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2025-08-16T11:10:48+00:00"
         },
         {
             "name": "php-stubs/wordpress-stubs",
@@ -4207,6 +4511,57 @@
                 "source": "https://github.com/bobthecow/psysh/tree/v0.12.24"
             },
             "time": "2026-06-29T15:41:09+00:00"
+        },
+        {
+            "name": "ptlis/diff-parser",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ptlis/diff-parser.git",
+                "reference": "07189a105800d6074f3189ce8381944d511fcb26"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ptlis/diff-parser/zipball/07189a105800d6074f3189ce8381944d511fcb26",
+                "reference": "07189a105800d6074f3189ce8381944d511fcb26",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.6",
+                "phpunit/phpunit": "^9.5.0",
+                "squizlabs/php_codesniffer": "^3.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ptlis\\DiffParser\\": "src/",
+                    "ptlis\\DiffParser\\Test\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "brian ridley",
+                    "email": "ptlis@ptlis.net"
+                }
+            ],
+            "description": "A parser for unified diff files, returning a hydrated object graph.",
+            "keywords": [
+                "diff",
+                "parser",
+                "unified-diff"
+            ],
+            "support": {
+                "issues": "https://github.com/ptlis/diff-parser/issues",
+                "source": "https://github.com/ptlis/diff-parser/tree/1.1.0"
+            },
+            "time": "2022-05-22T21:06:50+00:00"
         },
         {
             "name": "ralouphie/getallheaders",

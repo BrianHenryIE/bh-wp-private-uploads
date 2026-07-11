@@ -41,6 +41,10 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 	}
 
 	/**
+	 * The `init` callback is a closure wrapping `API::create_directory()`, so its return value is
+	 * discarded. WP_Mock reduces every closure to the same identity (`Hook::safe_offset()`), so this can
+	 * only assert that a closure was hooked, not which method it calls.
+	 *
 	 * @covers ::__construct
 	 * @covers ::define_api_hooks
 	 */
@@ -50,7 +54,7 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 
 		\WP_Mock::expectActionAdded(
 			'init',
-			array( \WP_Mock\Functions::type( BH_WP_Private_Uploads_Hooks::class ), 'create_private_uploads_directory' )
+			\WP_Mock\Functions::type( \Closure::class )
 		);
 
 		$logger   = $this->logger;
