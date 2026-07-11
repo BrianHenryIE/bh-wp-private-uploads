@@ -106,10 +106,11 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		@mkdir( $dir, 0777, true );
 
-		file_put_contents( "{$dir}index.php", '<?php', 0777 );
+		// A real uploaded file: the check deliberately skips the `index.php` guard file and dotfiles.
+		file_put_contents( "{$dir}sample.pdf", '%PDF-1.4', 0777 );
 
 		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
-		assert( file_exists( "{$dir}index.php" ) );
+		assert( file_exists( "{$dir}sample.pdf" ) );
 
 		$logger = $this->logger;
 		$api    = new API( $settings, $logger );
@@ -123,7 +124,7 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		$this->assertTrue( $logger->hasInfoRecords() );
 
-		unlink( $dir . 'index.php' );
+		unlink( $dir . 'sample.pdf' );
 		rmdir( $dir );
 	}
 
@@ -150,10 +151,11 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		@mkdir( $dir, 0777, true );
 
-		file_put_contents( "{$dir}index.php", '<?php', 0777 );
+		// A real uploaded file: the check deliberately skips the `index.php` guard file and dotfiles.
+		file_put_contents( "{$dir}sample.pdf", '%PDF-1.4', 0777 );
 
 		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
-		assert( file_exists( "{$dir}index.php" ) );
+		assert( file_exists( "{$dir}sample.pdf" ) );
 
 		$logger = $this->logger;
 		$api    = new API( $settings, $logger );
@@ -198,10 +200,11 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		@mkdir( $dir, 0777, true );
 
-		file_put_contents( "{$dir}index.php", '<?php', 0777 );
+		// A real uploaded file: the check deliberately skips the `index.php` guard file and dotfiles.
+		file_put_contents( "{$dir}sample.pdf", '%PDF-1.4', 0777 );
 
 		assert( is_dir( WP_CONTENT_DIR . '/uploads/' . $test_uploads_directory_name ) );
-		assert( file_exists( "{$dir}index.php" ) );
+		assert( file_exists( "{$dir}sample.pdf" ) );
 
 		$logger = $this->logger;
 		$api    = new API( $settings, $logger );
@@ -630,9 +633,8 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$this->assertSame( "{$relocated_basedir}/{$subdir}", $result->dir );
 		$this->assertDirectoryExists( "{$relocated_basedir}/{$subdir}" );
 
-		// create_directory() also writes guard files; remove them before rmdir.
+		// create_directory() also writes the index.php guard file; remove it before rmdir.
 		array_map( 'unlink', glob( "{$relocated_basedir}/{$subdir}/*" ) ?: array() );
-		array_map( 'unlink', glob( "{$relocated_basedir}/{$subdir}/.htaccess" ) ?: array() );
 		rmdir( "{$relocated_basedir}/{$subdir}" );
 		rmdir( $relocated_basedir );
 	}
@@ -651,7 +653,7 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$relocated_basedir = sys_get_temp_dir() . '/' . uniqid( 'relocated-uploads' );
 		$relocated_baseurl = 'https://relocated.example.org/files';
 		mkdir( "{$relocated_basedir}/{$subdir}", 0777, true );
-		file_put_contents( "{$relocated_basedir}/{$subdir}/index.php", '<?php' );
+		file_put_contents( "{$relocated_basedir}/{$subdir}/sample.pdf", '%PDF-1.4' );
 
 		$relocate = function ( array $uploads ) use ( $relocated_basedir, $relocated_baseurl ): array {
 			$uploads['basedir'] = $relocated_basedir;
@@ -688,13 +690,17 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$this->assertNotNull( $result );
 		$this->assertStringStartsWith( "{$relocated_baseurl}/{$subdir}/", (string) $requested_url );
 
-		unlink( "{$relocated_basedir}/{$subdir}/index.php" );
+		unlink( "{$relocated_basedir}/{$subdir}/sample.pdf" );
 		rmdir( "{$relocated_basedir}/{$subdir}" );
 		rmdir( $relocated_basedir );
 	}
 
 	/**
-	 * `create_directory()` writes a deny-all `.htaccess` and an `index.php` guard file.
+	 * `create_directory()` writes an `index.php` guard file, to prevent directory listing.
+	 *
+	 * It must NOT write a deny-all `.htaccess`: Apache evaluates `Require all denied` in its auth phase,
+	 * which runs before the fixup phase where the site-root `.htaccess` rewrite rule executes, so it would
+	 * 403 the request before `Serve_Private_File` could serve the file to an authorised user.
 	 *
 	 * @covers ::create_directory
 	 * @covers ::write_guard_files
@@ -721,11 +727,9 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$dir    = $upload['basedir'] . '/' . $subdir;
 
 		$this->assertTrue( $result->created );
-		$this->assertFileExists( "{$dir}/.htaccess" );
 		$this->assertFileExists( "{$dir}/index.php" );
-		$this->assertStringContainsString( 'Require all denied', (string) file_get_contents( "{$dir}/.htaccess" ) );
+		$this->assertFileDoesNotExist( "{$dir}/.htaccess" );
 
-		unlink( "{$dir}/.htaccess" );
 		unlink( "{$dir}/index.php" );
 		rmdir( $dir );
 	}
@@ -758,15 +762,14 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$upload = wp_upload_dir();
 		$dir    = $upload['basedir'] . '/' . $subdir;
 
-		// Remove a guard file; a throttled second call must not touch the filesystem to recreate it.
-		unlink( "{$dir}/.htaccess" );
+		// Remove the guard file; a throttled second call must not touch the filesystem to recreate it.
+		unlink( "{$dir}/index.php" );
 
 		$second = $api->create_directory();
 
 		$this->assertFalse( $second->created );
-		$this->assertFileDoesNotExist( "{$dir}/.htaccess" );
+		$this->assertFileDoesNotExist( "{$dir}/index.php" );
 
-		unlink( "{$dir}/index.php" );
 		rmdir( $dir );
 	}
 
@@ -797,16 +800,128 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$api->move_file_to_private_uploads( $tmp_file, 'sample.pdf' );
 
 		$this->assertDirectoryExists( $dir );
-		$this->assertFileExists( "{$dir}/.htaccess" );
+		$this->assertFileExists( "{$dir}/index.php" );
 
-		// Clean up the uploaded file (in a yyyy/mm subdir), the guard files, and the directory.
+		// Clean up the uploaded file (in a yyyy/mm subdir), the guard file, and the directory.
 		array_map( 'unlink', glob( "{$dir}/*/*/*" ) ?: array() );
 		array_map( 'rmdir', glob( "{$dir}/*/*", GLOB_ONLYDIR ) ?: array() );
 		array_map( 'rmdir', glob( "{$dir}/*", GLOB_ONLYDIR ) ?: array() );
 		array_map( 'unlink', glob( "{$dir}/*" ) ?: array() );
-		if ( file_exists( "{$dir}/.htaccess" ) ) {
-			unlink( "{$dir}/.htaccess" );
-		}
+		rmdir( $dir );
+	}
+
+	/**
+	 * The public-URL check must probe a real uploaded file, descending into the `yyyy/mm` subdirectory.
+	 *
+	 * Every other candidate returns 403 on a correctly-hardened-but-still-public server – a dotfile
+	 * (Apache ships `<FilesMatch "^\.ht">` at server level), the `index.php` guard file (hosts commonly
+	 * deny PHP execution inside uploads), and a directory URL (autoindex is off by default). Probing any
+	 * of them would report "private" however exposed the directory is, permanently silencing the notice.
+	 *
+	 * @covers ::check_and_update_is_url_private
+	 * @covers ::find_file_to_probe
+	 */
+	public function test_is_url_private_check_probes_a_real_uploaded_file(): void {
+
+		$subdir = uniqid( 'probetarget' );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name'            => 'probe_test',
+				'get_plugin_slug'               => 'probe-test',
+				'get_uploads_subdirectory_name' => $subdir,
+			)
+		);
+
+		delete_option( 'bh_wp_private_uploads_probe_test_directory_created' );
+
+		$api = new API( $settings, $this->logger );
+
+		$api->create_directory();
+
+		$upload = wp_upload_dir();
+		$dir    = $upload['basedir'] . '/' . $subdir;
+
+		// `scandir()` sorts these ahead of the uploaded file: `.htaccess`, then `2026/`, then `index.php`.
+		file_put_contents( "{$dir}/.htaccess", 'Require all denied' );
+		mkdir( "{$dir}/2026/07", 0777, true );
+		file_put_contents( "{$dir}/2026/07/sample.pdf", '%PDF-1.4' );
+
+		$requested_url = null;
+		$capture_url   = function ( $preempt, array $args, string $url ) use ( &$requested_url ) {
+			$requested_url = $url;
+			return array(
+				'body'     => '',
+				'response' => array( 'code' => 200 ),
+			);
+		};
+		add_filter( 'pre_http_request', $capture_url, 10, 3 );
+
+		$result = $api->check_and_update_is_url_private();
+
+		remove_filter( 'pre_http_request', $capture_url, 10 );
+
+		$this->assertStringEndsWith( "/{$subdir}/2026/07/sample.pdf", (string) $requested_url );
+
+		// A 200 on a real file means the directory is public – the notice must fire.
+		$this->assertNotNull( $result );
+		$this->assertFalse( $result->is_private );
+
+		unlink( "{$dir}/.htaccess" );
+		unlink( "{$dir}/2026/07/sample.pdf" );
+		rmdir( "{$dir}/2026/07" );
+		rmdir( "{$dir}/2026" );
+		unlink( "{$dir}/index.php" );
+		rmdir( $dir );
+	}
+
+	/**
+	 * A directory holding only the guard file has no uploaded files to protect, so there is nothing to
+	 * check and no notice to show.
+	 *
+	 * @covers ::check_and_update_is_url_private
+	 * @covers ::find_file_to_probe
+	 */
+	public function test_is_url_private_check_returns_null_when_no_files_uploaded(): void {
+
+		$subdir = uniqid( 'probeempty' );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name'            => 'probe_empty_test',
+				'get_plugin_slug'               => 'probe-empty-test',
+				'get_uploads_subdirectory_name' => $subdir,
+			)
+		);
+
+		delete_option( 'bh_wp_private_uploads_probe_empty_test_directory_created' );
+
+		$api = new API( $settings, $this->logger );
+
+		$api->create_directory();
+
+		$upload = wp_upload_dir();
+		$dir    = $upload['basedir'] . '/' . $subdir;
+
+		$this->assertFileExists( "{$dir}/index.php" );
+
+		$http_requested = false;
+		$fail_on_http   = function ( $preempt ) use ( &$http_requested ) {
+			$http_requested = true;
+			return $preempt;
+		};
+		add_filter( 'pre_http_request', $fail_on_http );
+
+		$result = $api->check_and_update_is_url_private();
+
+		remove_filter( 'pre_http_request', $fail_on_http );
+
+		$this->assertNull( $result );
+		$this->assertFalse( $http_requested, 'No HTTP request should be made when there is nothing to probe.' );
+
+		unlink( "{$dir}/index.php" );
 		rmdir( $dir );
 	}
 }

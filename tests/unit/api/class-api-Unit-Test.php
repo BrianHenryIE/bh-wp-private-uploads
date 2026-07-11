@@ -373,11 +373,11 @@ class API_Unit_Test extends Unit_Testcase {
 		$this->assertFalse( $result->created );
 		$this->assertSame( 'Already exists', $result->message );
 
-		// The guard files should have been written into the existing directory.
-		$this->assertFileExists( $expected_dir . '/.htaccess' );
+		// The guard file should have been written into the existing directory. No deny-all `.htaccess`:
+		// it would 403 the request before the site-root rewrite rule could hand it to WordPress.
 		$this->assertFileExists( $expected_dir . '/index.php' );
+		$this->assertFileDoesNotExist( $expected_dir . '/.htaccess' );
 
-		unlink( $expected_dir . '/.htaccess' );
 		unlink( $expected_dir . '/index.php' );
 		rmdir( $expected_dir );
 	}
