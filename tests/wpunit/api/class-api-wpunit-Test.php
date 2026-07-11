@@ -513,4 +513,97 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 			filename: 'sample.pdf',
 		);
 	}
+
+	/**
+	 * When `wp_handle_upload()` fails, the `upload_dir` filter must still be removed, otherwise every
+	 * subsequent upload in the request is silently redirected into the private directory.
+	 *
+	 * @covers ::move_file_to_private_uploads
+	 */
+	public function test_upload_dir_filter_is_removed_when_wp_handle_upload_fails(): void {
+
+		$test_uploads_directory_name = uniqid( 'uploaddirfilterremoved' );
+
+		$api = $this->get_api_with_post_type( $test_uploads_directory_name );
+
+		wp_set_current_user( 1 );
+
+		// Force `wp_handle_upload()` to fail by making `wp_upload_dir()` report an error (priority 20 runs
+		// after the API's own priority-10 filter).
+		$force_error = function ( array $uploads ): array {
+			$uploads['error'] = 'Forced upload_dir error for test.';
+			return $uploads;
+		};
+		add_filter( 'upload_dir', $force_error, 20 );
+
+		$tmp_file = $this->copy_fixture_to_tmp_file( 'sample.pdf' );
+
+		try {
+			$api->move_file_to_private_uploads( $tmp_file, 'sample.pdf' );
+			$this->fail( 'Expected Private_Uploads_Exception' );
+		} catch ( Private_Uploads_Exception $exception ) {
+			$this->assertStringContainsString( 'Forced upload_dir error for test.', $exception->getMessage() );
+		} finally {
+			remove_filter( 'upload_dir', $force_error, 20 );
+			// `wp_handle_upload()` was forced to fail, so the temp file was never moved – clean it up.
+			if ( file_exists( $tmp_file ) ) {
+				unlink( $tmp_file );
+			}
+		}
+
+		$this->assertFalse( has_filter( 'upload_dir', array( $api, 'set_private_uploads_path' ) ) );
+
+		// A subsequent plain `wp_upload_dir()` must return the non-private path.
+		$upload = wp_upload_dir();
+		$this->assertStringNotContainsString( $test_uploads_directory_name, $upload['basedir'] );
+	}
+
+	/**
+	 * When `$_POST['action']` was not set before the call, it must be unset again afterwards, not left
+	 * set to the library's internal `wp_handle_private_upload` value.
+	 *
+	 * phpcs:disable WordPress.Security.NonceVerification.Missing
+	 *
+	 * @covers ::move_file_to_private_uploads
+	 */
+	public function test_post_action_global_is_unset_after_upload_when_not_previously_set(): void {
+
+		$api = $this->get_api_with_post_type( uniqid( 'postactionunset' ) );
+
+		wp_set_current_user( 1 );
+
+		unset( $_POST['action'] );
+
+		$tmp_file = $this->copy_fixture_to_tmp_file( 'sample.pdf' );
+
+		$api->move_file_to_private_uploads( $tmp_file, 'sample.pdf' );
+
+		$this->assertArrayNotHasKey( 'action', $_POST );
+	}
+
+	/**
+	 * When `$_POST['action']` was set before the call, its original value must be restored afterwards.
+	 *
+	 * phpcs:disable WordPress.Security.NonceVerification.Missing
+	 * phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+	 * phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+	 *
+	 * @covers ::move_file_to_private_uploads
+	 */
+	public function test_post_action_global_is_restored_after_upload_when_previously_set(): void {
+
+		$api = $this->get_api_with_post_type( uniqid( 'postactionrestore' ) );
+
+		wp_set_current_user( 1 );
+
+		$_POST['action'] = 'some_other_action';
+
+		$tmp_file = $this->copy_fixture_to_tmp_file( 'sample.pdf' );
+
+		$api->move_file_to_private_uploads( $tmp_file, 'sample.pdf' );
+
+		$this->assertSame( 'some_other_action', $_POST['action'] );
+
+		unset( $_POST['action'] );
+	}
 }
