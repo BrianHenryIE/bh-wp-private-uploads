@@ -76,7 +76,29 @@ if ( $result->is_success() ) {
 ```
 
 > [!IMPORTANT]
-> The `API` class performs **no user-capability checks**. This is deliberate: uploads frequently happen on cron and WP-CLI where there is no logged-in user (user id `0`), and requiring `upload_files` would break those flows. Authorization is enforced at each request boundary instead (the REST controller's `create_item_permissions_check()`, admin-ajax capability checks, and WP-CLI being trusted). **If you expose these methods to a web request, check capabilities yourself first.** Consumer plugins that want an additional guard can hook the `bh_wp_private_uploads_{post_type}_can_upload` filter (return `false` to reject an upload).
+> The `API` class performs **no user-capability checks**. This is deliberate: uploads frequently happen on cron and WP-CLI where there is no logged-in user (user id `0`), and requiring `upload_files` would break those flows. Authorization is enforced at each request boundary instead (the REST controller's `create_item_permissions_check()`, admin-ajax capability checks, and WP-CLI being trusted). **If you expose these methods to a web request, check capabilities yourself first.** Consumer plugins that want an additional guard can hook the `bh_wp_private_uploads_can_upload` filter (return `false` to reject an upload).
+
+The filter is passed the plugin slug and post type name of the instance the file is being uploaded to, so a single handler can distinguish between instances:
+
+```php
+add_filter( 'bh_wp_private_uploads_can_upload', 'reject_large_uploads', 10, 5 );
+
+/**
+ * @param bool $can_upload
+ * @param string $tmp_file Source filepath.
+ * @param string $filename Destination filename.
+ * @param string $plugin_slug
+ * @param string $post_type_name
+ */
+function reject_large_uploads( bool $can_upload, string $tmp_file, string $filename, string $plugin_slug, string $post_type_name ): bool {
+	if ( 'my-plugin' !== $plugin_slug ) {
+		return $can_upload;
+	}
+	return $can_upload && filesize( $tmp_file ) < 10_000_000;
+}
+```
+
+Returning `false` causes the `API` method to throw a `Private_Uploads_Exception`.
 
 The `..._and_create_post` variants additionally create a post of the registered custom post type recording the file – so it appears in the private media library UI – and assign it an owner (`post_author`) and optionally a parent post:
 
@@ -106,18 +128,36 @@ By default, administrators can access the files via their URL. This can be widen
  *
  * @param bool $should_serve_file
  * @param string $file
+ * @param string $plugin_slug
+ * @param string $post_type_name
  */
-$should_serve_file = apply_filters( "bh_wp_private_uploads_{$plugin_slug}_allow", $should_serve_file, $file );
+$should_serve_file = apply_filters( 'bh_wp_private_uploads_allow', $should_serve_file, $file, $plugin_slug, $post_type_name );
 ```
 
 e.g. WooCommerce plugins probably always want shop-managers to be able to access files:
 
 ```php
-add_filter( "bh_wp_private_uploads_{$plugin_slug}_allow", 'add_shop_manager_to_allow' );
-function add_shop_manager_to_allow( bool $should_serve_file ): bool {
+add_filter( 'bh_wp_private_uploads_allow', 'add_shop_manager_to_allow', 10, 3 );
+function add_shop_manager_to_allow( bool $should_serve_file, string $file, string $plugin_slug ): bool {
+	if ( 'my-plugin' !== $plugin_slug ) {
+		return $should_serve_file;
+	}
 	return $should_serve_file || current_user_can( 'manage_woocommerce' );
 }
 ```
+
+### Hooks
+
+Every hook is passed the `$plugin_slug` and `$post_type_name` of the instance it fired for as its final two arguments, so one callback can serve several instances (or ignore the ones it does not own). Remember WordPress passes only the first argument unless you declare the argument count in `add_filter()` / `add_action()`.
+
+| Hook | Type | Arguments |
+|---|---|---|
+| `bh_wp_private_uploads_can_upload` | filter | `$can_upload`, `$tmp_file`, `$filename`, `$plugin_slug`, `$post_type_name` |
+| `bh_wp_private_uploads_allow` | filter | `$should_serve_file`, `$file`, `$plugin_slug`, `$post_type_name` |
+| `bh_wp_private_uploads_url_is_public_warning` | filter | `$content`, `$url`, `$plugin_slug`, `$post_type_name` |
+| `bh_wp_private_uploads_rest_upload` | action | `$file`, `$request`, `$plugin_slug`, `$post_type_name` |
+
+The earlier per-post-type hook names – `bh_wp_private_uploads_{$post_type_name}_allow`, `bh_wp_private_uploads_url_is_public_warning_{$post_type_name}` and `rest_private_uploads_upload` – still fire, but are deprecated as of 0.4.0 and will be removed in a future release.
 
 
 ### Advanced

@@ -479,7 +479,8 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
-	 * Consumer plugins can veto an upload via the `bh_wp_private_uploads_{post_type}_can_upload` filter.
+	 * Consumer plugins can veto an upload via the `bh_wp_private_uploads_can_upload` filter, which is
+	 * passed the plugin slug and post type name so one handler can distinguish between instances.
 	 *
 	 * @covers ::move_file_to_private_uploads
 	 */
@@ -491,7 +492,20 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		wp_set_current_user( 1 );
 
-		add_filter( 'bh_wp_private_uploads_api_test_private_can_upload', '__return_false' );
+		add_filter(
+			'bh_wp_private_uploads_can_upload',
+			function ( bool $can_upload, string $tmp_file, string $filename, string $plugin_slug, string $post_type_name ): bool {
+
+				$this->assertTrue( $can_upload );
+				$this->assertSame( 'sample.pdf', $filename );
+				$this->assertSame( 'bh-wp-private-uploads-test', $plugin_slug );
+				$this->assertSame( 'api_test_private', $post_type_name );
+
+				return false;
+			},
+			10,
+			5
+		);
 
 		$tmp_file = $this->copy_fixture_to_tmp_file( 'sample.pdf' );
 
@@ -717,8 +731,6 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 			)
 		);
 
-		delete_option( 'bh_wp_private_uploads_guard_test_directory_created' );
-
 		$api = new API( $settings, $this->logger );
 
 		$result = $api->create_directory();
@@ -735,12 +747,12 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
-	 * A second `create_directory()` call is throttled: it does no filesystem work (a deleted guard file is
-	 * not recreated).
+	 * A second `create_directory()` call does not re-create the directory, but does restore a guard file
+	 * that has gone missing – there is no cached "already done" flag to make it skip the check.
 	 *
 	 * @covers ::create_directory
 	 */
-	public function test_create_directory_second_call_is_a_no_op(): void {
+	public function test_create_directory_second_call_restores_the_guard_file(): void {
 
 		$subdir = uniqid( 'guardnoop' );
 
@@ -752,8 +764,6 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 			)
 		);
 
-		delete_option( 'bh_wp_private_uploads_guard_noop_test_directory_created' );
-
 		$api = new API( $settings, $this->logger );
 
 		$first = $api->create_directory();
@@ -762,14 +772,15 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$upload = wp_upload_dir();
 		$dir    = $upload['basedir'] . '/' . $subdir;
 
-		// Remove the guard file; a throttled second call must not touch the filesystem to recreate it.
 		unlink( "{$dir}/index.php" );
 
 		$second = $api->create_directory();
 
 		$this->assertFalse( $second->created );
-		$this->assertFileDoesNotExist( "{$dir}/index.php" );
+		$this->assertSame( 'Already exists', $second->message );
+		$this->assertFileExists( "{$dir}/index.php" );
 
+		unlink( "{$dir}/index.php" );
 		rmdir( $dir );
 	}
 
@@ -785,8 +796,6 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		$subdir = uniqid( 'movecreatesdir' );
 
 		$api = $this->get_api_with_post_type( $subdir );
-
-		delete_option( 'bh_wp_private_uploads_api_test_private_directory_created' );
 
 		wp_set_current_user( 1 );
 
@@ -833,8 +842,6 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 				'get_uploads_subdirectory_name' => $subdir,
 			)
 		);
-
-		delete_option( 'bh_wp_private_uploads_probe_test_directory_created' );
 
 		$api = new API( $settings, $this->logger );
 
@@ -895,8 +902,6 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 				'get_uploads_subdirectory_name' => $subdir,
 			)
 		);
-
-		delete_option( 'bh_wp_private_uploads_probe_empty_test_directory_created' );
 
 		$api = new API( $settings, $this->logger );
 

@@ -184,8 +184,8 @@ class API_Unit_Test extends Unit_Testcase {
 		assert( false !== $tmp_file );
 		file_put_contents( $tmp_file, 'file contents' );
 
-		// `move_file_to_private_uploads()` lazily calls `create_directory()`; the stored option matching the
-		// signature makes it a no-op. `|g1` mirrors API::GUARD_FILES_VERSION.
+		// `move_file_to_private_uploads()` lazily calls `create_directory()`. Not on `init`, so it proceeds
+		// to create the (fictional) directory; the guard file is skipped because it never really exists.
 		WP_Mock::userFunction( 'wp_upload_dir' )
 				->with( null, false )
 				->andReturn(
@@ -194,9 +194,11 @@ class API_Unit_Test extends Unit_Testcase {
 						'baseurl' => 'https://example.org/wp-content/uploads',
 					)
 				);
-		WP_Mock::userFunction( 'get_option' )
-				->with( 'bh_wp_private_uploads_the_post_type_name_directory_created' )
-				->andReturn( '/path/to/wp-content/uploads/the-uploads-subdirectory|g1' );
+		WP_Mock::userFunction( 'doing_action' )
+				->with( 'init' )
+				->andReturnFalse();
+		WP_Mock::userFunction( 'wp_mkdir_p' )
+				->andReturnTrue();
 
 		WP_Mock::userFunction( 'sanitize_file_name' )
 				->once()
@@ -367,6 +369,10 @@ class API_Unit_Test extends Unit_Testcase {
 		WP_Mock::userFunction( 'get_option' )->andReturnFalse();
 		WP_Mock::userFunction( 'update_option' )->andReturnTrue();
 
+		WP_Mock::userFunction( 'doing_action' )
+				->with( 'init' )
+				->andReturnFalse();
+
 		$result = $sut->create_directory();
 
 		$this->assertSame( $expected_dir, $result->dir );
@@ -405,6 +411,10 @@ class API_Unit_Test extends Unit_Testcase {
 		WP_Mock::userFunction( 'get_option' )->andReturnFalse();
 		WP_Mock::userFunction( 'update_option' )->andReturnTrue();
 
+		WP_Mock::userFunction( 'doing_action' )
+				->with( 'init' )
+				->andReturnFalse();
+
 		WP_Mock::userFunction( 'wp_mkdir_p' )
 				->once()
 				->with( $expected_dir )
@@ -418,11 +428,12 @@ class API_Unit_Test extends Unit_Testcase {
 	}
 
 	/**
-	 * When `wp_mkdir_p()` fails, an exception should be thrown and an error logged.
+	 * `create_directory()` is hooked directly on `init`, so a failure must not fatal the site: it is
+	 * logged and returned as an unsuccessful result rather than thrown.
 	 *
 	 * @covers ::create_directory
 	 */
-	public function test_create_directory_failure_logs_and_throws(): void {
+	public function test_create_directory_failure_logs_and_returns_result(): void {
 
 		$settings = $this->makeEmpty(
 			Private_Uploads_Settings_Interface::class,
@@ -433,23 +444,71 @@ class API_Unit_Test extends Unit_Testcase {
 
 		$sut = new API( $settings, $this->logger );
 
-		$basedir = sys_get_temp_dir() . '/' . uniqid( 'uploads' );
+		// Never created on disk, so `wp_mkdir_p()` is reached, and mocked to fail.
+		$basedir      = sys_get_temp_dir() . '/' . uniqid( 'uploads' );
+		$expected_dir = $basedir . '/the-private-directory';
 
 		$this->mock_wp_upload_dir( $basedir );
 		WP_Mock::userFunction( 'get_option' )->andReturnFalse();
 
-		WP_Mock::userFunction( 'wp_mkdir_p' )
-				->once()
+		WP_Mock::userFunction( 'doing_action' )
+				->with( 'init' )
 				->andReturnFalse();
 
-		try {
-			$sut->create_directory();
-			$this->fail( 'Expected Private_Uploads_Exception' );
-		} catch ( Private_Uploads_Exception $exception ) {
-			$this->assertStringContainsString( 'Failed to create directory', $exception->getMessage() );
-		}
+		WP_Mock::userFunction( 'wp_mkdir_p' )
+				->once()
+				->with( $expected_dir )
+				->andReturnFalse();
+
+		$result = $sut->create_directory();
+
+		$this->assertSame( $expected_dir, $result->dir );
+		$this->assertFalse( $result->created );
+		$this->assertStringContainsString( 'Failed to create directory', $result->message );
 
 		$this->assertTrue( $this->logger->hasErrorRecords() );
+	}
+
+	/**
+	 * On a frontend page load there is no need to touch the filesystem – the directory is created
+	 * lazily when a file is actually uploaded.
+	 *
+	 * `wp_mkdir_p()` is not mocked, so reaching it would be a fatal undefined-function error.
+	 *
+	 * @covers ::create_directory
+	 * @covers ::get_private_uploads_directory_path
+	 */
+	public function test_create_directory_skipped_on_frontend_init(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => 'the-private-directory',
+			)
+		);
+
+		$sut = new API( $settings, $this->logger );
+
+		$basedir      = sys_get_temp_dir() . '/' . uniqid( 'uploads' );
+		$expected_dir = $basedir . '/the-private-directory';
+
+		$this->mock_wp_upload_dir( $basedir );
+
+		WP_Mock::userFunction( 'doing_action' )
+				->with( 'init' )
+				->andReturnTrue();
+
+		WP_Mock::userFunction( 'is_admin' )
+				->andReturnFalse();
+
+		WP_Mock::userFunction( 'wp_doing_cron' )
+				->andReturnFalse();
+
+		$result = $sut->create_directory();
+
+		$this->assertSame( $expected_dir, $result->dir );
+		$this->assertFalse( $result->created );
+		$this->assertSame( 'Possibly a frontend request', $result->message );
 	}
 
 	/**

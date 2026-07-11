@@ -49,7 +49,7 @@ class API implements API_Interface {
 	 *
 	 * @return File_Upload_Result On success, returns file attributes.
 	 *                            On failure, returns error message.
-	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_*_can_upload` filter returns false|WordPress download_url() failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|WordPress download_url() failure.
 	 */
 	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): File_Upload_Result {
 
@@ -86,7 +86,7 @@ class API implements API_Interface {
 	 *
 	 * @return File_Upload_Result On success, returns file attributes.
 	 *
-	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_*_can_upload` filter returns false|file exists failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|file exists failure.
 	 */
 	public function move_file_to_private_uploads( string $tmp_file, string $filename, ?DateTimeInterface $datetime = null, ?int $filesize = null ): File_Upload_Result {
 
@@ -97,20 +97,31 @@ class API implements API_Interface {
 		 * (REST permission_callback, admin-ajax capability checks, CLI). This filter
 		 * exists for consumer plugins that want an additional guard.
 		 *
-		 * @param bool   $can_upload Default true.
-		 * @param string $tmp_file   Source filepath.
-		 * @param string $filename   Destination filename.
+		 * @hooked "bh_wp_private_uploads_can_upload"
+		 *
+		 * @param bool   $can_upload     Default true.
+		 * @param string $tmp_file       Source filepath.
+		 * @param string $filename       Destination filename.
+		 * @param string $plugin_slug    The plugin slug of this private uploads instance.
+		 * @param string $post_type_name The post type name of this private uploads instance.
 		 */
-		if ( ! apply_filters( "bh_wp_private_uploads_{$this->settings->get_post_type_name()}_can_upload", true, $tmp_file, $filename ) ) {
-			throw new Private_Uploads_Exception( 'Upload rejected by bh_wp_private_uploads_*_can_upload filter.' );
+		if ( ! apply_filters(
+			'bh_wp_private_uploads_can_upload',
+			true,
+			$tmp_file,
+			$filename,
+			$this->settings->get_plugin_slug(),
+			$this->settings->get_post_type_name()
+		) ) {
+			throw new Private_Uploads_Exception( 'Upload rejected by bh_wp_private_uploads_can_upload filter.' );
 		}
 
 		if ( ! is_readable( $tmp_file ) ) {
 			throw new Private_Uploads_Exception( "Failed to read file( {$tmp_file} )" );
 		}
 
-		// Ensure the private directory and its guard files exist even when `init`-time creation was skipped
-		// (e.g. cron / WP-CLI, or throttled). Cheap when already created (an option lookup).
+		// Ensure the private directory and its guard file exist even when `init`-time creation was skipped
+		// (e.g. a frontend request). A `file_exists()` is negligible next to the upload itself.
 		$this->create_directory();
 
 		$file = array(
@@ -199,7 +210,7 @@ class API implements API_Interface {
 	 * @param ?int               $post_parent_id Post id to attach the file's post to, e.g. a WooCommerce order id.
 	 * @param ?DateTimeInterface $datetime Destination uploads subdir date. Does not affect the post's date.
 	 *
-	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_*_can_upload` filter returns false|WordPress download_url() failure|post creation failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|WordPress download_url() failure|post creation failure.
 	 */
 	public function download_remote_file_to_private_uploads_and_create_post(
 		string $file_url,
@@ -232,7 +243,7 @@ class API implements API_Interface {
 	 * @param ?DateTimeInterface $datetime A DateTime for which folder the file should be put in, i.e. 2022/22 etc. Does not affect the post's date.
 	 * @param ?int               $filesize The size in bytes. Calculated automatically.
 	 *
-	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_*_can_upload` filter returns false|file exists failure|post creation failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|file exists failure|post creation failure.
 	 */
 	public function move_file_to_private_uploads_and_create_post(
 		string $tmp_file,
@@ -373,87 +384,76 @@ class API implements API_Interface {
 	}
 
 	/**
-	 * Bumped whenever the guard-file contents change, so an existing install rewrites them.
+	 * Ensure the private uploads directory exists, best-effort, and write its `index.php` guard file.
 	 *
-	 * @see self::get_directory_signature()
-	 */
-	protected const GUARD_FILES_VERSION = 'g1';
-
-	/**
-	 * The `wp_options` name recording that the directory (and its guard files) has been created, used to
-	 * skip the filesystem work on every `init`.
-	 */
-	protected function get_directory_created_option_name(): string {
-		return sprintf(
-			'bh_wp_private_uploads_%s_directory_created',
-			$this->settings->get_post_type_name()
-		);
-	}
-
-	/**
-	 * A value identifying the current directory + guard-file state. When the stored option matches this,
-	 * the directory and its guard files are known to be in place and the work can be skipped.
+	 * Never throws: this is hooked on `init`, where a failure (e.g. a filesystem-permission error under
+	 * WP-CLI) must not fatal the site. The directory is recreated lazily on the next upload. Failures are
+	 * logged as errors and returned as a `created: false` result carrying the message.
 	 *
-	 * @param string $dir The private uploads directory path.
-	 */
-	protected function get_directory_signature( string $dir ): string {
-		return $dir . '|' . self::GUARD_FILES_VERSION;
-	}
-
-	/**
-	 * Ensure the private uploads directory exists and is protected.
+	 * The `init` early-return keeps the filesystem calls off frontend page loads, which is why no
+	 * option-based throttle is needed: the remaining callers are admin, cron, WP-CLI and uploads, where a
+	 * `file_exists()` is not worth caching.
 	 *
-	 * Creates the directory if missing and writes two guard files if absent: a deny-all `.htaccess`
-	 * (defence-in-depth even before/without a rewrite flush) and an empty `index.php` (to prevent
-	 * directory listing where `.htaccess` is not honoured). The `.htaccess` denies *all* direct access,
-	 * which is correct because files are served by PHP via the `?{post-type}-private-uploads-file=` route.
-	 *
-	 * Throttled via an option so the filesystem is not touched on every request.
+	 * TODO: does this maybe happen automatically when the first file is moved?
 	 *
 	 * @hooked init
 	 *
 	 * @return Create_Directory_Result
-	 * @throws Private_Uploads_Exception When PHP fails to create the missing directory.
 	 */
 	public function create_directory(): Create_Directory_Result {
 		$dir = $this->get_private_uploads_directory_path();
 
-		$signature   = $this->get_directory_signature( $dir );
-		$option_name = $this->get_directory_created_option_name();
-
-		// Skip the filesystem work when this exact directory + guard files were already created.
-		if ( get_option( $option_name ) === $signature ) {
+		// Frontend page loads don't need the directory; avoid the filesystem check on every request.
+		if ( doing_action( 'init' ) && ! is_admin() && ! wp_doing_cron() ) {
 			return new Create_Directory_Result(
 				dir: $dir,
 				created: false,
-				message: 'Already exists',
+				message: 'Possibly a frontend request',
 			);
 		}
 
-		$created = false;
-		if ( ! file_exists( $dir ) ) {
-			$result = wp_mkdir_p( $dir );
+		try {
 
-			if ( false === $result ) {
-				$this->logger->error( 'Failed to create directory: ' . $dir, array( 'dir' => $dir ) );
-				throw new Private_Uploads_Exception( 'Failed to create directory: ' . $dir );
+			$created = false;
+
+			if ( ! file_exists( $dir ) ) {
+
+				if ( false === wp_mkdir_p( $dir ) ) {
+					$message = 'Failed to create directory: ' . $dir;
+
+					$this->logger->error( $message, array( 'dir' => $dir ) );
+
+					return new Create_Directory_Result(
+						dir: $dir,
+						created: false,
+						message: $message,
+					);
+				}
+
+				$created = true;
 			}
 
-			$created = true;
-		}
+			// Also when the directory already exists: it may predate the guard file, or have lost it.
+			$this->write_guard_files( $dir );
 
-		// Only record success (skipping future filesystem work) once the guard files are actually in place;
-		// otherwise a transient write failure would be cached and the directory left unprotected.
-		// Store as autoloaded so the `init`-time `get_option()` check does not hit the database each request.
-		if ( $this->write_guard_files( $dir ) ) {
-			update_option( $option_name, $signature, true );
-		}
+			return new Create_Directory_Result(
+				dir: $dir,
+				created: $created,
+				message: $created ? 'Created' : 'Already exists',
+			);
 
-		return new Create_Directory_Result(
-			dir: $dir,
-			created: $created,
-			message: $created ? 'Created' : 'Already exists',
-		);
+		} catch ( \Throwable $throwable ) {
+			$this->logger->debug(
+				'Private uploads directory could not be created: ' . $throwable->getMessage(),
+				array( 'exception' => $throwable )
+			);
+
+			return new Create_Directory_Result(
+				dir: $dir,
+				created: false,
+				message: $throwable->getMessage(),
+			);
+		}
 	}
 
 	/**
