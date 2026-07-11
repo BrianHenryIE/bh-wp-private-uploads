@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  COVERAGE_PHP_VERSION: '8.0'
+  COVERAGE_PHP_VERSION: '8.1'
   MINIMUM_COVERAGE_PERCENTAGE: '40'
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
 
     strategy:
       matrix:
-        php: [ '8.0', '8.1', '8.2', '8.3' ,'8.4' ]
+        php: [ '8.1', '8.2', '8.3' ,'8.4', '8.5', '8.6' ]
 
     steps:
       - uses: actions/checkout@v6
@@ -76,6 +76,10 @@ jobs:
 
       - name: Install PHP dependencies
         run: composer install --verbose
+
+      - name: Install php-codecoverage-markdown for markdown report generation
+        if: ${{ matrix.php == env.COVERAGE_PHP_VERSION }}
+        run: composer require brianhenryie/php-codecoverage-markdown --dev --with-all-dependencies
 
       - name: Install JS dependencies
         run: npm install
@@ -211,7 +215,9 @@ jobs:
         id: pr_diff
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          FILENAME="${{ env.TARGET_BRANCH_REF_NAME }}-${{ github.event.pull_request.head.sha }}.diff"
+          # Slashes in the base branch name (e.g. stacked PRs based on `fix/…`)
+          # would make $FILENAME a non-existent sub-directory path, so flatten them.
+          FILENAME="${TARGET_BRANCH_REF_NAME//\//-}-${{ github.event.pull_request.head.sha }}.diff"
           git fetch origin ${{ env.TARGET_BRANCH_REF_NAME }}:refs/remotes/origin/${{ env.TARGET_BRANCH_REF_NAME }}
           git diff origin/${{ env.TARGET_BRANCH_REF_NAME }} > tmp.diff
           mv tmp.diff $FILENAME

@@ -19,7 +19,6 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Throwable;
-use function BrianHenryIE\WP_Private_Uploads\str_hyphens_to_underscores;
 
 /**
  * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
@@ -50,13 +49,9 @@ class API implements API_Interface {
 	 *
 	 * @return File_Upload_Result On success, returns file attributes.
 	 *                            On failure, returns error message.
-	 * @throws Private_Uploads_Exception On permissions failure|WordPress download_url() failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|WordPress download_url() failure.
 	 */
 	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): File_Upload_Result {
-
-		if ( ! current_user_can( 'upload_files' ) ) {
-			throw new Private_Uploads_Exception( 'Current user does not have permissions to upload files.' );
-		}
 
 		$tmp_file = download_url( $file_url );
 
@@ -91,12 +86,34 @@ class API implements API_Interface {
 	 *
 	 * @return File_Upload_Result On success, returns file attributes.
 	 *
-	 * @throws Private_Uploads_Exception On permissions failure|file exists failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|file exists failure.
 	 */
 	public function move_file_to_private_uploads( string $tmp_file, string $filename, ?DateTimeInterface $datetime = null, ?int $filesize = null ): File_Upload_Result {
 
-		if ( ! current_user_can( 'upload_files' ) ) {
-			throw new Private_Uploads_Exception( 'Current user does not have permissions to upload files.' );
+		/**
+		 * Filter whether this file may be moved into private uploads.
+		 *
+		 * Authorization is the responsibility of the calling code / request handler
+		 * (REST permission_callback, admin-ajax capability checks, CLI). This filter
+		 * exists for consumer plugins that want an additional guard.
+		 *
+		 * @hooked "bh_wp_private_uploads_can_upload"
+		 *
+		 * @param bool   $can_upload     Default true.
+		 * @param string $tmp_file       Source filepath.
+		 * @param string $filename       Destination filename.
+		 * @param string $plugin_slug    The plugin slug of this private uploads instance.
+		 * @param string $post_type_name The post type name of this private uploads instance.
+		 */
+		if ( ! apply_filters(
+			'bh_wp_private_uploads_can_upload',
+			true,
+			$tmp_file,
+			$filename,
+			$this->settings->get_plugin_slug(),
+			$this->settings->get_post_type_name()
+		) ) {
+			throw new Private_Uploads_Exception( 'Upload rejected by bh_wp_private_uploads_can_upload filter.' );
 		}
 
 		if ( ! is_readable( $tmp_file ) ) {
@@ -183,7 +200,7 @@ class API implements API_Interface {
 	 * @param ?int               $post_parent_id Post id to attach the file's post to, e.g. a WooCommerce order id.
 	 * @param ?DateTimeInterface $datetime Destination uploads subdir date. Does not affect the post's date.
 	 *
-	 * @throws Private_Uploads_Exception On permissions failure|WordPress download_url() failure|post creation failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|WordPress download_url() failure|post creation failure.
 	 */
 	public function download_remote_file_to_private_uploads_and_create_post(
 		string $file_url,
@@ -216,7 +233,7 @@ class API implements API_Interface {
 	 * @param ?DateTimeInterface $datetime A DateTime for which folder the file should be put in, i.e. 2022/22 etc. Does not affect the post's date.
 	 * @param ?int               $filesize The size in bytes. Calculated automatically.
 	 *
-	 * @throws Private_Uploads_Exception On permissions failure|file exists failure|post creation failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|file exists failure|post creation failure.
 	 */
 	public function move_file_to_private_uploads_and_create_post(
 		string $tmp_file,
@@ -332,6 +349,12 @@ class API implements API_Interface {
 	}
 
 	/**
+	 * Ensure the private uploads directory exists, best-effort.
+	 *
+	 * Never throws: this is hooked directly on `init`, where a failure (e.g. a filesystem-permission
+	 * error under WP-CLI) must not fatal the site. The directory is recreated lazily on the next upload.
+	 * Failures are logged as errors and returned as a `created: false` result carrying the message.
+	 *
 	 * TODO: does this maybe happen automatically when the first file is moved?
 	 *
 	 * @hooked init
@@ -340,31 +363,61 @@ class API implements API_Interface {
 	 * TODO: Run it when necessary: when a file is moved
 	 *
 	 * @return Create_Directory_Result
-	 * @throws Private_Uploads_Exception When PHP fails to create the missing directory.
 	 */
 	public function create_directory(): Create_Directory_Result {
 		$dir = constant( 'WP_CONTENT_DIR' ) . '/uploads/' . $this->settings->get_uploads_subdirectory_name();
 
-		if ( file_exists( $dir ) ) {
+		// Frontend page loads don't need the directory; avoid the filesystem check on every request.
+		if ( doing_action( 'init' ) && ! is_admin() && ! wp_doing_cron() ) {
 			return new Create_Directory_Result(
 				dir: $dir,
 				created: false,
-				message: 'Already exists',
+				message: 'Possibly a frontend request',
 			);
 		}
 
-		$result = wp_mkdir_p( $dir );
+		try {
 
-		if ( false === $result ) {
-			$this->logger->error( 'Failed to create directory: ' . $dir, array( 'dir' => $dir ) );
-			throw new Private_Uploads_Exception( 'Failed to create directory: ' . $dir );
+			if ( file_exists( $dir ) ) {
+				return new Create_Directory_Result(
+					dir: $dir,
+					created: false,
+					message: 'Already exists',
+				);
+			}
+
+			$result = wp_mkdir_p( $dir );
+
+			if ( false === $result ) {
+				$message = 'Failed to create directory: ' . $dir;
+
+				$this->logger->error( $message, array( 'dir' => $dir ) );
+
+				return new Create_Directory_Result(
+					dir: $dir,
+					created: false,
+					message: $message,
+				);
+			}
+
+			return new Create_Directory_Result(
+				dir: $dir,
+				created: true,
+				message: 'Created',
+			);
+
+		} catch ( \Throwable $throwable ) {
+			$this->logger->debug(
+				'Private uploads directory could not be created: ' . $throwable->getMessage(),
+				array( 'exception' => $throwable )
+			);
+
+			return new Create_Directory_Result(
+				dir: $dir,
+				created: false,
+				message: $throwable->getMessage(),
+			);
 		}
-
-		return new Create_Directory_Result(
-			dir: $dir,
-			created: true,
-			message: 'Created',
-		);
 	}
 
 	/**

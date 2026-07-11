@@ -8,8 +8,8 @@ echo "Running " $(basename "$0") " for " $PLUGIN_SLUG;
 #rm /var/www/html/wp-content/plugins/test-plugin/vendor/brianhenryie/bh-wp-plugin-updater;
 #ln -s /var/www/html/wp-content/bh-wp-plugin-updater/ /var/www/html/wp-content/plugins/test-plugin/vendor/brianhenryie/bh-wp-plugin-updater;
 
-mkdir /var/www/html/wp-content/uploads || true;
-chmod a+w /var/www/html/wp-content/uploads;
+#mkdir /var/www/html/wp-content/uploads || true;
+#sudo chmod -R a+w /var/www/html/wp-content/uploads;
 
 echo "wp plugin activate --all"
 wp plugin activate --all

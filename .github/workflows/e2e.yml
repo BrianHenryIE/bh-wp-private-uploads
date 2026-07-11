@@ -67,9 +67,19 @@ jobs:
           npx wp-env run cli -- wp plugin list
           # Set up permalinks for REST API
           npx wp-env run cli -- wp rewrite structure '/%year%/%monthnum%/%postname%/' --hard
-          # Also activate on tests environment (port 8889) for completeness
-          npx wp-env run tests-cli -- wp plugin activate development-plugin
-          npx wp-env run tests-cli -- wp rewrite structure '/%year%/%monthnum%/%postname%/' --hard
+
+      - name: Make the private uploads directory writable by the web server
+        # The activation commands above run as the (non-root) CLI-container user
+        # and, via the plugin's `init` hook, create wp-content/uploads/private-media
+        # owned by that user. Uploads then run as the web server (www-data), which
+        # can't create the dated sub-directory inside it. The CLI user owns
+        # private-media (it created it), so it can chmod *that* dir even though it
+        # can't chmod the parent uploads/ it doesn't own. 0777 lets www-data write.
+        # (This only bites on the Linux CI runner; macOS Docker Desktop ignores
+        # bind-mount ownership.) Fall back to sudo on the whole tree just in case.
+        run: |
+          npx wp-env run cli -- chmod -R 0777 wp-content/uploads/private-media \
+            || npx wp-env run cli -- sudo chmod -R 0777 wp-content/uploads
 
       - name: Run Playwright tests
         run: npm run test:e2e -- --reporter=github

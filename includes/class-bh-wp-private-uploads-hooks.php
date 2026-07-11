@@ -57,11 +57,18 @@ class BH_WP_Private_Uploads_Hooks {
 	/**
 	 * On every load, ensure the directory exists.
 	 *
+	 * The closure discards the `Create_Directory_Result` – action callbacks return nothing. The result is
+	 * only of interest to direct callers; `create_directory()` logs its own failures.
+	 *
 	 * TODO: Think about how this could be delayed. Let's avoid file-system operations unless 100% necessary.
 	 */
 	protected function define_api_hooks(): void {
-		/** @phpstan-ignore-next-line return.void  */
-		add_action( 'init', array( $this->api, 'create_directory' ) );
+		add_action(
+			'init',
+			function (): void {
+				$this->api->create_directory();
+			}
+		);
 	}
 
 	/**

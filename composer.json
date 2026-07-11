@@ -25,7 +25,7 @@
             "phpstan/extension-installer": true
         },
         "platform": {
-            "php": "8.0"
+            "php": "8.1"
         }
     },
     "autoload": {
@@ -58,14 +58,10 @@
         "wordpress/wordpress": {
             "url": "https://github.com/wordpress/wordpress-develop.git",
             "type": "git"
-        },
-        "wp-cli/handbook": {
-            "url": "https://github.com/wp-cli/handbook",
-            "type": "git"
         }
     },
     "require": {
-        "php": ">=8.0",
+        "php": ">=8.1",
         "ext-fileinfo": "*",
         "psr/log": "^1 || ^2 || ^3",
         "wptrt/admin-notices": "^1.0"
@@ -75,8 +71,9 @@
         "10up/wp_mock": "^1.0",
         "alleyinteractive/wordpress-autoloader": "^1.1",
         "antecedent/patchwork": "^2.1",
-        "behat/behat": "^3.15.0",
+        "behat/behat": "^3.29",
         "brianhenryie/color-logger": "*",
+        "codeception/codeception": "^5.2.2",
         "dealerdirect/phpcodesniffer-composer-installer": "*",
         "dvdoug/behat-code-coverage": "^5.3",
         "johnpbloch/wordpress": "*",
@@ -87,10 +84,6 @@
         "squizlabs/php_codesniffer": "*",
         "szepeviktor/phpstan-wordpress": "*",
         "wordpress/wordpress": "*",
-        "wp-cli/dist-archive-command": "*",
-        "wp-cli/handbook": "dev-main",
-        "wp-cli/wp-cli-bundle": "*",
-        "wp-cli/wp-cli-tests": "^5",
         "wp-coding-standards/wpcs": "*",
         "wpackagist-plugin/debug-log-manager": "*",
         "wpackagist-plugin/document-generator-for-openapi": "*",
@@ -103,11 +96,13 @@
     "scripts": {
         "post-install-cmd": [
             "@sync-composer-wpenv",
-            "@sync-wpenv-phpstorm"
+            "@sync-wpenv-phpstorm",
+            "@install-wp-cli"
         ],
         "post-update-cmd": [
             "@sync-composer-wpenv",
-            "@sync-wpenv-phpstorm"
+            "@sync-wpenv-phpstorm",
+            "@install-wp-cli"
         ],
         "test": [
             "codecept run unit",
@@ -120,12 +115,12 @@
             "open tests/_output/html/index.html"
         ],
         "behat": [
-            "WP_CLI_TEST_DBTYPE=sqlite vendor/bin/behat"
+            "WP_CLI_TEST_DBTYPE=sqlite vendor/bin/behat -c behat.php"
         ],
         "behat-coverage": [
             "rm -f tests/_output/behat-*.xml tests/_output/behat-*.php || true",
             "rm -rf tests/_output/behat-html || true",
-            "XDEBUG_MODE=coverage WP_CLI_TEST_DBTYPE=sqlite vendor/bin/behat --profile=coverage",
+            "XDEBUG_MODE=coverage WP_CLI_TEST_DBTYPE=sqlite vendor/bin/behat -c behat.php --profile=coverage",
             "echo '\\n✓ Coverage reports generated:'",
             "echo '  - HTML: tests/_output/behat-html/index.html'",
             "echo '  - Clover XML: tests/_output/behat-clover.xml'"
@@ -154,6 +149,10 @@
         ],
         "github-actions": [
             "act -P ubuntu-latest=shivammathur/node:latest"
+        ],
+        "install-wp-cli": [
+            "php ./bin/set-composer-provides.php",
+            "COMPOSER=composer-wp-cli.json composer update"
         ],
         "sync-composer-wpenv": [
             "php ./bin/sync-composer-wpenv.php"

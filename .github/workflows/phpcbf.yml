@@ -41,6 +41,10 @@ jobs:
       - name: Run composer install
         run: composer install
 
+      # Provides `vendor/bin/prf`, used below to filter the checkstyle report to the PR's changed files.
+      - name: Install kamazee/pr-filter
+        run: composer require --dev kamazee/pr-filter
+
       - name: Run PHPCBF to fix what it can
         continue-on-error: true
         run: vendor/bin/phpcbf
@@ -66,7 +70,9 @@ jobs:
         id: pr_diff
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          FILENAME="${{ env.TARGET_BRANCH_REF_NAME }}-${{ github.event.pull_request.head.sha }}.diff"
+          # Slashes in the base branch name (e.g. stacked PRs based on `fix/…`)
+          # would make $FILENAME a non-existent sub-directory path, so flatten them.
+          FILENAME="${TARGET_BRANCH_REF_NAME//\//-}-${{ github.event.pull_request.head.sha }}.diff"
           git fetch origin ${{ env.TARGET_BRANCH_REF_NAME }}:refs/remotes/origin/${{ env.TARGET_BRANCH_REF_NAME }}
           git diff origin/${{ env.TARGET_BRANCH_REF_NAME }} > tmp.diff
           mv tmp.diff $FILENAME

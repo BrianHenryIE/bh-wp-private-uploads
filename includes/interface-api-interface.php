@@ -25,7 +25,7 @@ interface API_Interface {
 	 * @param string|null        $filename Preferred filename; may be suffixed with `-1`,`-2` etc.
 	 * @param ?DateTimeInterface $datetime A DateTime that should be used for the yyyy/mm directory.
 	 *
-	 * @throws Private_Uploads_Exception On permissions failure|WordPress download_url() failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|WordPress download_url() failure.
 	 */
 	public function download_remote_file_to_private_uploads( string $file_url, ?string $filename = null, ?DateTimeInterface $datetime = null ): File_Upload_Result;
 
@@ -37,7 +37,7 @@ interface API_Interface {
 	 * @param ?DateTimeInterface $datetime A DateTime that the yyyy/mm directory should use.
 	 * @param ?int               $filesize "The size, in bytes, of the uploaded file.", ideally.
 	 *
-	 * @throws Private_Uploads_Exception On permissions failure|file exists failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|file exists failure.
 	 */
 	public function move_file_to_private_uploads( string $tmp_file, string $filename, ?DateTimeInterface $datetime = null, ?int $filesize = null ): File_Upload_Result;
 
@@ -51,7 +51,7 @@ interface API_Interface {
 	 * @param ?int               $post_parent_id Post id to attach the file's post to, e.g. a WooCommerce order id.
 	 * @param ?DateTimeInterface $datetime A DateTime that should be used for the yyyy/mm directory. Does not affect the post's date.
 	 *
-	 * @throws Private_Uploads_Exception On permissions failure|WordPress download_url() failure|post creation failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|WordPress download_url() failure|post creation failure.
 	 */
 	public function download_remote_file_to_private_uploads_and_create_post( string $file_url, ?string $filename = null, ?int $post_author_id = null, ?int $post_parent_id = null, ?DateTimeInterface $datetime = null ): File_Upload_With_Post_Result;
 
@@ -66,7 +66,7 @@ interface API_Interface {
 	 * @param ?DateTimeInterface $datetime A DateTime that the yyyy/mm directory should use. Does not affect the post's date.
 	 * @param ?int               $filesize "The size, in bytes, of the uploaded file.", ideally.
 	 *
-	 * @throws Private_Uploads_Exception On permissions failure|file exists failure|post creation failure.
+	 * @throws Private_Uploads_Exception When the `bh_wp_private_uploads_can_upload` filter returns false|file exists failure|post creation failure.
 	 */
 	public function move_file_to_private_uploads_and_create_post( string $tmp_file, string $filename, ?int $post_author_id = null, ?int $post_parent_id = null, ?DateTimeInterface $datetime = null, ?int $filesize = null ): File_Upload_With_Post_Result;
 
@@ -85,6 +85,9 @@ interface API_Interface {
 
 	/**
 	 * Create the directory. TODO: this should be deferred until a file is saved there.
+	 *
+	 * Best-effort: never throws. A failure is logged and returned as a `created: false` result whose
+	 * `message` is the error.
 	 */
 	public function create_directory(): Create_Directory_Result;
 }

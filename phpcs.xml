@@ -30,6 +30,8 @@
     <exclude-pattern>/wp-content/themes</exclude-pattern>
     <exclude-pattern>/wp-content/uploads</exclude-pattern>
     <exclude-pattern>/phpstanbootstrap.php</exclude-pattern>
+    <exclude-pattern>/behat.php</exclude-pattern>
+    <exclude-pattern>/vendor-wp-cli</exclude-pattern>
 
     <!-- Do not require the object type in the comment, presuming it is strongly typed -->
     <rule ref="Squiz.Commenting.VariableComment.MissingVar">

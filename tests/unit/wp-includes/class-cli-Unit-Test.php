@@ -42,11 +42,15 @@ class CLI_Unit_Test extends Unit_Testcase {
 
 		// `WP_CLI\Utils` and `WP_CLI\Dispatcher` functions are not composer-autoloaded (only WP_CLI classes are).
 		if ( ! function_exists( 'WP_CLI\Utils\format_items' ) ) {
-			require_once codecept_root_dir( 'vendor/wp-cli/wp-cli/php/utils.php' );
+			require_once codecept_root_dir( 'vendor-wp-cli/wp-cli/wp-cli/php/utils.php' );
 		}
 		if ( ! function_exists( 'WP_CLI\Dispatcher\get_path' ) ) {
-			require_once codecept_root_dir( 'vendor/wp-cli/wp-cli/php/dispatcher.php' );
+			require_once codecept_root_dir( 'vendor-wp-cli/wp-cli/wp-cli/php/dispatcher.php' );
 		}
+
+		// Recent WP-CLI registers its built-in output formats (table/json/csv/yaml/…) during runner
+		// bootstrap, which does not run here. Register them so `format_items()` recognises `--format`.
+		\WP_CLI\Formatter::register_builtin_formats();
 
 		if ( ! class_exists( \WP_Error::class ) ) {
 			require_once codecept_root_dir( 'vendor/wordpress/wordpress/src/wp-includes/class-wp-error.php' );
@@ -125,7 +129,7 @@ class CLI_Unit_Test extends Unit_Testcase {
 			define( 'WP_CLI', true );
 		}
 		if ( ! defined( 'WP_CLI_ROOT' ) ) {
-			define( 'WP_CLI_ROOT', codecept_root_dir( 'vendor/wp-cli/wp-cli' ) );
+			define( 'WP_CLI_ROOT', codecept_root_dir( 'vendor-wp-cli/wp-cli/wp-cli' ) );
 		}
 	}
 
