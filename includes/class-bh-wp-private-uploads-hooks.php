@@ -57,30 +57,18 @@ class BH_WP_Private_Uploads_Hooks {
 	/**
 	 * On every load, ensure the directory exists.
 	 *
+	 * The closure discards the `Create_Directory_Result` – action callbacks return nothing. The result is
+	 * only of interest to direct callers; `create_directory()` logs its own failures.
+	 *
 	 * TODO: Think about how this could be delayed. Let's avoid file-system operations unless 100% necessary.
 	 */
 	protected function define_api_hooks(): void {
-		add_action( 'init', array( $this, 'create_private_uploads_directory' ) );
-	}
-
-	/**
-	 * Ensure the private uploads directory exists, best-effort.
-	 *
-	 * `API::create_directory()` throws so its direct API callers can handle a failure, but on `init` a
-	 * failure (e.g. a filesystem-permission error under WP-CLI) must not fatal the site – the directory is
-	 * recreated lazily on the next upload / web request. The error is already logged inside `create_directory()`.
-	 *
-	 * @hooked init
-	 */
-	public function create_private_uploads_directory(): void {
-		try {
-			$this->api->create_directory();
-		} catch ( \Throwable $throwable ) {
-			$this->logger->debug(
-				'Private uploads directory could not be created on init: ' . $throwable->getMessage(),
-				array( 'exception' => $throwable )
-			);
-		}
+		add_action(
+			'init',
+			function (): void {
+				$this->api->create_directory();
+			}
+		);
 	}
 
 	/**
