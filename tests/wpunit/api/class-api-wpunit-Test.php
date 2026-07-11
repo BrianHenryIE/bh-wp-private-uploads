@@ -476,7 +476,8 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
-	 * Consumer plugins can veto an upload via the `bh_wp_private_uploads_{post_type}_can_upload` filter.
+	 * Consumer plugins can veto an upload via the `bh_wp_private_uploads_can_upload` filter, which is
+	 * passed the plugin slug and post type name so one handler can distinguish between instances.
 	 *
 	 * @covers ::move_file_to_private_uploads
 	 */
@@ -488,7 +489,20 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		wp_set_current_user( 1 );
 
-		add_filter( 'bh_wp_private_uploads_api_test_private_can_upload', '__return_false' );
+		add_filter(
+			'bh_wp_private_uploads_can_upload',
+			function ( bool $can_upload, string $tmp_file, string $filename, string $plugin_slug, string $post_type_name ): bool {
+
+				$this->assertTrue( $can_upload );
+				$this->assertSame( 'sample.pdf', $filename );
+				$this->assertSame( 'bh-wp-private-uploads-test', $plugin_slug );
+				$this->assertSame( 'api_test_private', $post_type_name );
+
+				return false;
+			},
+			10,
+			5
+		);
 
 		$tmp_file = $this->copy_fixture_to_tmp_file( 'sample.pdf' );
 
