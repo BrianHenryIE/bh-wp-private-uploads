@@ -97,9 +97,29 @@ class BH_WP_Private_Uploads_Hooks_Unit_Test extends Unit_Testcase {
 			array( \WP_Mock\Functions::type( Admin_Notices::class ), 'the_notices' )
 		);
 
+		// The dismissal option name = `wptrt_notice_dismissed_` prefixed to the notice id.
+		$option_name = 'wptrt_notice_dismissed_the-post-type-private-uploads-url-is-public';
+		\WP_Mock::expectActionAdded(
+			"add_option_{$option_name}",
+			array( \WP_Mock\Functions::type( Admin_Notices::class ), 'on_dismiss' ),
+			10,
+			2
+		);
+		\WP_Mock::expectActionAdded(
+			"update_option_{$option_name}",
+			array( \WP_Mock\Functions::type( Admin_Notices::class ), 'on_dismiss' ),
+			10,
+			3
+		);
+
 		$logger   = $this->logger;
 		$api      = $this->makeEmpty( API_Interface::class );
-		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name' => 'the_post_type',
+			)
+		);
 		new BH_WP_Private_Uploads_Hooks( $api, $settings, $logger );
 	}
 

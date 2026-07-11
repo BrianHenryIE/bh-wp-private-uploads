@@ -96,6 +96,12 @@ class BH_WP_Private_Uploads_Hooks {
 		add_action( 'admin_init', array( $admin_notices, 'admin_notices' ), 9 );
 		// Add the notice.
 		add_action( 'admin_notices', array( $admin_notices, 'the_notices' ) );
+
+		// When the "publicly accessible" notice is dismissed, schedule a cron job to un-snooze it after a week.
+		// `add_option_{$option}` fires with `( $option, $value )`; `update_option_{$option}` with `( $old_value, $value, $option )`.
+		$option_name = ( new Cron( $this->api, $this->settings, $this->logger ) )->get_dismissed_notice_option_name();
+		add_action( "add_option_{$option_name}", array( $admin_notices, 'on_dismiss' ), 10, 2 );
+		add_action( "update_option_{$option_name}", array( $admin_notices, 'on_dismiss' ), 10, 3 );
 	}
 
 	/**
