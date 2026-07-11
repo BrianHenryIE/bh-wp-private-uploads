@@ -77,6 +77,7 @@
         "dealerdirect/phpcodesniffer-composer-installer": "*",
         "dvdoug/behat-code-coverage": "^5.3",
         "johnpbloch/wordpress": "*",
+        "kamazee/pr-filter": "^1.1",
         "lucatume/wp-browser": "^4",
         "phpstan/extension-installer": "*",
         "phpunit/phpcov": "*",

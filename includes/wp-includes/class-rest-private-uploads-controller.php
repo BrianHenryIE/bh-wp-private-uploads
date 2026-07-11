@@ -214,8 +214,34 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		}
 
 		/** @var array{file:string, url:string, type:string} $file */
-		// Slug / Post type name?
-		do_action( 'rest_private_uploads_upload', $file, $request, $this->settings );
+
+		/**
+		 * Fires after a file has been uploaded via the REST API, before the response is returned.
+		 *
+		 * @hooked "bh_wp_private_uploads_rest_upload"
+		 *
+		 * @param array{file:string, url:string, type:string} $file The saved file.
+		 * @param WP_REST_Request                             $request The request that uploaded the file.
+		 * @param string                                      $plugin_slug The plugin slug of this private uploads instance.
+		 * @param string                                      $post_type_name The post type name of this private uploads instance.
+		 */
+		do_action(
+			'bh_wp_private_uploads_rest_upload',
+			$file,
+			$request,
+			$this->settings->get_plugin_slug(),
+			$this->settings->get_post_type_name()
+		);
+
+		/**
+		 * @deprecated 0.4.0 Use "bh_wp_private_uploads_rest_upload", which is passed the plugin slug and post type name in place of the settings object.
+		 */
+		do_action_deprecated(
+			'rest_private_uploads_upload',
+			array( $file, $request, $this->settings ),
+			'0.4.0',
+			'bh_wp_private_uploads_rest_upload'
+		);
 
 		return array(
 			'file' => $file,

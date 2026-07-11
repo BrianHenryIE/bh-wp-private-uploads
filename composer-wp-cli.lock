@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a3376f48378c84d3ca918614cd25d60b",
+    "content-hash": "697015826d6524c9bb2779e0172f55af",
     "packages": [],
     "packages-dev": [
         {
@@ -1214,16 +1214,16 @@
         },
         {
             "name": "phpstan/phpdoc-parser",
-            "version": "2.3.2",
+            "version": "2.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpdoc-parser.git",
-                "reference": "a004701b11273a26cd7955a61d67a7f1e525a45a"
+                "reference": "fb19eedd2bb67ff8cf7a5502ad329e701d6398a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/a004701b11273a26cd7955a61d67a7f1e525a45a",
-                "reference": "a004701b11273a26cd7955a61d67a7f1e525a45a",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/fb19eedd2bb67ff8cf7a5502ad329e701d6398a3",
+                "reference": "fb19eedd2bb67ff8cf7a5502ad329e701d6398a3",
                 "shasum": ""
             },
             "require": {
@@ -1255,9 +1255,9 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https://github.com/phpstan/phpdoc-parser/issues",
-                "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.2"
+                "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.3"
             },
-            "time": "2026-01-25T14:56:51+00:00"
+            "time": "2026-07-08T07:01:06+00:00"
         },
         {
             "name": "phpstan/phpstan-deprecation-rules",
@@ -1311,16 +1311,16 @@
         },
         {
             "name": "phpstan/phpstan-phpunit",
-            "version": "2.0.17",
+            "version": "2.0.18",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-phpunit.git",
-                "reference": "c2f977551f0736d60467b3d754b2e0cf4e337b3f"
+                "reference": "f5dc20ff8082d02339b60cab68ec3eb0d859fb30"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-phpunit/zipball/c2f977551f0736d60467b3d754b2e0cf4e337b3f",
-                "reference": "c2f977551f0736d60467b3d754b2e0cf4e337b3f",
+                "url": "https://api.github.com/repos/phpstan/phpstan-phpunit/zipball/f5dc20ff8082d02339b60cab68ec3eb0d859fb30",
+                "reference": "f5dc20ff8082d02339b60cab68ec3eb0d859fb30",
                 "shasum": ""
             },
             "require": {
@@ -1363,9 +1363,9 @@
             ],
             "support": {
                 "issues": "https://github.com/phpstan/phpstan-phpunit/issues",
-                "source": "https://github.com/phpstan/phpstan-phpunit/tree/2.0.17"
+                "source": "https://github.com/phpstan/phpstan-phpunit/tree/2.0.18"
             },
-            "time": "2026-06-29T05:32:23+00:00"
+            "time": "2026-07-04T12:16:09+00:00"
         },
         {
             "name": "phpstan/phpstan-strict-rules",
@@ -2388,16 +2388,16 @@
         },
         {
             "name": "wp-cli/cron-command",
-            "version": "v2.3.9",
+            "version": "v2.3.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/cron-command.git",
-                "reference": "1203c730d969153b37d828abbcbec16d8c937932"
+                "reference": "7fa5feab2d34d9c81ddfeb4d7a5a896fa72a3d73"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/cron-command/zipball/1203c730d969153b37d828abbcbec16d8c937932",
-                "reference": "1203c730d969153b37d828abbcbec16d8c937932",
+                "url": "https://api.github.com/repos/wp-cli/cron-command/zipball/7fa5feab2d34d9c81ddfeb4d7a5a896fa72a3d73",
+                "reference": "7fa5feab2d34d9c81ddfeb4d7a5a896fa72a3d73",
                 "shasum": ""
             },
             "require": {
@@ -2451,9 +2451,9 @@
             "homepage": "https://github.com/wp-cli/cron-command",
             "support": {
                 "issues": "https://github.com/wp-cli/cron-command/issues",
-                "source": "https://github.com/wp-cli/cron-command/tree/v2.3.9"
+                "source": "https://github.com/wp-cli/cron-command/tree/v2.3.10"
             },
-            "time": "2026-05-19T10:12:12+00:00"
+            "time": "2026-07-09T09:38:22+00:00"
         },
         {
             "name": "wp-cli/db-command",
@@ -3635,20 +3635,20 @@
         },
         {
             "name": "wp-cli/package-command",
-            "version": "v2.7.2",
+            "version": "v2.7.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/package-command.git",
-                "reference": "b2765da6ce28c4db0480fff77da668cf07c58f1a"
+                "reference": "d2af7d07eafa91cd5ec0f7921146051b21384abd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/package-command/zipball/b2765da6ce28c4db0480fff77da668cf07c58f1a",
-                "reference": "b2765da6ce28c4db0480fff77da668cf07c58f1a",
+                "url": "https://api.github.com/repos/wp-cli/package-command/zipball/d2af7d07eafa91cd5ec0f7921146051b21384abd",
+                "reference": "d2af7d07eafa91cd5ec0f7921146051b21384abd",
                 "shasum": ""
             },
             "require": {
-                "composer/composer": "^2.9.5",
+                "composer/composer": "^2.10.2",
                 "ext-json": "*",
                 "wp-cli/wp-cli": "^2.13"
             },
@@ -3697,9 +3697,9 @@
             "homepage": "https://github.com/wp-cli/package-command",
             "support": {
                 "issues": "https://github.com/wp-cli/package-command/issues",
-                "source": "https://github.com/wp-cli/package-command/tree/v2.7.2"
+                "source": "https://github.com/wp-cli/package-command/tree/v2.7.3"
             },
-            "time": "2026-05-19T12:21:33+00:00"
+            "time": "2026-07-02T09:15:28+00:00"
         },
         {
             "name": "wp-cli/php-cli-tools",
@@ -4320,12 +4320,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/wp-cli.git",
-                "reference": "0f897f1924481266d03a04c080a86ca466fd7823"
+                "reference": "1c06435200bcaeafd493d9492340309885e565fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/0f897f1924481266d03a04c080a86ca466fd7823",
-                "reference": "0f897f1924481266d03a04c080a86ca466fd7823",
+                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/1c06435200bcaeafd493d9492340309885e565fb",
+                "reference": "1c06435200bcaeafd493d9492340309885e565fb",
                 "shasum": ""
             },
             "require": {
@@ -4340,6 +4340,7 @@
                 "wp-cli/db-command": "^2",
                 "wp-cli/entity-command": "^2",
                 "wp-cli/extension-command": "^2",
+                "wp-cli/language-command": "^2",
                 "wp-cli/package-command": "^2",
                 "wp-cli/wp-cli-tests": "^5"
             },
@@ -4396,7 +4397,7 @@
                 "issues": "https://github.com/wp-cli/wp-cli/issues",
                 "source": "https://github.com/wp-cli/wp-cli"
             },
-            "time": "2026-06-30T12:35:06+00:00"
+            "time": "2026-07-07T09:27:22+00:00"
         },
         {
             "name": "wp-cli/wp-cli-bundle",
@@ -4620,12 +4621,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/WordPress/WordPress-Coding-Standards.git",
-                "reference": "c1e23bc6fa9cef8e194929723b95b58b3c308838"
+                "reference": "b62aa1bf24af93f6833890c9320a92f114895dd0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/c1e23bc6fa9cef8e194929723b95b58b3c308838",
-                "reference": "c1e23bc6fa9cef8e194929723b95b58b3c308838",
+                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/b62aa1bf24af93f6833890c9320a92f114895dd0",
+                "reference": "b62aa1bf24af93f6833890c9320a92f114895dd0",
                 "shasum": ""
             },
             "require": {
@@ -4679,7 +4680,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-07-03T11:58:06+00:00"
+            "time": "2026-07-10T13:52:44+00:00"
         },
         {
             "name": "yoast/phpunit-polyfills",

@@ -98,12 +98,32 @@ class Serve_Private_File {
 		/**
 		 * Allow filtering for other users.
 		 *
-		 * @hooked "bh_wp_private_uploads_{post_type_name}_allow"
+		 * @hooked "bh_wp_private_uploads_allow"
 		 *
-		 * @param bool $should_serve_file
-		 * @param string $file
+		 * @param bool   $should_serve_file
+		 * @param string $file           The requested filename.
+		 * @param string $plugin_slug    The plugin slug of this private uploads instance.
+		 * @param string $post_type_name The post type name of this private uploads instance.
 		 */
-		$should_serve_file = apply_filters( "bh_wp_private_uploads_{$this->settings->get_post_type_name()}_allow", $should_serve_file, $file );
+		$should_serve_file = apply_filters(
+			'bh_wp_private_uploads_allow',
+			$should_serve_file,
+			$file,
+			$this->settings->get_plugin_slug(),
+			$this->settings->get_post_type_name()
+		);
+
+		/**
+		 * Runs after the replacement filter so unmigrated callbacks keep the final say.
+		 *
+		 * @deprecated 0.4.0 Use "bh_wp_private_uploads_allow", which is passed the plugin slug and post type name.
+		 */
+		$should_serve_file = (bool) apply_filters_deprecated(
+			"bh_wp_private_uploads_{$this->settings->get_post_type_name()}_allow",
+			array( $should_serve_file, $file ),
+			'0.4.0',
+			'bh_wp_private_uploads_allow'
+		);
 
 		// If the user is logged in and should not have access, return a 403.
 		// If they are not logged in (401) redirect to the login screen.
