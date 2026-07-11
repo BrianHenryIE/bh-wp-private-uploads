@@ -149,7 +149,11 @@ Conventions for every PR:
 
    Prevention on Apache is the rewrite rule (change 3 below makes it actually take effect); detection everywhere is the hourly URL check. `tests/e2e-pw/private-file-access.spec.ts` now pins both ends: an admin must get the file, an anonymous visitor must not.
 2. Keep the `init` work off frontend page loads. `create_directory()` returns early when `doing_action( 'init' ) && ! is_admin() && ! wp_doing_cron() `, so the filesystem calls only happen for admin, cron and WP-CLI requests — no option-based throttle needed (an earlier revision of this PR stored `bh_wp_private_uploads_{post_type}_directory_created`; it added a cached "already done" flag that also meant a deleted guard file was never restored). Also call `create_directory()` lazily from `move_file_to_private_uploads()` before `wp_handle_upload()`, so cron/CLI uploads work even if `init`-time creation was skipped.
-3. After `WP_Rewrite::register_rewrite_rule()` adds a rule that was not previously present, schedule a one-time `flush_rewrite_rules()` (guarded by an option, never on every request).
+3. After `WP_Rewrite::register_rewrite_rule()` adds the rule, read the site-root `.htaccess` and `flush_rewrite_rules()` when the rule is missing from it.
+
+   `.htaccess` is the source of truth, not an option recording that a flush has happened. An earlier revision of this PR used `bh_wp_private_uploads_{post_type}_rewrite_flushed`, which was unsound: `WP_Rewrite::flush_rules()` only writes the file via `save_mod_rewrite_rules()`, which is defined in `wp-admin/includes/misc.php` and therefore does not exist on frontend, cron or WP-CLI requests — so a "hard" flush there silently writes nothing while the option happily records success, permanently. (That is why CI has to run `wp rewrite structure --hard`: it activates the plugin over WP-CLI.) Reading the file also means the rule is restored if it is ever removed.
+
+   Only run on admin page loads — the only context that can write the file — and skip when a flush could not write the rule anyway (multisite, plain permalinks, no `mod_rewrite`, `flush_rewrite_rules_hard` filtered false, unwritable file), otherwise we would flush on every admin request forever.
 
 **Tests:**
 
