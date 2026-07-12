@@ -114,7 +114,8 @@ class Serve_Private_File_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
-	 * The `bh_wp_private_uploads_{post_type}_allow` filter can grant a non-admin access.
+	 * The `bh_wp_private_uploads_allow` filter can grant a non-admin access. It is passed the plugin slug
+	 * and post type name so one callback can tell private uploads instances apart.
 	 *
 	 * @covers ::get_response_for_request
 	 */
@@ -126,11 +127,18 @@ class Serve_Private_File_WPUnit_Test extends WPUnit_Testcase {
 		assert( is_int( $subscriber_id ) );
 		wp_set_current_user( $subscriber_id );
 
-		add_filter( 'bh_wp_private_uploads_serve_test_allow', '__return_true' );
+		$allow = function ( bool $should_serve_file, string $filename, string $plugin_slug, string $post_type_name ): bool {
+
+			$this->assertSame( 'serve_test', $post_type_name );
+
+			return true;
+		};
+
+		add_filter( 'bh_wp_private_uploads_allow', $allow, 10, 4 );
 
 		$response = $this->get_response( $sut, $file );
 
-		remove_filter( 'bh_wp_private_uploads_serve_test_allow', '__return_true' );
+		remove_filter( 'bh_wp_private_uploads_allow', $allow, 10 );
 
 		$this->assertSame( 200, $response->status_code );
 	}

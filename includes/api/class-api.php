@@ -120,6 +120,10 @@ class API implements API_Interface {
 			throw new Private_Uploads_Exception( "Failed to read file( {$tmp_file} )" );
 		}
 
+		// Ensure the private directory and its guard file exist even when `init`-time creation was skipped
+		// (e.g. a frontend request). A `file_exists()` is negligible next to the upload itself.
+		$this->create_directory();
+
 		$file = array(
 			'name'     => sanitize_file_name( basename( $filename ) ),
 			'tmp_name' => $tmp_file,
@@ -380,18 +384,20 @@ class API implements API_Interface {
 	}
 
 	/**
-	 * Ensure the private uploads directory exists, best-effort.
+	 * Ensure the private uploads directory exists, best-effort, and write its `index.php` guard file.
 	 *
-	 * Never throws: this is hooked directly on `init`, where a failure (e.g. a filesystem-permission
-	 * error under WP-CLI) must not fatal the site. The directory is recreated lazily on the next upload.
-	 * Failures are logged as errors and returned as a `created: false` result carrying the message.
+	 * Never throws: this is hooked on `init`, where a failure (e.g. a filesystem-permission error under
+	 * WP-CLI) must not fatal the site. The directory is recreated lazily on the next upload. A failure to
+	 * create the directory is logged as an error and returned as a `created: false` result carrying the
+	 * message; a failure to write the guard file is logged as a warning (the directory is still usable).
+	 *
+	 * The `init` early-return keeps the filesystem calls off frontend page loads, which is why no
+	 * option-based throttle is needed: the remaining callers are admin, cron, WP-CLI and uploads, where a
+	 * `file_exists()` is not worth caching.
 	 *
 	 * TODO: does this maybe happen automatically when the first file is moved?
 	 *
 	 * @hooked init
-	 *
-	 * TODO: Don't run this every time.
-	 * TODO: Run it when necessary: when a file is moved
 	 *
 	 * @return Create_Directory_Result
 	 */
@@ -409,32 +415,39 @@ class API implements API_Interface {
 
 		try {
 
-			if ( file_exists( $dir ) ) {
-				return new Create_Directory_Result(
-					dir: $dir,
-					created: false,
-					message: 'Already exists',
-				);
+			$created = false;
+
+			if ( ! file_exists( $dir ) ) {
+
+				if ( false === wp_mkdir_p( $dir ) ) {
+					$message = 'Failed to create directory: ' . $dir;
+
+					$this->logger->error( $message, array( 'dir' => $dir ) );
+
+					return new Create_Directory_Result(
+						dir: $dir,
+						created: false,
+						message: $message,
+					);
+				}
+
+				$created = true;
 			}
 
-			$result = wp_mkdir_p( $dir );
-
-			if ( false === $result ) {
-				$message = 'Failed to create directory: ' . $dir;
-
-				$this->logger->error( $message, array( 'dir' => $dir ) );
-
-				return new Create_Directory_Result(
-					dir: $dir,
-					created: false,
-					message: $message,
+			// Also when the directory already exists: it may predate the guard file, or have lost it.
+			if ( ! $this->write_guard_file( $dir ) ) {
+				// Not fatal – the directory itself is fine, and the file only prevents directory listing –
+				// but nothing else will report it: the public-URL check deliberately skips `index.php`.
+				$this->logger->warning(
+					'Failed to write the private uploads index.php guard file: ' . $dir . '/index.php',
+					array( 'dir' => $dir )
 				);
 			}
 
 			return new Create_Directory_Result(
 				dir: $dir,
-				created: true,
-				message: 'Created',
+				created: $created,
+				message: $created ? 'Created' : 'Already exists',
 			);
 
 		} catch ( \Throwable $throwable ) {
@@ -449,6 +462,60 @@ class API implements API_Interface {
 				message: $throwable->getMessage(),
 			);
 		}
+	}
+
+	/**
+	 * Write the `index.php` guard file into the directory if it is not already present, so a server with
+	 * autoindex enabled cannot list the directory's contents.
+	 *
+	 * Deliberately no deny-all `.htaccess`. Files here are served by PHP, but the request only reaches PHP
+	 * because the rewrite rule in the *site-root* `.htaccess` intercepts the direct uploads URL. Apache
+	 * evaluates `Require all denied` in its auth phase, which runs before the fixup phase where
+	 * per-directory `mod_rewrite` rules execute – so a deny-all here would 403 the request before the
+	 * rewrite could hand it to `Serve_Private_File`, breaking access for authorised users. It would add
+	 * nothing on nginx, which ignores `.htaccess` entirely, and it would make
+	 * {@see self::check_and_update_is_url_private()} probe a file that servers 403 unconditionally.
+	 *
+	 * @see \BrianHenryIE\WP_Private_Uploads\WP_Includes\WP_Rewrite::register_rewrite_rule()
+	 *
+	 * @param string $dir The private uploads directory path.
+	 * @return bool True when the guard file is present (already existed or was written successfully).
+	 */
+	protected function write_guard_file( string $dir ): bool {
+
+		if ( ! is_dir( $dir ) ) {
+			return false;
+		}
+
+		$index = $dir . '/index.php';
+
+		if ( file_exists( $index ) ) {
+			return true;
+		}
+
+		/**
+		 * WordPress writes the uploads directory with these same functions – `wp_mkdir_p()` is `@mkdir()`,
+		 * `_wp_handle_upload()` is `@move_uploaded_file()`, `wp_upload_bits()` is `fopen()`/`fwrite()` –
+		 * and there is no `WP_Filesystem` code path for uploads anywhere in core. A host where this write
+		 * fails is therefore one whose media library is already broken ("Is its parent directory writable
+		 * by the server?"), not a host to support differently.
+		 *
+		 * `WP_Filesystem` is the updater's privilege shim (its FTP/SSH transports log back into the same
+		 * server as the user who owns the files, to replace `wp-admin`/plugins/themes); `wp-content/uploads`
+		 * is never one of its targets. It is also not loaded on the `init`, cron and WP-CLI requests that
+		 * reach this method, and initialising it there would fail without FTP credentials where a plain
+		 * `file_put_contents()` succeeds.
+		 *
+		 * Checking `is_writable()` up-front means an unwritable directory returns false rather than
+		 * emitting a PHP warning.
+		 */
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- See above.
+		if ( ! is_writable( $dir ) ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- See above.
+		return false !== file_put_contents( $index, "<?php\n// Silence is golden.\n" );
 	}
 
 	/**
@@ -509,6 +576,54 @@ class API implements API_Interface {
 	}
 
 	/**
+	 * Find a real uploaded file for {@see self::check_and_update_is_url_private()} to request. The check is
+	 * only meaningful against a file the webserver would actually serve to a visitor.
+	 *
+	 * Descends into the `yyyy/mm` subdirectories rather than probing a directory URL, which returns 403 on
+	 * any server with autoindex disabled regardless of whether the files inside are readable.
+	 *
+	 * Skips:
+	 * - dotfiles – Apache ships `<FilesMatch "^\.ht">` at server level and most nginx configs deny
+	 *   dotfiles, so a `.htaccess` returns 403 however exposed the directory is;
+	 * - the `index.php` guard file – hosts commonly deny PHP execution inside `uploads`, which would
+	 *   likewise report 403 while every uploaded document remains downloadable.
+	 *
+	 * Probing either would be a permanent false negative, silently disabling the admin notice.
+	 *
+	 * @param string $dir Absolute path of the directory to search.
+	 * @param int    $max_depth How many levels to descend. Uploads are `yyyy/mm/file`, so two is enough;
+	 *                          the limit stops a deep (or symlinked) tree turning an hourly check into a
+	 *                          full filesystem walk.
+	 * @return ?string Path relative to `$dir`, or null when it contains no uploaded files.
+	 */
+	protected function find_file_to_probe( string $dir, int $max_depth = 2 ): ?string {
+
+		$entries = array_filter(
+			scandir( $dir ) ?: array(),
+			fn( string $entry ): bool => ! str_starts_with( $entry, '.' ) && 'index.php' !== $entry
+		);
+
+		sort( $entries );
+
+		foreach ( $entries as $entry ) {
+			$path = "{$dir}/{$entry}";
+
+			if ( is_file( $path ) && is_readable( $path ) ) {
+				return $entry;
+			}
+
+			if ( $max_depth > 0 && is_dir( $path ) ) {
+				$found = $this->find_file_to_probe( $path, $max_depth - 1 );
+				if ( null !== $found ) {
+					return "{$entry}/{$found}";
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Check is the URL public, store the result in a transient. Return null if undetermined.
 	 *
 	 * Runs a `wp_remote_get()` on the directory that should be private to verify the webserver is properly configured.
@@ -524,7 +639,7 @@ class API implements API_Interface {
 	 */
 	public function check_and_update_is_url_private(): ?Is_Private_Result {
 
-		$dir = $this->get_private_uploads_directory_path() . '/';
+		$dir = $this->get_private_uploads_directory_path();
 
 		// If the folder does not exist, it does not exist to be private or public, so return null.
 		if ( ! is_dir( $dir ) ) {
@@ -532,24 +647,15 @@ class API implements API_Interface {
 			return null;
 		}
 
-		// NB: Browsing to the folder could request_response in 403 while browsing to a particular filename might not.
-		$url = $this->get_private_uploads_directory_url() . '/';
+		$file_to_probe = $this->find_file_to_probe( $dir );
 
-		// Get the directory listing, except for `.` and `..`.
-		$files = array_diff( scandir( $dir ) ?: array(), array( '..', '.' ) );
-
-		// When the directory is empty, we can't check if it is private or not.
-		if ( empty( $files ) ) {
+		// With no uploaded files there is nothing to protect, so nothing to check.
+		if ( null === $file_to_probe ) {
 			delete_transient( $this->get_is_private_transient_name() );
 			return null;
 		}
 
-		foreach ( $files as $file ) {
-			if ( is_readable( "{$dir}{$file}" ) ) {
-				$url = "{$url}{$file}";
-				break;
-			}
-		}
+		$url = $this->get_private_uploads_directory_url() . '/' . $file_to_probe;
 
 		/**
 		 * Had tried zero redirections but hadn't worked well.

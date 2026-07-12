@@ -110,10 +110,18 @@ class Serve_Private_File {
 				ob_end_clean();
 			}
 			/**
-			 * WP_Filesystem is only loaded for admin requests, not applicable here.
+			 * `WP_Filesystem` has no streaming primitive – its only read methods are `get_contents()` and
+			 * `get_contents_array()`, both of which read the entire file into PHP memory. That would be a
+			 * `memory_limit` fatal on a large private file, so this cannot be migrated. WordPress serves
+			 * multisite attachments the same way.
 			 *
-			 * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_readfile
+			 * `readfile()` writes straight to the output stream, and the buffers are torn down above, so
+			 * the file is never materialised in memory.
+			 *
+			 * @see https://developer.wordpress.org/reference/classes/wp_filesystem_direct/get_contents/
+			 * @see ms-files.php Core's own attachment handler: `readfile( $file );`
 			 */
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- See above.
 			readfile( $response->file_to_stream );
 		}
 

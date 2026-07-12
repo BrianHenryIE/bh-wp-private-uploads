@@ -184,6 +184,22 @@ class API_Unit_Test extends Unit_Testcase {
 		assert( false !== $tmp_file );
 		file_put_contents( $tmp_file, 'file contents' );
 
+		// `move_file_to_private_uploads()` lazily calls `create_directory()`. Not on `init`, so it proceeds
+		// to create the (fictional) directory; the guard file is skipped because it never really exists.
+		WP_Mock::userFunction( 'wp_upload_dir' )
+				->with( null, false )
+				->andReturn(
+					array(
+						'basedir' => '/path/to/wp-content/uploads',
+						'baseurl' => 'https://example.org/wp-content/uploads',
+					)
+				);
+		WP_Mock::userFunction( 'doing_action' )
+				->with( 'init' )
+				->andReturnFalse();
+		WP_Mock::userFunction( 'wp_mkdir_p' )
+				->andReturnTrue();
+
 		WP_Mock::userFunction( 'sanitize_file_name' )
 				->once()
 				->with( 'sample.pdf' )
@@ -361,6 +377,12 @@ class API_Unit_Test extends Unit_Testcase {
 		$this->assertFalse( $result->created );
 		$this->assertSame( 'Already exists', $result->message );
 
+		// The guard file should have been written into the existing directory. No deny-all `.htaccess`:
+		// it would 403 the request before the site-root rewrite rule could hand it to WordPress.
+		$this->assertFileExists( $expected_dir . '/index.php' );
+		$this->assertFileDoesNotExist( $expected_dir . '/.htaccess' );
+
+		unlink( $expected_dir . '/index.php' );
 		rmdir( $expected_dir );
 	}
 
