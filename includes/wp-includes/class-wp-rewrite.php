@@ -180,13 +180,18 @@ class WP_Rewrite {
 		}
 
 		/**
-		 * `WP_Filesystem` buys nothing here. On its default (direct) method `get_contents()` is literally
-		 * `@file_get_contents()`; initialising it would add a `wp-content/` write-probe (see
+		 * WordPress rewrites this very file with direct PHP I/O – `insert_with_markers()` is
+		 * `fopen( 'r+' )` / `flock()` / `fwrite()` / `ftruncate()`, gated only on `is_writable()`, and
+		 * `$wp_filesystem` appears nowhere in `wp-admin/includes/misc.php`. Reading it with
+		 * `file_get_contents()` is strictly weaker than what core does to it.
+		 *
+		 * `WP_Filesystem` would buy nothing besides: on its default (direct) method `get_contents()` is
+		 * literally `@file_get_contents()`; initialising it would add a `wp-content/` write-probe (see
 		 * `get_filesystem_method()`) to every admin page load; and where file ownership does not match –
 		 * a bind-mounted container, say – it resolves to FTP, `WP_Filesystem()` returns false, and the
-		 * global is left as an object whose every call fails. A local read of a file WordPress itself
-		 * writes does not need any of that.
+		 * global is left as an object whose every call fails.
 		 *
+		 * @see insert_with_markers()
 		 * @see \WP_Filesystem_Direct::get_contents()
 		 */
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- See above.

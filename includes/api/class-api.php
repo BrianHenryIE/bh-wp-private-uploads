@@ -494,11 +494,17 @@ class API implements API_Interface {
 		}
 
 		/**
-		 * A one-off guard file in a directory this plugin owns, written on `init`, cron and WP-CLI
-		 * requests – none of which load `wp-admin/includes/file.php`, where `WP_Filesystem()` is defined.
-		 * Initialising it would also add a `wp-content/` write-probe (see `get_filesystem_method()`) to
-		 * every one of those requests, and on the direct method it is only a wrapper around these same
-		 * functions. So use them directly.
+		 * WordPress writes the uploads directory with these same functions – `wp_mkdir_p()` is `@mkdir()`,
+		 * `_wp_handle_upload()` is `@move_uploaded_file()`, `wp_upload_bits()` is `fopen()`/`fwrite()` –
+		 * and there is no `WP_Filesystem` code path for uploads anywhere in core. A host where this write
+		 * fails is therefore one whose media library is already broken ("Is its parent directory writable
+		 * by the server?"), not a host to support differently.
+		 *
+		 * `WP_Filesystem` is the updater's privilege shim (its FTP/SSH transports log back into the same
+		 * server as the user who owns the files, to replace `wp-admin`/plugins/themes); `wp-content/uploads`
+		 * is never one of its targets. It is also not loaded on the `init`, cron and WP-CLI requests that
+		 * reach this method, and initialising it there would fail without FTP credentials where a plain
+		 * `file_put_contents()` succeeds.
 		 *
 		 * Checking `is_writable()` up-front means an unwritable directory returns false rather than
 		 * emitting a PHP warning.
