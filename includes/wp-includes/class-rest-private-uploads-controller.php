@@ -73,11 +73,20 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 			return;
 		}
 
-		// Register an "upload_item" route that uploads to private uploads but does not create an attachment/post.
-		// Defaults to `plugin-slug/v1/plugin-slug-uploads` or `plugin-slug/v1/post-type-name`.
+		/**
+		 * Register an "upload_item" route that uploads to private uploads but does not create an
+		 * attachment/post. Defaults to `plugin-slug/v1/plugin-slug-uploads/upload`.
+		 *
+		 * The `/upload` suffix is required: `register_rest_route()` trims the route's trailing slash, so
+		 * registering this at `"/{$this->rest_base}/"` gave it the same path as the collection route
+		 * `parent::register_routes()` registers above. Both are `CREATABLE`, and the parent's `create_item`
+		 * wins on dispatch – so this callback was unreachable.
+		 *
+		 * @see register_rest_route() `$full_route = '/' . $clean_namespace . '/' . trim( $route, '/' );`
+		 */
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/', // TODO: trailing slash?
+			'/' . $this->rest_base . '/upload',
 			array(
 				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'upload_item' ),

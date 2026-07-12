@@ -135,9 +135,14 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
-	 * The additional `upload_item` route stores the file without creating a post, and fires the
-	 * `rest_private_uploads_upload` action.
+	 * The `upload_item` route stores the file without creating a post, and fires the
+	 * `bh_wp_private_uploads_rest_upload` action.
 	 *
+	 * Dispatched through the REST server rather than by calling the method, so this also pins the route
+	 * itself: registered at `"/{$rest_base}/"` it collided with the collection route (`register_rest_route()`
+	 * trims the trailing slash) and `create_item` won, making `upload_item` unreachable.
+	 *
+	 * @covers ::register_routes
 	 * @covers ::upload_item
 	 */
 	public function test_upload_item_stores_file_without_post_and_fires_action(): void {
@@ -149,10 +154,16 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 
 		$fired = false;
 		add_action(
-			'rest_private_uploads_upload',
-			function () use ( &$fired ): void {
+			'bh_wp_private_uploads_rest_upload',
+			function ( array $file, $request, string $plugin_slug, string $post_type_name ) use ( &$fired ): void {
+
+				$this->assertSame( 'bh-wp-private-uploads-test', $plugin_slug );
+				$this->assertSame( 'rest_test_private', $post_type_name );
+
 				$fired = true;
-			}
+			},
+			10,
+			4
 		);
 
 		$posts_before = get_posts(
@@ -163,20 +174,25 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 			)
 		);
 
-		// The `upload_item` route is registered with a trailing slash, but `register_rest_route()` trims it,
-		// so it merges into the create route and is not reachable via dispatch; exercise the method directly.
-		$controller = new REST_Private_Uploads_Controller( 'rest_test_private' );
-		$request    = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}" );
+		$request  = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}/upload" );
+		$response = rest_get_server()->dispatch( $request );
 
-		$result = $controller->upload_item( $request );
+		$this->assertSame( 200, $response->get_status() );
 
-		$this->assertNotInstanceOf( \WP_Error::class, $result );
+		$data = $response->get_data();
+
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['file'] );
+		$this->assertIsString( $data['file']['file'] );
+
+		$uploaded_file = $data['file']['file'];
+
 		// The uploaded file is stored under the private subdirectory.
-		$this->assertStringContainsString( "/{$subdir}/", $result['file']['file'] );
+		$this->assertStringContainsString( "/{$subdir}/", $uploaded_file );
 
-		$this->assertTrue( $fired );
+		$this->assertTrue( $fired, 'The bh_wp_private_uploads_rest_upload action should have fired.' );
 
-		// No post was created.
+		// No post was created – this is the difference from `create_item`.
 		$posts_after = get_posts(
 			array(
 				'post_type'   => 'rest_test_private',
@@ -187,8 +203,8 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 		$this->assertCount( count( $posts_before ), $posts_after );
 
 		// Uploaded file is on disk (not rolled back with the DB); remove it.
-		if ( file_exists( $result['file']['file'] ) ) {
-			unlink( $result['file']['file'] );
+		if ( file_exists( $uploaded_file ) ) {
+			unlink( $uploaded_file );
 		}
 	}
 

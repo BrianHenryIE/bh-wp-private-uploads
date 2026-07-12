@@ -166,21 +166,23 @@ Conventions for every PR:
 
 **Problems / gaps:**
 
-1. `API::is_url_public_for_admin()` (`includes/api/class-api.php:535–567`) is never called — dead code (and it forwards raw `$_COOKIE` values).
+1. `API::is_url_public_for_admin()` is never called — dead code (and it forwards raw `$_COOKIE` values). Its only caller was a wrapper in the development plugin demonstrating it.
 2. Classes with **no tests at all**: `Post_Type`, `REST_Private_Uploads_Controller`, `Admin_Meta_Boxes` (`WP_Rewrite` gains tests in PR 4, `Serve_Private_File` in PR 5).
 3. `Media::on_upload_attachment()` nonce/referer branches (`is_private_upload_via_post()`, `is_private_upload_via_referer()`) are uncovered by the existing `tests/wpunit/wp-includes/class-media-WPUnit-Test.php`.
+4. Found while writing the tests: the `upload_item` REST route was **unreachable**. It registered at `"/{$rest_base}/"`, but `register_rest_route()` trims the trailing slash, so it took the same path as the collection route registered by `parent::register_routes()`. Both are `CREATABLE`, and `create_item` won on dispatch.
 
 **Changes:**
 
-1. Delete `API::is_url_public_for_admin()`.
+1. Delete `API::is_url_public_for_admin()` (done), and the development-plugin wrapper that called it.
 2. New `tests/wpunit/wp-includes/class-post-type-WPUnit-Test.php`: post type is registered non-public, `show_in_rest`, correct `rest_namespace`/`rest_base`/`rest_controller_class` when `get_rest_base()` is non-null; not registered when post type name is empty.
 3. New `tests/wpunit/wp-includes/class-rest-private-uploads-controller-WPUnit-Test.php`:
    - subscriber POST → 403 (pairs with PR 1),
    - editor/admin POST with file → post created with the custom post type (not `attachment`), file stored under `uploads/{subdir}/`,
-   - `upload_item` route (`POST /{namespace}/{rest_base}/`) stores the file without creating a post and fires `rest_private_uploads_upload`,
+   - `upload_item` route (`POST /{namespace}/{rest_base}/upload`) stores the file without creating a post and fires `bh_wp_private_uploads_rest_upload`, dispatched through the REST server so the route itself is covered,
    - `post_parent` and `post_author` params are respected.
 4. New `tests/wpunit/admin/class-admin-meta-boxes-WPUnit-Test.php`: meta box registered only for post types returned by `get_meta_box_settings()`.
 5. Extend `tests/wpunit/wp-includes/class-media-WPUnit-Test.php`: `on_upload_attachment()` adds its three hooks when a valid `media-form`/`upload-attachment` nonce + matching `post_type` POST is present, does nothing without the nonce, and the `async-upload.php` referer branch works.
+6. Move the `upload_item` route to `"/{$rest_base}/upload"` so it is actually reachable.
 
 ---
 
