@@ -180,11 +180,16 @@ class WP_Rewrite {
 		}
 
 		/**
-		 * `WP_Filesystem` is not loaded on every request, and this is a read of a file WordPress itself
-		 * manages, so use the direct PHP function.
+		 * `WP_Filesystem` buys nothing here. On its default (direct) method `get_contents()` is literally
+		 * `@file_get_contents()`; initialising it would add a `wp-content/` write-probe (see
+		 * `get_filesystem_method()`) to every admin page load; and where file ownership does not match –
+		 * a bind-mounted container, say – it resolves to FTP, `WP_Filesystem()` returns false, and the
+		 * global is left as an object whose every call fails. A local read of a file WordPress itself
+		 * writes does not need any of that.
 		 *
-		 * phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		 * @see \WP_Filesystem_Direct::get_contents()
 		 */
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- See above.
 		$contents = file_get_contents( $htaccess_file );
 
 		if ( ! is_string( $contents ) ) {
@@ -211,18 +216,17 @@ class WP_Rewrite {
 	 * Whether WordPress would be able to write the rules to `.htaccess`.
 	 *
 	 * Mirrors the check in `save_mod_rewrite_rules()`: the file itself when it exists, otherwise the
-	 * directory it would be created in.
-	 *
-	 * `WP_Filesystem` is not loaded on every request, so use the direct PHP functions.
-	 *
-	 * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
+	 * directory it would be created in. Core makes that check with these same functions, and
+	 * `WP_Filesystem` is not worth initialising to repeat it – see {@see self::is_rule_in_htaccess()}.
 	 */
 	protected function is_htaccess_writable(): bool {
 
 		$htaccess_file = $this->get_htaccess_file_path();
 
+		// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- See above.
 		return file_exists( $htaccess_file )
 			? is_writable( $htaccess_file )
 			: is_writable( dirname( $htaccess_file ) );
+		// phpcs:enable WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
 	}
 }

@@ -493,18 +493,22 @@ class API implements API_Interface {
 			return true;
 		}
 
-		// Checked up-front so an unwritable directory returns false rather than emitting a PHP warning.
+		/**
+		 * A one-off guard file in a directory this plugin owns, written on `init`, cron and WP-CLI
+		 * requests – none of which load `wp-admin/includes/file.php`, where `WP_Filesystem()` is defined.
+		 * Initialising it would also add a `wp-content/` write-probe (see `get_filesystem_method()`) to
+		 * every one of those requests, and on the direct method it is only a wrapper around these same
+		 * functions. So use them directly.
+		 *
+		 * Checking `is_writable()` up-front means an unwritable directory returns false rather than
+		 * emitting a PHP warning.
+		 */
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- See above.
 		if ( ! is_writable( $dir ) ) {
 			return false;
 		}
 
-		/**
-		 * This is a one-off guard file in a directory this plugin owns; `WP_Filesystem` is not loaded on
-		 * front-end/cron requests, so use the direct PHP function.
-		 *
-		 * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		 * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
-		 */
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- See above.
 		return false !== file_put_contents( $index, "<?php\n// Silence is golden.\n" );
 	}
 
