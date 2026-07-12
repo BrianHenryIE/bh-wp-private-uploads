@@ -387,8 +387,9 @@ class API implements API_Interface {
 	 * Ensure the private uploads directory exists, best-effort, and write its `index.php` guard file.
 	 *
 	 * Never throws: this is hooked on `init`, where a failure (e.g. a filesystem-permission error under
-	 * WP-CLI) must not fatal the site. The directory is recreated lazily on the next upload. Failures are
-	 * logged as errors and returned as a `created: false` result carrying the message.
+	 * WP-CLI) must not fatal the site. The directory is recreated lazily on the next upload. A failure to
+	 * create the directory is logged as an error and returned as a `created: false` result carrying the
+	 * message; a failure to write the guard file is logged as a warning (the directory is still usable).
 	 *
 	 * The `init` early-return keeps the filesystem calls off frontend page loads, which is why no
 	 * option-based throttle is needed: the remaining callers are admin, cron, WP-CLI and uploads, where a
@@ -434,7 +435,14 @@ class API implements API_Interface {
 			}
 
 			// Also when the directory already exists: it may predate the guard file, or have lost it.
-			$this->write_guard_files( $dir );
+			if ( ! $this->write_guard_file( $dir ) ) {
+				// Not fatal – the directory itself is fine, and the file only prevents directory listing –
+				// but nothing else will report it: the public-URL check deliberately skips `index.php`.
+				$this->logger->warning(
+					'Failed to write the private uploads index.php guard file: ' . $dir . '/index.php',
+					array( 'dir' => $dir )
+				);
+			}
 
 			return new Create_Directory_Result(
 				dir: $dir,
@@ -473,9 +481,20 @@ class API implements API_Interface {
 	 * @param string $dir The private uploads directory path.
 	 * @return bool True when the guard file is present (already existed or was written successfully).
 	 */
-	protected function write_guard_files( string $dir ): bool {
+	protected function write_guard_file( string $dir ): bool {
 
 		if ( ! is_dir( $dir ) ) {
+			return false;
+		}
+
+		$index = $dir . '/index.php';
+
+		if ( file_exists( $index ) ) {
+			return true;
+		}
+
+		// Checked up-front so an unwritable directory returns false rather than emitting a PHP warning.
+		if ( ! is_writable( $dir ) ) {
 			return false;
 		}
 
@@ -484,13 +503,9 @@ class API implements API_Interface {
 		 * front-end/cron requests, so use the direct PHP function.
 		 *
 		 * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		 * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
 		 */
-		$index = $dir . '/index.php';
-		if ( ! file_exists( $index ) && false === file_put_contents( $index, "<?php\n// Silence is golden.\n" ) ) {
-			return false;
-		}
-
-		return true;
+		return false !== file_put_contents( $index, "<?php\n// Silence is golden.\n" );
 	}
 
 	/**
@@ -566,9 +581,12 @@ class API implements API_Interface {
 	 * Probing either would be a permanent false negative, silently disabling the admin notice.
 	 *
 	 * @param string $dir Absolute path of the directory to search.
+	 * @param int    $max_depth How many levels to descend. Uploads are `yyyy/mm/file`, so two is enough;
+	 *                          the limit stops a deep (or symlinked) tree turning an hourly check into a
+	 *                          full filesystem walk.
 	 * @return ?string Path relative to `$dir`, or null when it contains no uploaded files.
 	 */
-	protected function find_file_to_probe( string $dir ): ?string {
+	protected function find_file_to_probe( string $dir, int $max_depth = 2 ): ?string {
 
 		$entries = array_filter(
 			scandir( $dir ) ?: array(),
@@ -584,8 +602,8 @@ class API implements API_Interface {
 				return $entry;
 			}
 
-			if ( is_dir( $path ) ) {
-				$found = $this->find_file_to_probe( $path );
+			if ( $max_depth > 0 && is_dir( $path ) ) {
+				$found = $this->find_file_to_probe( $path, $max_depth - 1 );
 				if ( null !== $found ) {
 					return "{$entry}/{$found}";
 				}

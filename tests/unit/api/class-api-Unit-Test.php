@@ -366,8 +366,6 @@ class API_Unit_Test extends Unit_Testcase {
 
 		mkdir( $expected_dir, 0777, true );
 		$this->mock_wp_upload_dir( $basedir );
-		WP_Mock::userFunction( 'get_option' )->andReturnFalse();
-		WP_Mock::userFunction( 'update_option' )->andReturnTrue();
 
 		WP_Mock::userFunction( 'doing_action' )
 				->with( 'init' )
@@ -408,8 +406,6 @@ class API_Unit_Test extends Unit_Testcase {
 		$expected_dir = $basedir . '/the-private-directory';
 
 		$this->mock_wp_upload_dir( $basedir );
-		WP_Mock::userFunction( 'get_option' )->andReturnFalse();
-		WP_Mock::userFunction( 'update_option' )->andReturnTrue();
 
 		WP_Mock::userFunction( 'doing_action' )
 				->with( 'init' )
@@ -449,7 +445,6 @@ class API_Unit_Test extends Unit_Testcase {
 		$expected_dir = $basedir . '/the-private-directory';
 
 		$this->mock_wp_upload_dir( $basedir );
-		WP_Mock::userFunction( 'get_option' )->andReturnFalse();
 
 		WP_Mock::userFunction( 'doing_action' )
 				->with( 'init' )

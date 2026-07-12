@@ -65,7 +65,7 @@ class WP_Rewrite {
 		// to `.htaccess`, so the file-level protection would only take effect if the user re-saved permalinks.
 		$wp_rewrite->add_external_rule( $regex, $query );
 
-		$this->maybe_flush_rewrite_rules( $regex );
+		$this->maybe_flush_rewrite_rules( $regex, $query );
 	}
 
 	/**
@@ -77,8 +77,9 @@ class WP_Rewrite {
 	 * also means the rule is restored if it is ever removed, e.g. by another plugin's flush.
 	 *
 	 * @param string $regex The external rewrite rule regex just added.
+	 * @param string $query The query string the rule rewrites to.
 	 */
-	protected function maybe_flush_rewrite_rules( string $regex ): void {
+	protected function maybe_flush_rewrite_rules( string $regex, string $query ): void {
 
 		/**
 		 * Only an admin page load can write `.htaccess`: `WP_Rewrite::flush_rules()` skips the file write
@@ -119,7 +120,7 @@ class WP_Rewrite {
 			return;
 		}
 
-		if ( $this->is_rule_in_htaccess( $regex ) ) {
+		if ( $this->is_rule_in_htaccess( $regex, $query ) ) {
 			return;
 		}
 
@@ -162,9 +163,14 @@ class WP_Rewrite {
 	/**
 	 * Whether `.htaccess` already contains the rewrite rule for this plugin's private uploads.
 	 *
+	 * Matches the destination as well as the pattern: a rule left behind by an earlier post type name
+	 * could match the same path while rewriting to the wrong query, and treating that as "present" would
+	 * silently leave the stale rule in place.
+	 *
 	 * @param string $regex The external rewrite rule regex added by {@see self::register_rewrite_rule()}.
+	 * @param string $query The query string the rule rewrites to.
 	 */
-	protected function is_rule_in_htaccess( string $regex ): bool {
+	protected function is_rule_in_htaccess( string $regex, string $query ): bool {
 
 		$htaccess_file = $this->get_htaccess_file_path();
 
@@ -186,13 +192,19 @@ class WP_Rewrite {
 		}
 
 		/**
-		 * The same substitution core applies when it writes the rule, so the needle matches the file.
+		 * Rebuild the line exactly as core writes it: `'RewriteRule ^' . $match . ' ' . $home_root . $query`,
+		 * where `$match` has core's Apache 1.3 substitution applied. The `[QSA,L]` flags are left off the
+		 * needle – they are core's to change, and a mismatch there would have us flushing on every admin
+		 * page load – but the destination is included, so a stale rule rewriting elsewhere does not count.
 		 *
 		 * @see \WP_Rewrite::mod_rewrite_rules()
 		 */
 		$match = str_replace( '.+?', '.+', $regex );
 
-		return str_contains( $contents, 'RewriteRule ^' . $match );
+		$home_root = wp_parse_url( home_url() );
+		$home_root = isset( $home_root['path'] ) ? trailingslashit( $home_root['path'] ) : '/';
+
+		return str_contains( $contents, 'RewriteRule ^' . $match . ' ' . $home_root . $query );
 	}
 
 	/**

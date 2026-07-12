@@ -98,7 +98,10 @@ class WP_Rewrite_WPUnit_Test extends WPUnit_Testcase {
 	 */
 	protected function given_htaccess_is_writable(): void {
 
-		set_current_screen( 'dashboard' );          // `is_admin()`.
+		/**
+		 * Emulate {@see is_admin()}.
+		 */
+		set_current_screen( 'dashboard' );
 		add_filter( 'got_rewrite', '__return_true' ); // `got_mod_rewrite()`, i.e. Apache with mod_rewrite.
 
 		update_option( 'permalink_structure', '/%year%/%monthnum%/%postname%/' );
@@ -153,8 +156,11 @@ class WP_Rewrite_WPUnit_Test extends WPUnit_Testcase {
 
 		$this->given_htaccess_is_writable();
 
-		// The line as WordPress writes it.
-		// @see \WP_Rewrite::mod_rewrite_rules()
+		/**
+		 * The line as WordPress writes it.
+		 *
+		 * @see \WP_Rewrite::mod_rewrite_rules()
+		 */
 		$rule = 'RewriteRule ^' . $this->get_expected_regex( $subdir ) . ' /index.php?rewrite-test-private-uploads-file=$1 [QSA,L]';
 
 		$htaccess_file = (string) tempnam( sys_get_temp_dir(), 'htaccess' );
@@ -164,6 +170,34 @@ class WP_Rewrite_WPUnit_Test extends WPUnit_Testcase {
 		$sut->register_rewrite_rule();
 
 		$this->assertFalse( $sut->did_flush );
+
+		unlink( $htaccess_file );
+	}
+
+	/**
+	 * A rule for the same path but rewriting somewhere else – left behind by an earlier post type name –
+	 * is not our rule. Matching the pattern alone would treat it as present and leave the stale rule in
+	 * place, silently rewriting private uploads to the wrong query var.
+	 *
+	 * @covers ::maybe_flush_rewrite_rules
+	 * @covers ::is_rule_in_htaccess
+	 */
+	public function test_flushes_when_htaccess_rule_rewrites_to_a_different_query(): void {
+
+		$subdir = uniqid( 'rewritestale' );
+
+		$this->given_htaccess_is_writable();
+
+		// Same regex, but the query var of a post type this instance no longer uses.
+		$stale_rule = 'RewriteRule ^' . $this->get_expected_regex( $subdir ) . ' /index.php?old-post-type-private-uploads-file=$1 [QSA,L]';
+
+		$htaccess_file = (string) tempnam( sys_get_temp_dir(), 'htaccess' );
+		file_put_contents( $htaccess_file, "# BEGIN WordPress\n{$stale_rule}\n# END WordPress\n" );
+
+		$sut = $this->get_sut( $htaccess_file, $subdir );
+		$sut->register_rewrite_rule();
+
+		$this->assertTrue( $sut->did_flush );
 
 		unlink( $htaccess_file );
 	}

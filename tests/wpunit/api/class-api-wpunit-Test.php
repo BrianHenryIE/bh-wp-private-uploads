@@ -710,6 +710,48 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
+	 * A guard file that cannot be written must be logged: nothing else would report it, because the
+	 * public-URL check deliberately skips `index.php`.
+	 *
+	 * @covers ::create_directory
+	 * @covers ::write_guard_file
+	 */
+	public function test_create_directory_logs_when_the_guard_file_cannot_be_written(): void {
+
+		$subdir = uniqid( 'guardunwritable' );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name'            => 'guard_unwritable_test',
+				'get_uploads_subdirectory_name' => $subdir,
+			)
+		);
+
+		$upload = wp_upload_dir();
+		$dir    = $upload['basedir'] . '/' . $subdir;
+
+		// The directory exists but cannot be written to, so `file_put_contents()` cannot create the file.
+		mkdir( $dir, 0555, true );
+
+		if ( is_writable( $dir ) ) {
+			rmdir( $dir );
+			$this->markTestSkipped( 'Running as a user who can write to a read-only directory (e.g. root).' );
+		}
+
+		$api = new API( $settings, $this->logger );
+
+		$result = $api->create_directory();
+
+		// The directory itself is usable, so this is not an error – but it must not pass silently.
+		$this->assertFalse( $result->created );
+		$this->assertFileDoesNotExist( "{$dir}/index.php" );
+		$this->assertTrue( $this->logger->hasWarningRecords() );
+
+		rmdir( $dir );
+	}
+
+	/**
 	 * `create_directory()` writes an `index.php` guard file, to prevent directory listing.
 	 *
 	 * It must NOT write a deny-all `.htaccess`: Apache evaluates `Require all denied` in its auth phase,
@@ -717,7 +759,7 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 	 * 403 the request before `Serve_Private_File` could serve the file to an authorised user.
 	 *
 	 * @covers ::create_directory
-	 * @covers ::write_guard_files
+	 * @covers ::write_guard_file
 	 */
 	public function test_create_directory_writes_guard_files(): void {
 
