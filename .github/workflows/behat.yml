@@ -32,11 +32,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # No `wp-cli` tool: `composer install` installs the WP-CLI this project pins into `vendor-wp-cli/`
+      # (via the `install-wp-cli` post-install script), and `behat.php` points `WP_CLI_BIN_DIR` at it.
       - name: Install PHP
         uses: shivammathur/setup-php@2.37.2
         with:
           php-version: ${{ matrix.php }}
-          tools: composer, wp-cli
+          tools: composer
           extensions: zip, sqlite3
 
       - name: Install PHP dependencies

@@ -110,10 +110,18 @@ class Serve_Private_File {
 				ob_end_clean();
 			}
 			/**
-			 * WP_Filesystem is only loaded for admin requests, not applicable here.
+			 * `WP_Filesystem` has no streaming primitive – its only read methods are `get_contents()` and
+			 * `get_contents_array()`, both of which read the entire file into PHP memory. That would be a
+			 * `memory_limit` fatal on a large private file, so this cannot be migrated. WordPress serves
+			 * multisite attachments the same way.
 			 *
-			 * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_readfile
+			 * `readfile()` writes straight to the output stream, and the buffers are torn down above, so
+			 * the file is never materialised in memory.
+			 *
+			 * @see https://developer.wordpress.org/reference/classes/wp_filesystem_direct/get_contents/
+			 * @see ms-files.php Core's own attachment handler: `readfile( $file );`
 			 */
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- See above.
 			readfile( $response->file_to_stream );
 		}
 
@@ -141,12 +149,32 @@ class Serve_Private_File {
 		/**
 		 * Allow filtering for other users.
 		 *
-		 * @hooked "bh_wp_private_uploads_{post_type_name}_allow"
+		 * @hooked "bh_wp_private_uploads_allow"
 		 *
-		 * @param bool $should_serve_file
-		 * @param string $file
+		 * @param bool   $should_serve_file
+		 * @param string $file           The requested filename.
+		 * @param string $plugin_slug    The plugin slug of this private uploads instance.
+		 * @param string $post_type_name The post type name of this private uploads instance.
 		 */
-		$should_serve_file = apply_filters( "bh_wp_private_uploads_{$this->settings->get_post_type_name()}_allow", $should_serve_file, $file );
+		$should_serve_file = apply_filters(
+			'bh_wp_private_uploads_allow',
+			$should_serve_file,
+			$file,
+			$this->settings->get_plugin_slug(),
+			$this->settings->get_post_type_name()
+		);
+
+		/**
+		 * Runs after the replacement filter so unmigrated callbacks keep the final say.
+		 *
+		 * @deprecated 0.4.0 Use "bh_wp_private_uploads_allow", which is passed the plugin slug and post type name.
+		 */
+		$should_serve_file = (bool) apply_filters_deprecated(
+			"bh_wp_private_uploads_{$this->settings->get_post_type_name()}_allow",
+			array( $should_serve_file, $file ),
+			'0.4.0',
+			'bh_wp_private_uploads_allow'
+		);
 
 		if ( ! $should_serve_file ) {
 			// If they are not logged in, redirect to the login screen; otherwise a plain 403.

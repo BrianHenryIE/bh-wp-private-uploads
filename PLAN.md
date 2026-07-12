@@ -143,11 +143,17 @@ Conventions for every PR:
 
 **Changes:**
 
-1. In `API::create_directory()`, after successfully creating (or confirming) the directory, write two guard files if absent:
-   - `.htaccess` containing a deny-all for Apache (`Require all denied` with an `IfModule mod_authz_core` / `Order deny,allow` fallback for Apache 2.2), so the directory is protected even before/without a rewrite flush. Note: this blocks *all* direct access including the rewrite-based delivery — which is correct, because files are served by PHP via the `?{post-type}-private-uploads-file=` route, not directly. Verify the wpunit + e2e suites still pass file delivery.
-   - an empty `index.php` to prevent directory listing where `.htaccess` is not honored.
-2. Throttle the `init` work: store an option/transient (e.g. `bh_wp_private_uploads_{post_type}_directory_created` = path + guard-file hash) and return early when it matches; also call `create_directory()` lazily from `move_file_to_private_uploads()` before `wp_handle_upload()` so cron/CLI uploads work even if `init`-time creation was skipped.
-3. After `WP_Rewrite::register_rewrite_rule()` adds a rule that was not previously present, schedule a one-time `flush_rewrite_rules()` (guarded by an option, never on every request).
+1. In `API::create_directory()`, after successfully creating (or confirming) the directory, write an `index.php` guard file if absent, to prevent directory listing where autoindex is enabled.
+
+   **No deny-all `.htaccess`.** This was in the original plan, on the premise that "files are served by PHP via the `?{post-type}-private-uploads-file=` route, not directly". That premise is false: nothing generates that URL — the attachment `guid` is the direct uploads URL (`API::create_post_for_file()`), and the request only reaches PHP *because* the root-`.htaccess` rewrite rule intercepts it. Apache evaluates `Require all denied` in its auth phase, before the fixup phase where per-directory `mod_rewrite` rules run, so a deny-all here 403s the request before the rewrite can hand it to `Serve_Private_File`. Verified on wp-env: with the guard file in place an **admin** gets a bare Apache 403 for their own private file. It also adds nothing on nginx (which ignores `.htaccess`), and it poisons `check_and_update_is_url_private()`, whose probe would target the `.htaccess` — a file every server 403s regardless of exposure — permanently silencing the admin notice.
+
+   Prevention on Apache is the rewrite rule (change 3 below makes it actually take effect); detection everywhere is the hourly URL check. `tests/e2e-pw/private-file-access.spec.ts` now pins both ends: an admin must get the file, an anonymous visitor must not.
+2. Keep the `init` work off frontend page loads. `create_directory()` returns early when `doing_action( 'init' ) && ! is_admin() && ! wp_doing_cron() `, so the filesystem calls only happen for admin, cron and WP-CLI requests — no option-based throttle needed (an earlier revision of this PR stored `bh_wp_private_uploads_{post_type}_directory_created`; it added a cached "already done" flag that also meant a deleted guard file was never restored). Also call `create_directory()` lazily from `move_file_to_private_uploads()` before `wp_handle_upload()`, so cron/CLI uploads work even if `init`-time creation was skipped.
+3. After `WP_Rewrite::register_rewrite_rule()` adds the rule, read the site-root `.htaccess` and `flush_rewrite_rules()` when the rule is missing from it.
+
+   `.htaccess` is the source of truth, not an option recording that a flush has happened. An earlier revision of this PR used `bh_wp_private_uploads_{post_type}_rewrite_flushed`, which was unsound: `WP_Rewrite::flush_rules()` only writes the file via `save_mod_rewrite_rules()`, which is defined in `wp-admin/includes/misc.php` and therefore does not exist on frontend, cron or WP-CLI requests — so a "hard" flush there silently writes nothing while the option happily records success, permanently. (That is why CI has to run `wp rewrite structure --hard`: it activates the plugin over WP-CLI.) Reading the file also means the rule is restored if it is ever removed.
+
+   Only run on admin page loads — the only context that can write the file — and skip when a flush could not write the rule anyway (multisite, plain permalinks, no `mod_rewrite`, `flush_rewrite_rules_hard` filtered false, unwritable file), otherwise we would flush on every admin request forever.
 
 **Tests:**
 

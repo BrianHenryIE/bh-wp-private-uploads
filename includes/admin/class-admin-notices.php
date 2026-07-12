@@ -85,7 +85,35 @@ class Admin_Notices extends Notices {
 		$href = '<a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a>';
 		// translators: %s is a HTML link to the directory's URL.
 		$content = sprintf( __( 'Private uploads directory at %s is publicly accessible.', 'bh-wp-private-uploads' ), $href );
-		$content = apply_filters( 'bh_wp_private_uploads_url_is_public_warning_' . $this->settings->get_post_type_name(), $content, $url );
+		/**
+		 * Filter the admin notice text shown when the private uploads directory is publicly accessible.
+		 *
+		 * @hooked "bh_wp_private_uploads_url_is_public_warning"
+		 *
+		 * @param string $content        The notice HTML.
+		 * @param string $url            The URL that was found to be public.
+		 * @param string $plugin_slug    The plugin slug of this private uploads instance.
+		 * @param string $post_type_name The post type name of this private uploads instance.
+		 */
+		$content = apply_filters(
+			'bh_wp_private_uploads_url_is_public_warning',
+			$content,
+			$url,
+			$this->settings->get_plugin_slug(),
+			$this->settings->get_post_type_name()
+		);
+
+		/**
+		 * Runs after the replacement filter so unmigrated callbacks keep the final say.
+		 *
+		 * @deprecated 0.4.0 Use "bh_wp_private_uploads_url_is_public_warning", which is passed the plugin slug and post type name.
+		 */
+		$content = apply_filters_deprecated(
+			'bh_wp_private_uploads_url_is_public_warning_' . $this->settings->get_post_type_name(),
+			array( $content, $url ),
+			'0.4.0',
+			'bh_wp_private_uploads_url_is_public_warning'
+		);
 
 		if ( ! is_string( $content ) ) {
 			$this->logger->warning( 'Filtered message value was not a string' );
