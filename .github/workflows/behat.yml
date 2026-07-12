@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # No `wp-cli` tool: `composer install` installs the WP-CLI this project pins into `vendor-wp-cli/`
       # (via the `install-wp-cli` post-install script), and `behat.php` points `WP_CLI_BIN_DIR` at it.
