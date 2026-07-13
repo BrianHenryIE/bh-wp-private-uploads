@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c2311521c4732ac7d117da282bddcbc8",
+    "content-hash": "da9e40528896b3f338eecbe01017c19d",
     "packages": [
         {
             "name": "psr/log",
@@ -166,24 +166,24 @@
         },
         {
             "name": "alleyinteractive/wordpress-autoloader",
-            "version": "v1.1.1",
+            "version": "v1.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alleyinteractive/wordpress-autoloader.git",
-                "reference": "c7599d95f49f1cdc38fad19944a50b19ec0dd6ca"
+                "reference": "570a0e911f806448d2709864729a53731c49fcd9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alleyinteractive/wordpress-autoloader/zipball/c7599d95f49f1cdc38fad19944a50b19ec0dd6ca",
-                "reference": "c7599d95f49f1cdc38fad19944a50b19ec0dd6ca",
+                "url": "https://api.github.com/repos/alleyinteractive/wordpress-autoloader/zipball/570a0e911f806448d2709864729a53731c49fcd9",
+                "reference": "570a0e911f806448d2709864729a53731c49fcd9",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.4.0|^8.0|^8.1"
+                "php": "^8.1"
             },
             "require-dev": {
-                "alleyinteractive/alley-coding-standards": "^0.3",
-                "phpunit/phpunit": "^9.5.8"
+                "phpunit/phpunit": "^10.5.45",
+                "squizlabs/php_codesniffer": "^4.0"
             },
             "type": "library",
             "autoload": {
@@ -204,9 +204,9 @@
             "description": "Autoload files using WordPress File Conventions",
             "support": {
                 "issues": "https://github.com/alleyinteractive/wordpress-autoloader/issues",
-                "source": "https://github.com/alleyinteractive/wordpress-autoloader/tree/v1.1.1"
+                "source": "https://github.com/alleyinteractive/wordpress-autoloader/tree/v1.2.1"
             },
-            "time": "2022-08-31T20:51:21+00:00"
+            "time": "2025-04-21T17:28:11+00:00"
         },
         {
             "name": "antecedent/patchwork",
