@@ -10,14 +10,12 @@ namespace BrianHenryIE\WP_Private_Uploads_Development_Plugin;
 use BrianHenryIE\WP_Private_Uploads\API\API;
 use BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface as Settings_Interface;
-use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 
 /**
  * A test-bed for new functions.
  */
 class Example_Private_Uploads extends API {
-	use LoggerAwareTrait;
 
 	/**
 	 * Constructor

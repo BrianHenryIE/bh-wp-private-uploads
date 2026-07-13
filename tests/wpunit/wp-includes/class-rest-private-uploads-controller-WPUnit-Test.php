@@ -68,6 +68,42 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
+	 * The `upload_item` route is permission-checked too.
+	 *
+	 * It shares `create_item_permissions_check()` with the collection route, but until this route was moved
+	 * to `/upload` it was shadowed by `create_item` and could never be dispatched – so nothing had ever
+	 * exercised its permission callback. Making it reachable must not open an unauthenticated upload path.
+	 *
+	 * @covers ::register_routes
+	 * @covers ::create_item_permissions_check
+	 */
+	public function test_subscriber_post_to_upload_route_returns_403(): void {
+
+		$subdir = uniqid( 'restuploadsubscriber' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		// `wp_create_user()` creates a subscriber (the default role).
+		$subscriber_id = wp_create_user( uniqid( 'subscriber' ), wp_generate_password(), uniqid( 'subscriber' ) . '@example.org' );
+		assert( is_int( $subscriber_id ) );
+		wp_set_current_user( $subscriber_id );
+
+		// A real file, so a permission check that ran *after* the write would be caught below.
+		$request  = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}/upload" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 403, $response->get_status() );
+
+		// The status code alone is not enough: nothing may have been written to disk.
+		$upload = wp_upload_dir();
+		$dir    = $upload['basedir'] . '/' . $subdir;
+
+		$this->assertEmpty(
+			glob( "{$dir}/*/*/*" ) ?: array(),
+			'A rejected upload must not write a file into the private uploads directory.'
+		);
+	}
+
+	/**
 	 * The path to the `sample.pdf` fixture.
 	 */
 	protected function get_fixture_path(): string {
