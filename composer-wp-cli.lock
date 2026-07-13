@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5e42ebeb2ff9644b15844c0c244e09bf",
+    "content-hash": "cfae32f3c321c59fed9ed5cdda5a6ee7",
     "packages": [],
     "packages-dev": [
         {
@@ -4621,12 +4621,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/WordPress/WordPress-Coding-Standards.git",
-                "reference": "b62aa1bf24af93f6833890c9320a92f114895dd0"
+                "reference": "219b1824b1ecb76dfd9ee830b4d6d0e5a4f5134d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/b62aa1bf24af93f6833890c9320a92f114895dd0",
-                "reference": "b62aa1bf24af93f6833890c9320a92f114895dd0",
+                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/219b1824b1ecb76dfd9ee830b4d6d0e5a4f5134d",
+                "reference": "219b1824b1ecb76dfd9ee830b4d6d0e5a4f5134d",
                 "shasum": ""
             },
             "require": {
@@ -4680,7 +4680,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-07-10T13:52:44+00:00"
+            "time": "2026-07-13T01:19:50+00:00"
         },
         {
             "name": "yoast/phpunit-polyfills",
