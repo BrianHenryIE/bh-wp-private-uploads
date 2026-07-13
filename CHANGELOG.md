@@ -5,6 +5,11 @@
 ### Changed
 
 * All hooks now have static names and are passed the plugin slug and post type name as their final two arguments, so a single callback can serve (or ignore) each instance: `bh_wp_private_uploads_allow`, `bh_wp_private_uploads_url_is_public_warning`, `bh_wp_private_uploads_rest_upload`.
+* `Serve_Private_File` now grants access with the `manage_options` capability rather than the `administrator` role name, so multisite super admins without an explicit site role are covered (potential behavior change for sites relying on the exact role check).
+
+### Removed
+
+* `API::is_url_public_for_admin()`, which was never called and forwarded raw `$_COOKIE` values, along with the `Example_Private_Uploads` wrapper that was its only demonstration. It was `protected` on a class designed for extension, so a subclassing consumer could in principle have called it.
 
 ### Deprecated
 
@@ -26,7 +31,8 @@
 * `create_directory()` now writes an `index.php` guard file, preventing directory listing where the server has autoindex enabled. It is also run lazily from `move_file_to_private_uploads()`, so cron/WP-CLI uploads still create the directory. (No deny-all `.htaccess`: Apache would 403 it in the auth phase, before the fixup phase where the rewrite rule runs, locking authorised users out of their own files.)
 * The "directory is publicly accessible" check now probes a real uploaded file, descending into the `yyyy/mm` subdirectory. It previously probed whichever entry `scandir()` returned first — in practice the year *directory*, which any server with autoindex off returns 403 for — and read that as "private", so the admin notice could never fire. Dotfiles and the `index.php` guard file are skipped for the same reason: servers refuse them whether or not the documents beside them are public.
 * New end-to-end tests assert that an admin can download a private file from its direct URL, while an anonymous visitor and a logged-in subscriber cannot.
+* The REST `upload_item` route (upload a file without creating a post) is now reachable. It was registered at `{namespace}/{rest_base}/`, but `register_rest_route()` trims the trailing slash, giving it the same path as the collection route – both `CREATABLE`, so `create_item` won on dispatch and `upload_item` could never run. It now registers at `{namespace}/{rest_base}/upload`.
 
-### Changed
+### Tests
 
-* `Serve_Private_File` now grants access with the `manage_options` capability rather than the `administrator` role name, so multisite super admins without an explicit site role are covered (potential behavior change for sites relying on the exact role check).
+* Added test coverage for previously-untested classes: `Post_Type`, `REST_Private_Uploads_Controller` and `Admin_Meta_Boxes`, plus `Media::on_upload_attachment()`'s nonce and referer branches.

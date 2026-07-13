@@ -705,46 +705,4 @@ class API implements API_Interface {
 
 		return $is_url_private_result;
 	}
-
-	/**
-	 * Test if the .htaccess redirect is working to return the file when appropriate.
-	 * i.e. the webserver might be 403ing for another reason, and never 200ing.
-	 *
-	 * @param string $url The URL that should generally be private, but should be accessible always for logged in admins.
-	 *
-	 * @return array{is_private:bool|null} Null when it could not be determined.
-	 */
-	protected function is_url_public_for_admin( string $url ): array {
-
-		$args = array(
-			'timeout' => 2,
-		);
-
-		$args['cookies'] = array_filter(
-			$_COOKIE,
-			fn( $value, $key ) => str_contains( $key, 'WordPress' ),
-			ARRAY_FILTER_USE_BOTH
-		);
-
-		$result = wp_remote_get( $url, $args );
-
-		$is_url_admin_public_result = array();
-
-		// Should be able to use the cookies that are currently in the request?
-
-		if ( is_wp_error( $result ) ) {
-			// This error seems to happen occasionally (intermittently).
-			// Return null to indicate we could not determine is it private or not.
-			return array( 'is_private' => null );
-		} else {
-			$response_code = $result['response']['code'];
-
-			// I think 404 is valid when the directory does exist.
-			$private_response_codes = array( 301, 401, 403, 404 );
-
-			$is_url_admin_public_result['is_private'] = in_array( $response_code, $private_response_codes, true );
-		}
-
-		return $is_url_admin_public_result;
-	}
 }
