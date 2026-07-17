@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cfae32f3c321c59fed9ed5cdda5a6ee7",
+    "content-hash": "ad5a5b785e869b95baddce6f20a5d08c",
     "packages": [],
     "packages-dev": [
         {
@@ -3703,16 +3703,16 @@
         },
         {
             "name": "wp-cli/php-cli-tools",
-            "version": "v0.12.9",
+            "version": "v0.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/php-cli-tools.git",
-                "reference": "c3d25138ce46a66647ec0dc9b17bf300338494aa"
+                "reference": "4a04ffbe322b031b4c54e176edf1dfd299c7fe55"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/php-cli-tools/zipball/c3d25138ce46a66647ec0dc9b17bf300338494aa",
-                "reference": "c3d25138ce46a66647ec0dc9b17bf300338494aa",
+                "url": "https://api.github.com/repos/wp-cli/php-cli-tools/zipball/4a04ffbe322b031b4c54e176edf1dfd299c7fe55",
+                "reference": "4a04ffbe322b031b4c54e176edf1dfd299c7fe55",
                 "shasum": ""
             },
             "require": {
@@ -3760,9 +3760,9 @@
             ],
             "support": {
                 "issues": "https://github.com/wp-cli/php-cli-tools/issues",
-                "source": "https://github.com/wp-cli/php-cli-tools/tree/v0.12.9"
+                "source": "https://github.com/wp-cli/php-cli-tools/tree/v0.13.0"
             },
-            "time": "2026-03-29T11:12:54+00:00"
+            "time": "2026-04-08T12:28:41+00:00"
         },
         {
             "name": "wp-cli/process",
@@ -4320,19 +4320,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/wp-cli.git",
-                "reference": "1c06435200bcaeafd493d9492340309885e565fb"
+                "reference": "71bbd5355c72b0a450e010b706d11051da33628c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/1c06435200bcaeafd493d9492340309885e565fb",
-                "reference": "1c06435200bcaeafd493d9492340309885e565fb",
+                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/71bbd5355c72b0a450e010b706d11051da33628c",
+                "reference": "71bbd5355c72b0a450e010b706d11051da33628c",
                 "shasum": ""
             },
             "require": {
                 "mustache/mustache": "^3.0.0",
                 "php": ">=7.2.24 || ^8.0",
                 "wp-cli/mustangostang-spyc": "^0.6.3",
-                "wp-cli/php-cli-tools": "~0.12.7"
+                "wp-cli/php-cli-tools": "~0.13.0"
             },
             "require-dev": {
                 "justinrainbow/json-schema": "^6.3",
@@ -4397,7 +4397,7 @@
                 "issues": "https://github.com/wp-cli/wp-cli/issues",
                 "source": "https://github.com/wp-cli/wp-cli"
             },
-            "time": "2026-07-07T09:27:22+00:00"
+            "time": "2026-07-16T20:38:24+00:00"
         },
         {
             "name": "wp-cli/wp-cli-bundle",
@@ -4621,12 +4621,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/WordPress/WordPress-Coding-Standards.git",
-                "reference": "219b1824b1ecb76dfd9ee830b4d6d0e5a4f5134d"
+                "reference": "0ee0482ce23aa68e09b630537d27eb7fb1b3834a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/219b1824b1ecb76dfd9ee830b4d6d0e5a4f5134d",
-                "reference": "219b1824b1ecb76dfd9ee830b4d6d0e5a4f5134d",
+                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/0ee0482ce23aa68e09b630537d27eb7fb1b3834a",
+                "reference": "0ee0482ce23aa68e09b630537d27eb7fb1b3834a",
                 "shasum": ""
             },
             "require": {
@@ -4636,8 +4636,8 @@
                 "ext-xmlreader": "*",
                 "php": ">=7.2",
                 "phpcsstandards/phpcsextra": "^1.5.0",
-                "phpcsstandards/phpcsutils": "^1.1.0",
-                "squizlabs/php_codesniffer": "^3.13.4"
+                "phpcsstandards/phpcsutils": "^1.2.2",
+                "squizlabs/php_codesniffer": "^3.13.5"
             },
             "require-dev": {
                 "php-parallel-lint/php-console-highlighter": "^1.0.0",
@@ -4680,7 +4680,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-07-13T01:19:50+00:00"
+            "time": "2026-07-17T11:32:04+00:00"
         },
         {
             "name": "yoast/phpunit-polyfills",
