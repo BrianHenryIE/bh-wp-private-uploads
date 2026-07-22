@@ -7897,11 +7897,11 @@
         },
         {
             "name": "wordpress/wordpress",
-            "version": "7.0.0",
+            "version": "7.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wordpress/wordpress-develop.git",
-                "reference": "26b68024931348d267b70e2a29910e1320d0094f"
+                "reference": "855551c4477bd5a0407221c57dae123c4163b434"
             },
             "require": {
                 "ext-hash": "*",
@@ -7955,7 +7955,7 @@
             "support": {
                 "issues": "https://core.trac.wordpress.org/"
             },
-            "time": "2026-05-20T17:39:50+00:00"
+            "time": "2026-07-17T17:58:37+00:00"
         },
         {
             "name": "wp-coding-standards/wpcs",
