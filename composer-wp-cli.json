@@ -24,7 +24,7 @@
         "psr/log": "3.0.2",
         "wptrt/admin-notices": "v1.0.4",
         "10up/wp_mock": "1.1.1",
-        "alleyinteractive/wordpress-autoloader": "v1.1.1",
+        "alleyinteractive/wordpress-autoloader": "v1.2.1",
         "antecedent/patchwork": "2.2.3",
         "behat/behat": "v3.29.0",
         "behat/gherkin": "v4.17.0",
@@ -142,7 +142,7 @@
         "wpackagist-plugin/monkeyman-rewrite-analyzer": "1.0",
         "wpackagist-plugin/query-monitor": "4.0.7",
         "wpackagist-plugin/woocommerce": "10.9.4",
-        "wpackagist-plugin/wp-rest-api-log": "1.7.0",
+        "wpackagist-plugin/wp-rest-api-log": "1.7.1",
         "wpackagist-theme/twentytwenty": "3.1"
     }
 }
