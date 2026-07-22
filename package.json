@@ -49,7 +49,7 @@
     "tsx": "^4.23.0"
   },
   "dependencies": {
-    "@wordpress/components": "^36.1.0"
+    "@wordpress/components": "^37.0.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
