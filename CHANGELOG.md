@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+* While the "publicly accessible" notice's dismissal was snoozed, every admin page threw a JavaScript `TypeError` per instance ("dismissBtn is null"): the WPTRT admin-notices library prints each registered notice's inline dismiss script even when the notice itself is suppressed as dismissed. The notice is now not registered at all while its dismissal is snoozed.
+
 ## 0.4.0 – 2026-07-12
 
 The private uploads directory was not actually private on a stock Apache install, and the admin notice that was supposed to warn about it could never fire. Both are fixed. See **Upgrading** below for the two behaviour changes worth checking before you update.
