@@ -104,13 +104,13 @@ class Cron {
 		$schedule = wp_get_scheduled_event( $cron_hook );
 
 		if ( false !== $schedule ) {
-			$this->logger->debug(
-				'Cron job `{cron_hook}` is already registered.',
-				array(
-					'cron_hook'       => $cron_hook,
-					'scheduled_event' => $schedule,
-				)
-			);
+//			$this->logger->debug(
+//				'Cron job `{cron_hook}` is already registered.',
+//				array(
+//					'cron_hook'       => $cron_hook,
+//					'scheduled_event' => $schedule,
+//				)
+//			);
 			return;
 		}
 

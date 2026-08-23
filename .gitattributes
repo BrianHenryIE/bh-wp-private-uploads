@@ -30,6 +30,12 @@
 /scratch                export-ignore
 /scratch.php            export-ignore
 /wp-content             export-ignore
+/behat.php              export-ignore
+/CLAUDE.md              export-ignore
+/composer-wp-cli.json   export-ignore
+/composer-wp-cli.lock   export-ignore
+/PLAN.md                export-ignore
+/bin                    export-ignore
 
 # When merging into a branch, ignore the coverage percentage, that should be re-calculated immediately anyway.
 /.github/coverage.svg merge=ours

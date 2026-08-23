@@ -19,9 +19,7 @@
     "wp-content/plugins/woocommerce": "./wp-content/plugins/woocommerce",
     "wp-content/plugins/wp-rest-api-log": "./wp-content/plugins/wp-rest-api-log",
     "wp-content/themes": "./wp-content/themes",
-    "wp-content/uploads/development-plugin/assets": "./assets",
-    "wp-content/uploads/development-plugin/includes": "./includes",
-    "wp-content/uploads/development-plugin/vendor": "./vendor"
+    "wp-content/uploads/development-plugin": "."
   },
   "phpVersion": "8.1",
   "testsEnvironment": false
