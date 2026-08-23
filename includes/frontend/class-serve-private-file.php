@@ -152,16 +152,16 @@ class Serve_Private_File {
 		 * @hooked "bh_wp_private_uploads_allow"
 		 *
 		 * @param bool   $should_serve_file
-		 * @param string $file           The requested filename.
 		 * @param string $plugin_slug    The plugin slug of this private uploads instance.
 		 * @param string $post_type_name The post type name of this private uploads instance.
+		 * @param string $file           The requested filename.
 		 */
 		$should_serve_file = apply_filters(
 			'bh_wp_private_uploads_allow',
 			$should_serve_file,
-			$file,
 			$this->settings->get_plugin_slug(),
-			$this->settings->get_post_type_name()
+			$this->settings->get_post_type_name(),
+			$file
 		);
 
 		/**

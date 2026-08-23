@@ -100,18 +100,18 @@ class API implements API_Interface {
 		 * @hooked "bh_wp_private_uploads_can_upload"
 		 *
 		 * @param bool   $can_upload     Default true.
-		 * @param string $tmp_file       Source filepath.
-		 * @param string $filename       Destination filename.
 		 * @param string $plugin_slug    The plugin slug of this private uploads instance.
 		 * @param string $post_type_name The post type name of this private uploads instance.
+		 * @param string $tmp_file       Source filepath.
+		 * @param string $filename       Destination filename.
 		 */
 		if ( ! apply_filters(
 			'bh_wp_private_uploads_can_upload',
 			true,
-			$tmp_file,
-			$filename,
 			$this->settings->get_plugin_slug(),
-			$this->settings->get_post_type_name()
+			$this->settings->get_post_type_name(),
+			$tmp_file,
+			$filename
 		) ) {
 			throw new Private_Uploads_Exception( 'Upload rejected by bh_wp_private_uploads_can_upload filter.' );
 		}
