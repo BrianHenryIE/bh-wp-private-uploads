@@ -73,6 +73,7 @@ class Development_Plugin_Settings implements Private_Uploads_Settings_Interface 
 	 * Configure the WP CLI command base for the plugin's private uploads.
 	 *
 	 * `wp my_plugin private_media upload ...`
+	 * `wp my_plugin private_media check`
 	 *
 	 * @see Private_Uploads_Settings_Interface::get_cli_base()
 	 */

@@ -210,7 +210,10 @@ $private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance( $
 
 ```
 wp my-plugin download https://example.org/doc.pdf
+wp my-plugin check
 ```
+
+`check` verifies the private uploads directory is not publicly accessible; it exits non-zero if the URL is public or the check could not be performed.
 
 #### !Singleton
 

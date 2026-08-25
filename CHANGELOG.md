@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+* `wp {cli-base} check` CLI command to verify the private uploads URL is not publicly accessible; exits non-zero when the URL is public or the check cannot be performed
+
 ### Changed
 
 * Breaking: `$plugin_slug` and `$post_type_name` are now the first arguments (after the filtered value) of `bh_wp_private_uploads_can_upload`, `bh_wp_private_uploads_allow`, `bh_wp_private_uploads_url_is_public_warning` (filters) and `bh_wp_private_uploads_rest_upload` (action), moved from the end of the argument list
