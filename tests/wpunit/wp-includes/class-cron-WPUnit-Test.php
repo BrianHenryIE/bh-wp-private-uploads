@@ -60,7 +60,7 @@ class Cron_WPUnit_Test extends WPUnit_Testcase {
 
 		$sut->register_cron_job();
 
-//		$this->assertTrue( $logger->hasDebugThatContains( 'already registered' ) );
+		// $this->assertTrue( $logger->hasDebugThatContains( 'already registered' ) );
 	}
 
 	/**

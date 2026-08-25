@@ -43,8 +43,9 @@ require_once file_exists( $in_wp_env_vendor_autoload_path )
 // vendor-wp-cli/autoload.php
 //
 
-require_once WP_CONTENT_DIR . '/uploads/development-plugin/vendor-wp-cli/autoload.php';
-
+if ( file_exists( WP_CONTENT_DIR . '/uploads/development-plugin/vendor-wp-cli/autoload.php' ) ) {
+	require_once WP_CONTENT_DIR . '/uploads/development-plugin/vendor-wp-cli/autoload.php';
+}
 
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_VERSION', '3.0.0' );
 define( 'BH_WP_PRIVATE_UPLOADS_DEVELOPMENT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
