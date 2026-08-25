@@ -191,7 +191,7 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 		$fired = false;
 		add_action(
 			'bh_wp_private_uploads_rest_upload',
-			function ( array $file, $request, string $plugin_slug, string $post_type_name ) use ( &$fired ): void {
+			function ( string $plugin_slug, string $post_type_name, array $file, $request ) use ( &$fired ): void {
 
 				$this->assertSame( 'bh-wp-private-uploads-test', $plugin_slug );
 				$this->assertSame( 'rest_test_private', $post_type_name );

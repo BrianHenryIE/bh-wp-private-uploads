@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+* `wp {cli-base} check` CLI command to verify the private uploads URL is not publicly accessible; exits non-zero when the URL is public or the check cannot be performed
+* `wp {cli-base} status` CLI command to print the private uploads directory's path, URL, post count and most recent is-private check result, backed by new `API_Interface::get_status()`
+
+### Changed
+
+* Breaking: `$plugin_slug` and `$post_type_name` are now the first arguments (after the filtered value) of `bh_wp_private_uploads_can_upload`, `bh_wp_private_uploads_allow`, `bh_wp_private_uploads_url_is_public_warning` (filters) and `bh_wp_private_uploads_rest_upload` (action), moved from the end of the argument list
+
+### Fixed
+
+* While the "publicly accessible" notice's dismissal was snoozed, every admin page threw a JavaScript `TypeError` per instance ("dismissBtn is null"): the WPTRT admin-notices library prints each registered notice's inline dismiss script even when the notice itself is suppressed as dismissed. The notice is now not registered at all while its dismissal is snoozed.
+
 ## 0.4.0 – 2026-07-12
 
 The private uploads directory was not actually private on a stock Apache install, and the admin notice that was supposed to warn about it could never fire. Both are fixed. See **Upgrading** below for the two behaviour changes worth checking before you update.

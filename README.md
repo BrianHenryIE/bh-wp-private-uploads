@@ -85,12 +85,12 @@ add_filter( 'bh_wp_private_uploads_can_upload', 'reject_large_uploads', 10, 5 );
 
 /**
  * @param bool $can_upload
- * @param string $tmp_file Source filepath.
- * @param string $filename Destination filename.
  * @param string $plugin_slug
  * @param string $post_type_name
+ * @param string $tmp_file Source filepath.
+ * @param string $filename Destination filename.
  */
-function reject_large_uploads( bool $can_upload, string $tmp_file, string $filename, string $plugin_slug, string $post_type_name ): bool {
+function reject_large_uploads( bool $can_upload, string $plugin_slug, string $post_type_name, string $tmp_file, string $filename ): bool {
 	if ( 'my-plugin' !== $plugin_slug ) {
 		return $can_upload;
 	}
@@ -127,18 +127,18 @@ By default, administrators can access the files via their URL. This can be widen
  * Allow filtering for other users.
  *
  * @param bool $should_serve_file
- * @param string $file
  * @param string $plugin_slug
  * @param string $post_type_name
+ * @param string $file
  */
-$should_serve_file = apply_filters( 'bh_wp_private_uploads_allow', $should_serve_file, $file, $plugin_slug, $post_type_name );
+$should_serve_file = apply_filters( 'bh_wp_private_uploads_allow', $should_serve_file, $plugin_slug, $post_type_name, $file );
 ```
 
 e.g. WooCommerce plugins probably always want shop-managers to be able to access files:
 
 ```php
-add_filter( 'bh_wp_private_uploads_allow', 'add_shop_manager_to_allow', 10, 3 );
-function add_shop_manager_to_allow( bool $should_serve_file, string $file, string $plugin_slug ): bool {
+add_filter( 'bh_wp_private_uploads_allow', 'add_shop_manager_to_allow', 10, 2 );
+function add_shop_manager_to_allow( bool $should_serve_file, string $plugin_slug ): bool {
 	if ( 'my-plugin' !== $plugin_slug ) {
 		return $should_serve_file;
 	}
@@ -210,7 +210,11 @@ $private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance( $
 
 ```
 wp my-plugin download https://example.org/doc.pdf
+wp my-plugin check
+wp my-plugin status
 ```
+
+`check` verifies the private uploads directory is not publicly accessible; it exits non-zero if the URL is public or the check could not be performed. `status` prints the directory's path, URL, the number of posts of the private uploads post type, and the most recent `check` result, without making a HTTP request.
 
 #### !Singleton
 

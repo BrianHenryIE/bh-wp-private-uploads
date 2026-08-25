@@ -229,17 +229,17 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		 *
 		 * @hooked "bh_wp_private_uploads_rest_upload"
 		 *
-		 * @param array{file:string, url:string, type:string} $file The saved file.
-		 * @param WP_REST_Request                             $request The request that uploaded the file.
 		 * @param string                                      $plugin_slug The plugin slug of this private uploads instance.
 		 * @param string                                      $post_type_name The post type name of this private uploads instance.
+		 * @param array{file:string, url:string, type:string} $file The saved file.
+		 * @param WP_REST_Request                             $request The request that uploaded the file.
 		 */
 		do_action(
 			'bh_wp_private_uploads_rest_upload',
-			$file,
-			$request,
 			$this->settings->get_plugin_slug(),
-			$this->settings->get_post_type_name()
+			$this->settings->get_post_type_name(),
+			$file,
+			$request
 		);
 
 		/**

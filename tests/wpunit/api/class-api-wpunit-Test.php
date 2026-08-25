@@ -494,7 +494,7 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 
 		add_filter(
 			'bh_wp_private_uploads_can_upload',
-			function ( bool $can_upload, string $tmp_file, string $filename, string $plugin_slug, string $post_type_name ): bool {
+			function ( bool $can_upload, string $plugin_slug, string $post_type_name, string $tmp_file, string $filename ): bool {
 
 				$this->assertTrue( $can_upload );
 				$this->assertSame( 'sample.pdf', $filename );

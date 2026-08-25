@@ -66,7 +66,7 @@ class Admin_Notices_WPUnit_Test extends WPUnit_Testcase {
 
 		add_filter(
 			'bh_wp_private_uploads_url_is_public_warning',
-			function ( string $content, string $url, string $plugin_slug, string $post_type_name ): string {
+			function ( string $content, string $plugin_slug, string $post_type_name, string $url ): string {
 
 				$this->assertSame( 'http://example.com/wp-content/uploads/private', $url );
 				$this->assertSame( 'test-plugin-slug', $plugin_slug );

@@ -127,7 +127,7 @@ class Serve_Private_File_WPUnit_Test extends WPUnit_Testcase {
 		assert( is_int( $subscriber_id ) );
 		wp_set_current_user( $subscriber_id );
 
-		$allow = function ( bool $should_serve_file, string $filename, string $plugin_slug, string $post_type_name ): bool {
+		$allow = function ( bool $should_serve_file, string $plugin_slug, string $post_type_name, string $filename ): bool {
 
 			$this->assertSame( 'serve_test', $post_type_name );
 

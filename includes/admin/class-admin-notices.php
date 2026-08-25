@@ -65,6 +65,14 @@ class Admin_Notices extends Notices {
 	 */
 	public function admin_notices(): void {
 
+		// While the notice's dismissal is snoozed, do not register the notice at all: the WPTRT library
+		// prints each registered notice's inline dismiss script even when the notice itself is
+		// suppressed as dismissed, throwing `dismissBtn is null` TypeErrors on every admin page.
+		$dismissed_option_name = ( new Cron( $this->api, $this->settings, $this->logger ) )->get_dismissed_notice_option_name();
+		if ( get_option( $dismissed_option_name ) ) {
+			return;
+		}
+
 		// This _should_ be returning the transient value.
 		$is_private_result = $this->api->get_last_checked_is_url_private();
 
@@ -91,16 +99,16 @@ class Admin_Notices extends Notices {
 		 * @hooked "bh_wp_private_uploads_url_is_public_warning"
 		 *
 		 * @param string $content        The notice HTML.
-		 * @param string $url            The URL that was found to be public.
 		 * @param string $plugin_slug    The plugin slug of this private uploads instance.
 		 * @param string $post_type_name The post type name of this private uploads instance.
+		 * @param string $url            The URL that was found to be public.
 		 */
 		$content = apply_filters(
 			'bh_wp_private_uploads_url_is_public_warning',
 			$content,
-			$url,
 			$this->settings->get_plugin_slug(),
-			$this->settings->get_post_type_name()
+			$this->settings->get_post_type_name(),
+			$url
 		);
 
 		/**

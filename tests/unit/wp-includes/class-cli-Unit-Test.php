@@ -13,7 +13,10 @@ namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 
 use BrianHenryIE\WP_Private_Uploads\API\File_Upload_Result;
 use BrianHenryIE\WP_Private_Uploads\API\File_Upload_With_Post_Result;
+use BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result;
 use BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Exception;
+use BrianHenryIE\WP_Private_Uploads\API\Status_Result;
+use DateTimeImmutable;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\Unit_Testcase;
@@ -427,5 +430,338 @@ class CLI_Unit_Test extends Unit_Testcase {
 		}
 
 		$this->assertStringContainsString( 'the reason the download failed', $this->get_stderr() );
+	}
+
+	/**
+	 * @covers ::register_commands
+	 */
+	public function test_register_commands_registers_check(): void {
+
+		$this->define_wp_cli_constants();
+
+		// Unique per test: `WP_CLI::get_root_command()` is a process-wide static singleton.
+		$cli_base = uniqid( 'base' );
+
+		$api      = $this->makeEmpty( API_Interface::class );
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_cli_base' => $cli_base,
+			)
+		);
+
+		$sut = new CLI( $api, $settings, $this->logger );
+
+		WP_CLI::add_command( $cli_base, new class() {} );
+
+		$sut->register_commands();
+
+		// `find_subcommand()` consumes one element of `$path` per call, so traverse the chain.
+		$path       = array( $cli_base, 'check' );
+		$subcommand = WP_CLI::get_root_command();
+		while ( ! empty( $path ) && false !== $subcommand ) {
+			$subcommand = $subcommand->find_subcommand( $path );
+		}
+
+		$this->assertNotFalse( $subcommand );
+		$this->assertSame( 'check', $subcommand->get_name() );
+	}
+
+	/**
+	 * @covers ::check_is_private
+	 */
+	public function test_check_is_private_null_result_errors(): void {
+
+		$api      = $this->makeEmpty(
+			API_Interface::class,
+			array(
+				'check_and_update_is_url_private' => Expected::once( fn() => null ),
+			)
+		);
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+
+		$sut = new CLI( $api, $settings, $this->logger );
+
+		try {
+			$sut->check_is_private( array(), array() );
+			$this->fail( 'Expected ExitException' );
+		} catch ( ExitException $exception ) {
+			$this->assertSame( 1, $exception->getCode() );
+		}
+
+		$this->assertStringContainsString( 'Could not determine', $this->get_stderr() );
+	}
+
+	/**
+	 * @covers ::check_is_private
+	 */
+	public function test_check_is_private_private_url_outputs_table_and_success(): void {
+
+		$api      = $this->makeEmpty(
+			API_Interface::class,
+			array(
+				'check_and_update_is_url_private' => Expected::once(
+					fn() => new Is_Private_Result(
+						'https://example.org/wp-content/uploads/private/2026/06/file.pdf',
+						true,
+						403,
+						new DateTimeImmutable( '2026-08-25T00:00:00+00:00' )
+					)
+				),
+			)
+		);
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+
+		$sut = new CLI( $api, $settings, $this->logger );
+
+		$sut->check_is_private( array(), array() );
+
+		$stdout = $this->get_stdout();
+
+		$this->assertStringContainsString( 'http_response_code', $stdout );
+		$this->assertStringContainsString( '403', $stdout );
+		$this->assertStringContainsString( 'The private uploads URL is private', $this->get_stderr() . $stdout );
+	}
+
+	/**
+	 * @covers ::check_is_private
+	 */
+	public function test_check_is_private_public_url_outputs_result_then_errors(): void {
+
+		$api      = $this->makeEmpty(
+			API_Interface::class,
+			array(
+				'check_and_update_is_url_private' => Expected::once(
+					fn() => new Is_Private_Result(
+						'https://example.org/wp-content/uploads/private/2026/06/file.pdf',
+						false,
+						200,
+						new DateTimeImmutable( '2026-08-25T00:00:00+00:00' )
+					)
+				),
+			)
+		);
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+
+		$sut = new CLI( $api, $settings, $this->logger );
+
+		try {
+			$sut->check_is_private( array(), array( 'format' => 'json' ) );
+			$this->fail( 'Expected ExitException' );
+		} catch ( ExitException $exception ) {
+			$this->assertSame( 1, $exception->getCode() );
+		}
+
+		$this->assertStringContainsString( '"is_private":false', $this->get_stdout() );
+		$this->assertStringContainsString( 'publicly accessible', $this->get_stderr() );
+		$this->assertStringContainsString( '200', $this->get_stderr() );
+	}
+
+	/**
+	 * @covers ::check_is_private
+	 */
+	public function test_check_is_private_json_format_omits_success_message(): void {
+
+		$api      = $this->makeEmpty(
+			API_Interface::class,
+			array(
+				'check_and_update_is_url_private' => Expected::once(
+					fn() => new Is_Private_Result(
+						'https://example.org/wp-content/uploads/private/2026/06/file.pdf',
+						true,
+						403,
+						new DateTimeImmutable( '2026-08-25T00:00:00+00:00' )
+					)
+				),
+			)
+		);
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+
+		$sut = new CLI( $api, $settings, $this->logger );
+
+		$sut->check_is_private( array(), array( 'format' => 'json' ) );
+
+		$stdout = $this->get_stdout();
+
+		$this->assertStringContainsString( '"is_private":true', $stdout );
+		$this->assertStringContainsString( '2026-08-25T00:00:00+00:00', $stdout );
+		$this->assertStringNotContainsString( 'Success', $stdout );
+	}
+
+	/**
+	 * @covers ::check_is_private
+	 */
+	public function test_check_is_private_field_option_limits_output(): void {
+
+		$api      = $this->makeEmpty(
+			API_Interface::class,
+			array(
+				'check_and_update_is_url_private' => Expected::once(
+					fn() => new Is_Private_Result(
+						'https://example.org/wp-content/uploads/private/2026/06/file.pdf',
+						true,
+						403,
+						new DateTimeImmutable( '2026-08-25T00:00:00+00:00' )
+					)
+				),
+			)
+		);
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+
+		$sut = new CLI( $api, $settings, $this->logger );
+
+		$sut->check_is_private(
+			array(),
+			array(
+				'field'  => 'is_private',
+				'format' => 'json',
+			)
+		);
+
+		$stdout = $this->get_stdout();
+
+		$this->assertStringContainsString( 'is_private', $stdout );
+		$this->assertStringNotContainsString( 'http_response_code', $stdout );
+	}
+
+	/**
+	 * @covers ::register_commands
+	 */
+	public function test_register_commands_registers_status(): void {
+
+		$this->define_wp_cli_constants();
+
+		// Unique per test: `WP_CLI::get_root_command()` is a process-wide static singleton.
+		$cli_base = uniqid( 'base' );
+
+		$api      = $this->makeEmpty( API_Interface::class );
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_cli_base' => $cli_base,
+			)
+		);
+
+		$sut = new CLI( $api, $settings, $this->logger );
+
+		WP_CLI::add_command( $cli_base, new class() {} );
+
+		$sut->register_commands();
+
+		// `find_subcommand()` consumes one element of `$path` per call, so traverse the chain.
+		$path       = array( $cli_base, 'status' );
+		$subcommand = WP_CLI::get_root_command();
+		while ( ! empty( $path ) && false !== $subcommand ) {
+			$subcommand = $subcommand->find_subcommand( $path );
+		}
+
+		$this->assertNotFalse( $subcommand );
+		$this->assertSame( 'status', $subcommand->get_name() );
+	}
+
+	/**
+	 * @covers ::status
+	 */
+	public function test_status_outputs_path_url_and_check_result(): void {
+
+		$api      = $this->makeEmpty(
+			API_Interface::class,
+			array(
+				'get_status' => Expected::once(
+					fn() => new Status_Result(
+						'/path/to/uploads/private',
+						'https://example.org/wp-content/uploads/private',
+						3,
+						new Is_Private_Result(
+							'https://example.org/wp-content/uploads/private/2026/06/file.pdf',
+							true,
+							403,
+							new DateTimeImmutable( '2026-08-25T00:00:00+00:00' )
+						)
+					)
+				),
+			)
+		);
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+
+		$sut = new CLI( $api, $settings, $this->logger );
+
+		$sut->status( array(), array() );
+
+		$stdout = $this->get_stdout();
+
+		$this->assertStringContainsString( '/path/to/uploads/private', $stdout );
+		$this->assertStringContainsString( 'https://example.org/wp-content/uploads/private', $stdout );
+		$this->assertStringContainsString( 'post_count', $stdout );
+		$this->assertStringContainsString( '3', $stdout );
+		$this->assertStringContainsString( 'last_checked', $stdout );
+		$this->assertStringContainsString( '2026-08-25T00:00:00+00:00', $stdout );
+	}
+
+	/**
+	 * @covers ::status
+	 */
+	public function test_status_never_checked_outputs_null_check_fields(): void {
+
+		$api      = $this->makeEmpty(
+			API_Interface::class,
+			array(
+				'get_status' => Expected::once(
+					fn() => new Status_Result(
+						'/path/to/uploads/private',
+						'https://example.org/wp-content/uploads/private',
+						0,
+						null
+					)
+				),
+			)
+		);
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+
+		$sut = new CLI( $api, $settings, $this->logger );
+
+		$sut->status( array(), array( 'format' => 'json' ) );
+
+		$stdout = $this->get_stdout();
+
+		$this->assertStringContainsString( '"path":"\/path\/to\/uploads\/private"', $stdout );
+		$this->assertStringContainsString( '"is_private":null', $stdout );
+		$this->assertStringContainsString( '"last_checked":null', $stdout );
+	}
+
+	/**
+	 * @covers ::status
+	 */
+	public function test_status_field_option_limits_output(): void {
+
+		$api      = $this->makeEmpty(
+			API_Interface::class,
+			array(
+				'get_status' => Expected::once(
+					fn() => new Status_Result(
+						'/path/to/uploads/private',
+						'https://example.org/wp-content/uploads/private',
+						0,
+						null
+					)
+				),
+			)
+		);
+		$settings = $this->makeEmpty( Private_Uploads_Settings_Interface::class );
+
+		$sut = new CLI( $api, $settings, $this->logger );
+
+		$sut->status(
+			array(),
+			array(
+				'field'  => 'path',
+				'format' => 'json',
+			)
+		);
+
+		$stdout = $this->get_stdout();
+
+		$this->assertStringContainsString( 'path', $stdout );
+		$this->assertStringNotContainsString( 'is_private', $stdout );
 	}
 }

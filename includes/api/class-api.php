@@ -100,18 +100,18 @@ class API implements API_Interface {
 		 * @hooked "bh_wp_private_uploads_can_upload"
 		 *
 		 * @param bool   $can_upload     Default true.
-		 * @param string $tmp_file       Source filepath.
-		 * @param string $filename       Destination filename.
 		 * @param string $plugin_slug    The plugin slug of this private uploads instance.
 		 * @param string $post_type_name The post type name of this private uploads instance.
+		 * @param string $tmp_file       Source filepath.
+		 * @param string $filename       Destination filename.
 		 */
 		if ( ! apply_filters(
 			'bh_wp_private_uploads_can_upload',
 			true,
-			$tmp_file,
-			$filename,
 			$this->settings->get_plugin_slug(),
-			$this->settings->get_post_type_name()
+			$this->settings->get_post_type_name(),
+			$tmp_file,
+			$filename
 		) ) {
 			throw new Private_Uploads_Exception( 'Upload rejected by bh_wp_private_uploads_can_upload filter.' );
 		}
@@ -555,6 +555,26 @@ class API implements API_Interface {
 		$this->schedule_single_check_is_url_private();
 
 		return null;
+	}
+
+	/**
+	 * The private uploads directory's filesystem path and URL, the number of posts of the instance's
+	 * post type, and the most recent is-the-URL-private check result.
+	 *
+	 * @used-by CLI::status()
+	 */
+	public function get_status(): Status_Result {
+
+		// Trashed and auto-draft posts no longer represent a recorded private upload.
+		$post_counts = (array) wp_count_posts( $this->settings->get_post_type_name() );
+		unset( $post_counts['trash'], $post_counts['auto-draft'] );
+
+		return new Status_Result(
+			path: $this->get_private_uploads_directory_path(),
+			url: $this->get_private_uploads_directory_url(),
+			post_count: (int) array_sum( $post_counts ),
+			last_checked_is_private: $this->get_last_checked_is_url_private(),
+		);
 	}
 
 	/**

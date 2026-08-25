@@ -160,6 +160,96 @@ class API_Unit_Test extends Unit_Testcase {
 	}
 
 	/**
+	 * @covers ::get_status
+	 * @covers ::get_private_uploads_directory_url
+	 */
+	public function test_get_status(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => 'the-private-directory',
+				'get_post_type_name'            => 'the_post_type_name',
+			)
+		);
+
+		$sut = new API( $settings, $this->logger );
+
+		$this->mock_wp_upload_dir( '/path/to/wp-content/uploads' );
+
+		$is_private_result = new Is_Private_Result(
+			url: 'https://example.org/wp-content/uploads/the-private-directory/2026/06/file.pdf',
+			is_private: true,
+			http_response_code: 403,
+			last_checked: new DateTimeImmutable(),
+		);
+
+		WP_Mock::userFunction( 'get_transient' )
+				->once()
+				->with( 'bh_wp_private_uploads_the_post_type_name_is_private' )
+				->andReturn( $is_private_result );
+
+		WP_Mock::userFunction( 'wp_count_posts' )
+				->once()
+				->with( 'the_post_type_name' )
+				->andReturn(
+					(object) array(
+						'inherit' => 3,
+						'trash'   => 1,
+					)
+				);
+
+		$result = $sut->get_status();
+
+		$this->assertSame( '/path/to/wp-content/uploads/the-private-directory', $result->path );
+		$this->assertSame( 'https://example.org/wp-content/uploads/the-private-directory', $result->url );
+		$this->assertSame( 3, $result->post_count );
+		$this->assertSame( $is_private_result, $result->last_checked_is_private );
+	}
+
+	/**
+	 * @covers ::get_status
+	 */
+	public function test_get_status_never_checked(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_plugin_slug'               => 'the-plugin-slug',
+				'get_uploads_subdirectory_name' => 'the-private-directory',
+				'get_post_type_name'            => 'the_post_type_name',
+			)
+		);
+
+		$sut = new API( $settings, $this->logger );
+
+		$this->mock_wp_upload_dir( '/path/to/wp-content/uploads' );
+
+		WP_Mock::userFunction( 'get_transient' )
+				->once()
+				->with( 'bh_wp_private_uploads_the_post_type_name_is_private' )
+				->andReturnFalse();
+
+		WP_Mock::userFunction( 'wp_get_scheduled_event' )
+				->once()
+				->andReturnFalse();
+
+		WP_Mock::userFunction( 'wp_schedule_single_event' )
+				->once();
+
+		WP_Mock::userFunction( 'wp_count_posts' )
+				->once()
+				->with( 'the_post_type_name' )
+				->andReturn( (object) array() );
+
+		$result = $sut->get_status();
+
+		$this->assertSame( '/path/to/wp-content/uploads/the-private-directory', $result->path );
+		$this->assertSame( 0, $result->post_count );
+		$this->assertNull( $result->last_checked_is_private );
+	}
+
+	/**
 	 * When `wp_insert_attachment()` fails, the `WP_Error` should be wrapped in a `Private_Uploads_Exception`.
 	 *
 	 * @covers ::move_file_to_private_uploads_and_create_post
