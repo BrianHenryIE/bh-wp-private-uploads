@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c2311521c4732ac7d117da282bddcbc8",
+    "content-hash": "da9e40528896b3f338eecbe01017c19d",
     "packages": [
         {
             "name": "psr/log",
@@ -166,24 +166,24 @@
         },
         {
             "name": "alleyinteractive/wordpress-autoloader",
-            "version": "v1.1.1",
+            "version": "v1.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alleyinteractive/wordpress-autoloader.git",
-                "reference": "c7599d95f49f1cdc38fad19944a50b19ec0dd6ca"
+                "reference": "570a0e911f806448d2709864729a53731c49fcd9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alleyinteractive/wordpress-autoloader/zipball/c7599d95f49f1cdc38fad19944a50b19ec0dd6ca",
-                "reference": "c7599d95f49f1cdc38fad19944a50b19ec0dd6ca",
+                "url": "https://api.github.com/repos/alleyinteractive/wordpress-autoloader/zipball/570a0e911f806448d2709864729a53731c49fcd9",
+                "reference": "570a0e911f806448d2709864729a53731c49fcd9",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.4.0|^8.0|^8.1"
+                "php": "^8.1"
             },
             "require-dev": {
-                "alleyinteractive/alley-coding-standards": "^0.3",
-                "phpunit/phpunit": "^9.5.8"
+                "phpunit/phpunit": "^10.5.45",
+                "squizlabs/php_codesniffer": "^4.0"
             },
             "type": "library",
             "autoload": {
@@ -204,9 +204,9 @@
             "description": "Autoload files using WordPress File Conventions",
             "support": {
                 "issues": "https://github.com/alleyinteractive/wordpress-autoloader/issues",
-                "source": "https://github.com/alleyinteractive/wordpress-autoloader/tree/v1.1.1"
+                "source": "https://github.com/alleyinteractive/wordpress-autoloader/tree/v1.2.1"
             },
-            "time": "2022-08-31T20:51:21+00:00"
+            "time": "2025-04-21T17:28:11+00:00"
         },
         {
             "name": "antecedent/patchwork",
@@ -7959,16 +7959,16 @@
         },
         {
             "name": "wp-coding-standards/wpcs",
-            "version": "3.3.0",
+            "version": "3.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WordPress/WordPress-Coding-Standards.git",
-                "reference": "7795ec6fa05663d716a549d0b44e47ffc8b0d4a6"
+                "reference": "469c18ceab4d642b15bad4c65ebf3b307bfd55ab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/7795ec6fa05663d716a549d0b44e47ffc8b0d4a6",
-                "reference": "7795ec6fa05663d716a549d0b44e47ffc8b0d4a6",
+                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/469c18ceab4d642b15bad4c65ebf3b307bfd55ab",
+                "reference": "469c18ceab4d642b15bad4c65ebf3b307bfd55ab",
                 "shasum": ""
             },
             "require": {
@@ -7978,8 +7978,8 @@
                 "ext-xmlreader": "*",
                 "php": ">=7.2",
                 "phpcsstandards/phpcsextra": "^1.5.0",
-                "phpcsstandards/phpcsutils": "^1.1.0",
-                "squizlabs/php_codesniffer": "^3.13.4"
+                "phpcsstandards/phpcsutils": "^1.2.2",
+                "squizlabs/php_codesniffer": "^3.13.5"
             },
             "require-dev": {
                 "php-parallel-lint/php-console-highlighter": "^1.0.0",
@@ -8021,7 +8021,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2025-11-25T12:08:04+00:00"
+            "time": "2026-07-16T13:05:29+00:00"
         },
         {
             "name": "wpackagist-plugin/debug-log-manager",
@@ -8115,15 +8115,15 @@
         },
         {
             "name": "wpackagist-plugin/wp-rest-api-log",
-            "version": "1.7.0",
+            "version": "1.7.1",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/wp-rest-api-log/",
-                "reference": "tags/1.7.0"
+                "reference": "tags/1.7.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/wp-rest-api-log.1.7.0.zip"
+                "url": "https://downloads.wordpress.org/plugin/wp-rest-api-log.1.7.1.zip"
             },
             "require": {
                 "composer/installers": "^1.0 || ^2.0"
