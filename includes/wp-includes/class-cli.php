@@ -180,7 +180,7 @@ class CLI {
 				$fields = array( $assoc_args['field'] );
 				break;
 			case isset( $assoc_args['fields'] ) && is_string( $assoc_args['fields'] ):
-				$fields = $assoc_args['fields'];
+				$fields = explode( ',', $assoc_args['fields'] );
 				break;
 			default:
 				$fields = array_keys( $result_array );
@@ -259,7 +259,7 @@ class CLI {
 				$fields = array( $assoc_args['field'] );
 				break;
 			case isset( $assoc_args['fields'] ) && is_string( $assoc_args['fields'] ):
-				$fields = $assoc_args['fields'];
+				$fields = explode( ',', $assoc_args['fields'] );
 				break;
 			default:
 				$fields = array_keys( $result_array );
@@ -337,7 +337,7 @@ class CLI {
 				$fields = array( $assoc_args['field'] );
 				break;
 			case isset( $assoc_args['fields'] ) && is_string( $assoc_args['fields'] ):
-				$fields = $assoc_args['fields'];
+				$fields = explode( ',', $assoc_args['fields'] );
 				break;
 			default:
 				$fields = array_keys( $result_array );
