@@ -211,9 +211,10 @@ $private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance( $
 ```
 wp my-plugin download https://example.org/doc.pdf
 wp my-plugin check
+wp my-plugin status
 ```
 
-`check` verifies the private uploads directory is not publicly accessible; it exits non-zero if the URL is public or the check could not be performed.
+`check` verifies the private uploads directory is not publicly accessible; it exits non-zero if the URL is public or the check could not be performed. `status` prints the directory's path, URL, the number of posts of the private uploads post type, and the most recent `check` result, without making a HTTP request.
 
 #### !Singleton
 

@@ -558,6 +558,26 @@ class API implements API_Interface {
 	}
 
 	/**
+	 * The private uploads directory's filesystem path and URL, the number of posts of the instance's
+	 * post type, and the most recent is-the-URL-private check result.
+	 *
+	 * @used-by CLI::status()
+	 */
+	public function get_status(): Status_Result {
+
+		// Trashed and auto-draft posts no longer represent a recorded private upload.
+		$post_counts = (array) wp_count_posts( $this->settings->get_post_type_name() );
+		unset( $post_counts['trash'], $post_counts['auto-draft'] );
+
+		return new Status_Result(
+			path: $this->get_private_uploads_directory_path(),
+			url: $this->get_private_uploads_directory_url(),
+			post_count: (int) array_sum( $post_counts ),
+			last_checked_is_private: $this->get_last_checked_is_url_private(),
+		);
+	}
+
+	/**
 	 * Run the check in the background because the desired 403 response can be misinterpreted by admins as an error message.
 	 *
 	 * `{plugin_slug}_private_uploads_check_url_{post_type}`.

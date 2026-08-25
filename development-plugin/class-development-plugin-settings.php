@@ -74,6 +74,7 @@ class Development_Plugin_Settings implements Private_Uploads_Settings_Interface 
 	 *
 	 * `wp my_plugin private_media upload ...`
 	 * `wp my_plugin private_media check`
+	 * `wp my_plugin private_media status`
 	 *
 	 * @see Private_Uploads_Settings_Interface::get_cli_base()
 	 */

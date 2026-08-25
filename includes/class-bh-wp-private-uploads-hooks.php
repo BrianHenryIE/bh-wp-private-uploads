@@ -131,7 +131,7 @@ class BH_WP_Private_Uploads_Hooks {
 	}
 
 	/**
-	 * Register CLI commands: `download`, `check`.
+	 * Register CLI commands: `download`, `check`, `status`.
 	 */
 	protected function define_cli_hooks(): void {
 

@@ -1,6 +1,7 @@
 <?php
 /**
- * Adds WP CLI commands for downloading files to the private uploads directory and checking the directory is private.
+ * Adds WP CLI commands for downloading files to the private uploads directory, checking the directory is private,
+ * and printing its status.
  *
  * TODO: unsnooze admin notice
  *
@@ -12,6 +13,7 @@ namespace BrianHenryIE\WP_Private_Uploads\WP_Includes;
 use BrianHenryIE\WP_Private_Uploads\API\File_Upload_With_Post_Result;
 use BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result;
 use BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Exception;
+use BrianHenryIE\WP_Private_Uploads\API\Status_Result;
 use DateTimeInterface;
 use BrianHenryIE\WP_Private_Uploads\API_Interface;
 use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
@@ -57,6 +59,7 @@ class CLI {
 
 		WP_CLI::add_command( "{$cli_base} download", array( $this, 'download_url' ) );
 		WP_CLI::add_command( "{$cli_base} check", array( $this, 'check_is_private' ) );
+		WP_CLI::add_command( "{$cli_base} status", array( $this, 'status' ) );
 	}
 
 	/**
@@ -273,5 +276,77 @@ class CLI {
 		} elseif ( 'table' === $format ) {
 			WP_CLI::success( "The private uploads URL is private (HTTP {$result->http_response_code})." );
 		}
+	}
+
+	/**
+	 * Print the private uploads directory's path, URL, post count and most recent is-private check result.
+	 *
+	 * Does not make a HTTP request; `is_private` and `last_checked` are empty when the URL has not
+	 * been checked recently (a background check is then scheduled). Use `check` to check immediately.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--field=<field>]
+	 * : Display the value of a single field
+	 *
+	 * [--fields=<fields>]
+	 * : Limit the output to specific fields.
+	 *
+	 * [--format=<format>]
+	 * : Render output in a particular format.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - csv
+	 *   - json
+	 *   - yaml
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *   # Print the private uploads directory's path, URL, post count and last is-private check result.
+	 *   $ wp cli-base status
+	 *
+	 *   # Print only the directory's path.
+	 *   $ wp cli-base status --field=path
+	 *
+	 * @see Status_Result
+	 *
+	 * @param string[]                  $args Positional arguments (unused).
+	 * @param array<string,string|bool> $assoc_args Named arguments; --field, --fields, --format.
+	 */
+	public function status( array $args, array $assoc_args ): void {
+
+		$result = $this->api->get_status();
+
+		// Convert result object to array for WP_CLI formatting.
+		$result_array = array(
+			'path'         => $result->path,
+			'url'          => $result->url,
+			'post_count'   => $result->post_count,
+			'is_private'   => $result->last_checked_is_private?->is_private,
+			'last_checked' => $result->last_checked_is_private?->last_checked->format( DateTimeInterface::ATOM ),
+		);
+
+		$format = $assoc_args['format'] ?? 'table';
+		$format = is_string( $format ) ? $format : 'table';
+
+		switch ( true ) {
+			case isset( $assoc_args['field'] ) && is_string( $assoc_args['field'] ):
+				$fields = array( $assoc_args['field'] );
+				break;
+			case isset( $assoc_args['fields'] ) && is_string( $assoc_args['fields'] ):
+				$fields = $assoc_args['fields'];
+				break;
+			default:
+				$fields = array_keys( $result_array );
+		}
+
+		WP_CLI\Utils\format_items(
+			$format,
+			array( $result_array ),
+			$fields
+		);
 	}
 }

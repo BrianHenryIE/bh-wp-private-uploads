@@ -5,6 +5,7 @@
 ### Added
 
 * `wp {cli-base} check` CLI command to verify the private uploads URL is not publicly accessible; exits non-zero when the URL is public or the check cannot be performed
+* `wp {cli-base} status` CLI command to print the private uploads directory's path, URL, post count and most recent is-private check result, backed by new `API_Interface::get_status()`
 
 ### Changed
 

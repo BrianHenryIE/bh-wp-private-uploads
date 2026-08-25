@@ -14,6 +14,7 @@ use BrianHenryIE\WP_Private_Uploads\API\File_Upload_Result;
 use BrianHenryIE\WP_Private_Uploads\API\File_Upload_With_Post_Result;
 use BrianHenryIE\WP_Private_Uploads\API\Is_Private_Result;
 use BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Exception;
+use BrianHenryIE\WP_Private_Uploads\API\Status_Result;
 use DateTimeInterface;
 
 interface API_Interface {
@@ -82,6 +83,13 @@ interface API_Interface {
 	 * Get the most recent checked result. I.e. avoid synchronous HTTP calls.
 	 */
 	public function get_last_checked_is_url_private(): ?Is_Private_Result;
+
+	/**
+	 * The private uploads directory's filesystem path and URL, the number of posts of the instance's
+	 * post type, and the most recent is-the-URL-private check result (null when the URL has not been
+	 * checked recently; a background check is scheduled).
+	 */
+	public function get_status(): Status_Result;
 
 	/**
 	 * Create the directory. TODO: this should be deferred until a file is saved there.
