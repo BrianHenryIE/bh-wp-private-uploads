@@ -80,6 +80,12 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --verbose
 
+      - name: Install WP CLI in CI
+        run: composer require --dev wp-cli/wp-cli-bundle wp-cli/wp-cli-tests --no-scripts
+
+      - name: List installed PHP dependencies
+        run: composer show
+
       - name: Install php-codecoverage-markdown for markdown report generation
         if: ${{ matrix.php == env.COVERAGE_PHP_VERSION }}
         run: composer require brianhenryie/php-codecoverage-markdown --dev --with-all-dependencies

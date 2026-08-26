@@ -39,7 +39,8 @@ jobs:
         run: composer install
 
       - name: Install JS dependencies
-        run: npm ci
+        run: npm install
+#        run: npm ci
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps

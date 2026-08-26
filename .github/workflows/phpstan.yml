@@ -33,8 +33,14 @@ jobs:
           tools: composer, cs2pr
           extensions: zip
 
-      - name: Run composer install
-        run: composer install
+      - name: Install PHP dependencies
+        run: composer install --verbose
+
+      - name: Install WP CLI in CI
+        run: composer require --dev wp-cli/wp-cli-bundle wp-cli/wp-cli-tests --no-scripts
+
+      - name: List installed PHP dependencies
+        run: composer show
 
       - name: Run PHPStan to add annotations to the code
         continue-on-error: true
