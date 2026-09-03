@@ -40,18 +40,32 @@ class BH_WP_Private_Uploads_Hooks {
 		protected Private_Uploads_Settings_Interface $settings,
 		protected LoggerInterface $logger
 	) {
-		$this->define_api_hooks();
-		$this->define_admin_notices_hooks();
-		$this->define_frontend_hooks();
-		$this->define_cron_job_hooks();
-		$this->define_cli_hooks();
-		$this->define_post_hooks();
+		// Protect the directory.
 		$this->define_rewrite_hooks();
+		// Serve the files.
+		$this->define_frontend_hooks();
+		// Check the directory is protected.
+		$this->define_cron_job_hooks();
+		// Alert admins if directory is not protected.
+		$this->define_admin_notices_hooks();
 
-		$this->define_meta_box_hooks();
+		$this->define_api_hooks();
+		// Add convenience and debug CLI commands.
+		$this->define_cli_hooks();
+
+		// The remaining hooks/functionality only relevant when we have a post type for the private uploads.
+		if ( empty( $this->settings->get_post_type_name() ) ) {
+			return;
+		}
+
+		// Register a post type for tracking protected uploads.
+		$this->define_post_hooks();
+		// Add a media library for the custom post type.
 		$this->define_media_library_hooks();
-
+		// Add menu for the protected media library.
 		$this->define_admin_menu_hooks();
+		// Add upload metabox on specified post types.
+		$this->define_meta_box_hooks();
 	}
 
 	/**
@@ -75,10 +89,6 @@ class BH_WP_Private_Uploads_Hooks {
 	 * Maybe register the post type.
 	 */
 	protected function define_post_hooks(): void {
-
-		if ( empty( $this->settings->get_post_type_name() ) ) {
-			return;
-		}
 
 		$post = new Post_Type( $this->settings );
 
