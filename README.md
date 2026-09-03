@@ -1,4 +1,4 @@
-![PHP](https://img.shields.io/badge/PHP-8.0-777BB4?logo=php&logoColor=white) [![WordPress tested 6.9](https://img.shields.io/badge/WordPress-v6.9%20tested-0073aa.svg)](#) [![PHPCS WPCS](https://img.shields.io/badge/PHPCS-WordPress%20Coding%20Standards%20-8892BF.svg)](https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards) [![PHPUnit ](.github/coverage.svg)](https://brianhenryie.github.io/bh-wp-private-uploads/) [![PHPStan ](https://img.shields.io/badge/PHPStan-Level%2010%20-2a5ea7.svg)](https://github.com/szepeviktor/phpstan-wordpress)
+![PHP](https://img.shields.io/badge/PHP-8.1-777BB4?logo=php&logoColor=white) [![WordPress tested 6.9](https://img.shields.io/badge/WordPress-v6.9%20tested-0073aa.svg)](#) [![PHPCS WPCS](https://img.shields.io/badge/PHPCS-WordPress%20Coding%20Standards%20-8892BF.svg)](https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards) [![PHPUnit ](.github/coverage.svg)](https://brianhenryie.github.io/bh-wp-private-uploads/) [![PHPStan ](https://img.shields.io/badge/PHPStan-Level%2010%20-2a5ea7.svg)](https://github.com/szepeviktor/phpstan-wordpress)
 
 # BH WP Private Uploads
 
@@ -148,14 +148,14 @@ function add_shop_manager_to_allow( bool $should_serve_file, string $plugin_slug
 
 ### Hooks
 
-Every hook is passed the `$plugin_slug` and `$post_type_name` of the instance it fired for as its final two arguments, so one callback can serve several instances (or ignore the ones it does not own). Remember WordPress passes only the first argument unless you declare the argument count in `add_filter()` / `add_action()`.
+Every hook is passed the `$plugin_slug` and `$post_type_name` of the instance it fired for as its first two arguments, immediately after the value being filtered (or first, for actions), so one callback can serve several instances (or ignore the ones it does not own). Remember WordPress passes only the first argument unless you declare the argument count in `add_filter()` / `add_action()`.
 
 | Hook | Type | Arguments |
 |---|---|---|
-| `bh_wp_private_uploads_can_upload` | filter | `$can_upload`, `$tmp_file`, `$filename`, `$plugin_slug`, `$post_type_name` |
-| `bh_wp_private_uploads_allow` | filter | `$should_serve_file`, `$file`, `$plugin_slug`, `$post_type_name` |
-| `bh_wp_private_uploads_url_is_public_warning` | filter | `$content`, `$url`, `$plugin_slug`, `$post_type_name` |
-| `bh_wp_private_uploads_rest_upload` | action | `$file`, `$request`, `$plugin_slug`, `$post_type_name` |
+| `bh_wp_private_uploads_can_upload` | filter | `$can_upload`, `$plugin_slug`, `$post_type_name`, `$tmp_file`, `$filename` |
+| `bh_wp_private_uploads_allow` | filter | `$should_serve_file`, `$plugin_slug`, `$post_type_name`, `$file` |
+| `bh_wp_private_uploads_url_is_public_warning` | filter | `$content`, `$plugin_slug`, `$post_type_name`, `$url` |
+| `bh_wp_private_uploads_rest_upload` | action | `$plugin_slug`, `$post_type_name`, `$file`, `$request` |
 
 The earlier per-post-type hook names – `bh_wp_private_uploads_{$post_type_name}_allow`, `bh_wp_private_uploads_url_is_public_warning_{$post_type_name}` and `rest_private_uploads_upload` – still fire, but are deprecated as of 0.4.0 and will be removed in a future release.
 
@@ -167,8 +167,8 @@ The earlier per-post-type hook names – `bh_wp_private_uploads_{$post_type_name
 The folder name can easily be changed, e.g. `wp-content/uploads/email-attachments`:
 
 ```php
-$settings = new class() implements \BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Interface {
-	use \BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Trait;
+$settings = new class() implements \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface {
+	use \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
 
 	public function get_plugin_slug(): string {
 		return 'my-plugin';
@@ -190,8 +190,8 @@ $private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance( $
 A CLI command is easily added during configuration:
 
 ```php
-$settings = new class() implements \BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Interface {
-	use \BrianHenryIE\WP_Private_Uploads\API\Private_Uploads_Settings_Trait;
+$settings = new class() implements \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface {
+	use \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Trait;
 
 	public function get_plugin_slug(): string {
 		return 'my-plugin';
@@ -242,7 +242,7 @@ See [CONTRIBUTING.md](https://github.com/BrianHenryIE/bh-wp-private-uploads/blob
 
 TODO:
 
-* Test API and serve private files classes
+* ~~Test API and serve private files classes~~
 * ~~Focus settings on the post type, not the plugin slug~~ (maybe rename the settings interface to reflect this)
 * Instantiate the hooks with API class as the parameter, not the Settings (i.e. avoid situation where wires could be crossed)
 * Add documentation & screenshots for the media upload UI
@@ -252,7 +252,7 @@ TODO:
 * ~~Some amount of PHPUnit, WPCS, PhpStan done, but lots to do~~ Now thoroughly PHPCS + PHPStan and lots of PHPUnit + Playwright
 * User level permissions per file. (custom post type with filepath/url as GUID)
 * Acceptance tests: https://github.com/gamajo/codeception-redirects
-* Unit test REST endpoint
+* ~~Unit test REST endpoint~~
 * Does the rewrite rule work when WordPress is installed in a subdir?
 * Add Nginx instructions
 * Detect the user's hosting provider

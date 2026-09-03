@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 – 2026-09-03
+
+Two new WP-CLI commands, `check` and `status`, for verifying and inspecting the private uploads directory, and a fix for a JavaScript error thrown on every admin page while the "publicly accessible" notice was snoozed. The hook argument order changed; see **Upgrading** below.
 
 ### Added
 
@@ -10,10 +12,15 @@
 ### Changed
 
 * Breaking: `$plugin_slug` and `$post_type_name` are now the first arguments (after the filtered value) of `bh_wp_private_uploads_can_upload`, `bh_wp_private_uploads_allow`, `bh_wp_private_uploads_url_is_public_warning` (filters) and `bh_wp_private_uploads_rest_upload` (action), moved from the end of the argument list
+* The private media library, its "Media" submenu and the upload meta boxes are no longer registered when `Private_Uploads_Settings_Interface::get_post_type_name()` returns an empty string, matching the existing behaviour for the post type registration itself. `Private_Uploads_Settings_Trait` always returns a post type name, so only settings classes that implement the method themselves are affected.
 
 ### Fixed
 
 * While the "publicly accessible" notice's dismissal was snoozed, every admin page threw a JavaScript `TypeError` per instance ("dismissBtn is null"): the WPTRT admin-notices library prints each registered notice's inline dismiss script even when the notice itself is suppressed as dismissed. The notice is now not registered at all while its dismissal is snoozed.
+
+### Upgrading
+
+* **Callbacks on the four hooks above must be updated for the new argument order.** Instance-specific data comes first, so a callback that only needs `$plugin_slug` can now declare an accepted-args count of `2` instead of listing every argument. For example, `add_filter( 'bh_wp_private_uploads_allow', $callback, 10, 2 )` with `function ( bool $should_serve_file, string $plugin_slug ): bool`. The deprecated per-post-type hooks are unchanged.
 
 ## 0.4.0 – 2026-07-12
 
