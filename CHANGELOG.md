@@ -1,10 +1,8 @@
 # Changelog
 
-## Unreleased
+### 0.5.1
 
-### Fixed
-
-* The "publicly accessible" notice was shown when the webserver redirects unauthenticated requests for private uploads to the WordPress login page: `wp_remote_get()` follows the redirect and the login page's 200 was read as public. The is-private check now treats a request that ends on the login page (the path of `wp_login_url()`) as private.
+* Fix: The "publicly accessible" notice was shown when the webserver redirects unauthenticated requests for private uploads to the WordPress login page: `wp_remote_get()` follows the redirect and the login page's 200 was read as public. The is-private check now treats a request that ends on the login page (the path of `wp_login_url()`) as private.
 
 ## 0.5.0 – 2026-09-03
 

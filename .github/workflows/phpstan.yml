@@ -36,6 +36,10 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --verbose
 
+      # Provides `vendor/bin/prf`, used below to filter the checkstyle report to the PR's changed files.
+      - name: Install kamazee/pr-filter
+        run: composer require --dev kamazee/pr-filter --no-scripts
+
       - name: Install WP CLI in CI
         run: composer require --dev wp-cli/wp-cli-bundle wp-cli/wp-cli-tests --no-scripts
 

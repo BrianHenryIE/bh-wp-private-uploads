@@ -43,7 +43,7 @@ jobs:
 
       # Provides `vendor/bin/prf`, used below to filter the checkstyle report to the PR's changed files.
       - name: Install kamazee/pr-filter
-        run: composer require --dev kamazee/pr-filter
+        run: composer require --dev kamazee/pr-filter --no-scripts
 
       - name: Run PHPCBF to fix what it can
         continue-on-error: true
