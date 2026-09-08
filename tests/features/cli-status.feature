@@ -26,6 +26,7 @@ Feature: Show the private uploads directory status via WP-CLI
     When I run `wp my_plugin private_media download https://www.brianhenry.ie/resume/ --create-post --user=admin`
     Then the return code should be 0
 
+    Given the webserver serves the uploads directory as private
     When I run `wp my_plugin private_media check --user=admin`
     Then the return code should be 0
 

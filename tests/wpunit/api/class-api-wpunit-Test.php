@@ -225,6 +225,73 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
+	 * A webserver that redirects unauthenticated requests to wp-login.php is protecting the directory:
+	 * the redirect is followed, so the probe ends on the login page with a 200 that must not be
+	 * reported as "publicly accessible".
+	 *
+	 * @covers ::check_and_update_is_url_private
+	 */
+	public function test_is_url_protected_when_redirected_to_login(): void {
+
+		$test_uploads_directory_name = uniqid( __FUNCTION__ );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
+				'get_plugin_slug'               => 'test_check_url_login_redirect',
+			)
+		);
+
+		$dir = sprintf(
+			'%s/uploads/%s/',
+			constant( 'WP_CONTENT_DIR' ),
+			$test_uploads_directory_name
+		);
+
+		@mkdir( $dir, 0777, true );
+		file_put_contents( "{$dir}sample.pdf", '%PDF-1.4', 0777 );
+
+		$api = new API( $settings, $this->logger );
+
+		add_filter(
+			'pre_http_request',
+			function ( $response, array $args, string $url ) {
+				$requests_response              = new \WpOrg\Requests\Response();
+				$requests_response->status_code = 200;
+				$requests_response->success     = true;
+				$requests_response->url         = wp_login_url( $url );
+				$requests_response->history[]   = ( function () use ( $url ) {
+					$redirect              = new \WpOrg\Requests\Response();
+					$redirect->status_code = 302;
+					$redirect->url         = $url;
+					return $redirect;
+				} )();
+
+				return array(
+					'body'          => '<html>Log In</html>',
+					'headers'       => array(),
+					'response'      => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'cookies'       => array(),
+					'filename'      => null,
+					'http_response' => new \WP_HTTP_Requests_Response( $requests_response ),
+				);
+			},
+			10,
+			3
+		);
+
+		$result = $api->check_and_update_is_url_private();
+
+		$this->assertNotNull( $result );
+		$this->assertTrue( $result->is_private );
+		$this->assertSame( 200, $result->http_response_code );
+	}
+
+	/**
 	 * Create an API instance whose settings use a unique uploads subdirectory, and register its post type.
 	 *
 	 * @param string $test_uploads_directory_name Unique (per-test) private uploads subdirectory name.
@@ -378,6 +445,8 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 				'post_status' => 'inherit',
 			)
 		);
+
+		$this->assertIsArray( $query->posts );
 
 		$queried_post_ids = wp_list_pluck( $query->posts, 'ID' );
 

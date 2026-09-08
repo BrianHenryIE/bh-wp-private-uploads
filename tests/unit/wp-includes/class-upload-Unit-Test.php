@@ -175,4 +175,41 @@ class Upload_Unit_Test extends Unit_Testcase {
 			),
 		);
 	}
+
+	/**
+	 * WordPress 7.1's media grid rewrites the page URL to a bare `upload.php` on load, so `post_type=` is no longer
+	 * in the referer of the upload/query requests. The post type must be sent explicitly by the browser.
+	 *
+	 * @covers ::enqueue_scripts
+	 */
+	public function test_enqueue_scripts_sends_post_type_with_uploads_and_queries(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_post_type_name' => 'private_media',
+			)
+		);
+
+		WP_Mock::userFunction( 'wp_json_encode' )
+			->andReturnUsing( fn( $value ) => json_encode( $value ) );
+
+		WP_Mock::userFunction( 'wp_add_inline_script' )
+			->once()
+			->with(
+				'media-views',
+				\Mockery::on(
+					function ( string $script ): bool {
+						return str_contains( $script, 'wp.Uploader.defaults.multipart_params.post_type = "private_media"' )
+							&& str_contains( $script, 'wp.ajax.settings.url' )
+							&& str_contains( $script, '\'post_type=\' + "private_media"' );
+					}
+				),
+				'after'
+			);
+
+		$sut = new Upload( $settings, new Media_Request() );
+
+		$sut->enqueue_scripts();
+	}
 }

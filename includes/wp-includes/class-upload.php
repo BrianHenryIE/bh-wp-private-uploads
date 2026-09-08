@@ -250,6 +250,40 @@ class Upload {
 	}
 
 	/**
+	 * Send the private post type explicitly with every upload and query from the private media library grid.
+	 *
+	 * Since WordPress 7.1 the media grid's search handler rewrites the page URL to a bare `upload.php` on load
+	 * (`wp.media.view.MediaFrame.Manage::bindSearchHandler()`), so `post_type=` is no longer present in the
+	 * referer of the `async-upload.php` and `admin-ajax.php` requests the grid makes. Rather than rely on the
+	 * referer, set the post type as a multipart param for uploads and as a query arg on the AJAX URL for queries.
+	 *
+	 * @hooked admin_enqueue_scripts
+	 * @see \BrianHenryIE\WP_Private_Uploads\BH_WP_Private_Uploads_Hooks::define_media_library_hooks()
+	 * @see Media::is_private_upload_via_post()
+	 * @see Media_Request::request_uri_has_post_type()
+	 */
+	public function enqueue_scripts(): void {
+
+		$post_type_json = wp_json_encode( $this->settings->get_post_type_name() );
+
+		$script = <<<EOD
+( function() {
+	if ( ! window.wp ) {
+		return;
+	}
+	if ( wp.Uploader && wp.Uploader.defaults && wp.Uploader.defaults.multipart_params ) {
+		wp.Uploader.defaults.multipart_params.post_type = $post_type_json;
+	}
+	if ( wp.ajax && wp.ajax.settings && wp.ajax.settings.url ) {
+		wp.ajax.settings.url += ( wp.ajax.settings.url.indexOf( '?' ) === -1 ? '?' : '&' ) + 'post_type=' + $post_type_json;
+	}
+} )();
+EOD;
+
+		wp_add_inline_script( 'media-views', $script, 'after' );
+	}
+
+	/**
 	 * Change table column header "Author" to "Owner".
 	 *
 	 * The `cb` key in the arrays means "checkbox".

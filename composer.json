@@ -53,11 +53,25 @@
     "repositories": {
         "outlandishideas/wpackagist": {
             "type": "composer",
-            "url": "https://wpackagist.org"
+            "url": "https://wpackagist.org",
+            "only": [
+                "wpackagist-plugin/*",
+                "wpackagist-theme/*"
+            ]
         },
         "wordpress/wordpress": {
             "url": "https://github.com/wordpress/wordpress-develop.git",
-            "type": "git"
+            "type": "github",
+            "only": [
+                "wordpress/wordpress"
+            ]
+        },
+        "wp-cli/handbook": {
+            "url": "https://github.com/wp-cli/handbook.git",
+            "type": "github",
+            "only": [
+                "wp-cli/handbook"
+            ]
         }
     },
     "require": {
@@ -68,24 +82,27 @@
     },
     "require-dev": {
         "ext-json": "*",
-        "10up/wp_mock": "^1.0",
+        "10up/wp_mock": ">1.0",
         "alleyinteractive/wordpress-autoloader": "^1.2",
-        "antecedent/patchwork": "^2.1",
+        "antecedent/patchwork": "^2.2",
         "behat/behat": "^3.29",
         "brianhenryie/color-logger": "*",
         "codeception/codeception": "^5.2.2",
-        "dealerdirect/phpcodesniffer-composer-installer": "*",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.2.1",
         "dvdoug/behat-code-coverage": "^5.3",
-        "johnpbloch/wordpress": "*",
-        "kamazee/pr-filter": "^1.1",
+        "johnpbloch/wordpress": "7.1.0",
         "lucatume/wp-browser": "^4",
         "phpstan/extension-installer": "*",
         "phpunit/phpcov": "*",
         "rector/rector": "^2.6",
-        "squizlabs/php_codesniffer": "*",
-        "szepeviktor/phpstan-wordpress": "*",
-        "wordpress/wordpress": "*",
-        "wp-coding-standards/wpcs": "*",
+        "szepeviktor/phpstan-wordpress": "^2.0.4",
+        "wordpress/wordpress": "7.1.0",
+        "wp-cli/dist-archive-command": "dev-main#be62a96becee07a47613f64ad52657bfcb856663",
+        "wp-cli/wp-cli-bundle": "dev-main#789ab57db20822e1c306085584e058f2b5c3afeb",
+        "wp-cli/handbook": "dev-main#6b00d2d62b5f6be26789c674ab6f9bf7fa907300",
+        "wp-cli/wp-cli": "dev-main#97e0ac20290f2ef579ef87171bc7e62929ac3f42",
+        "wp-cli/wp-cli-tests": "dev-main#902de26e34e8ba5e98a40f3132b7087af38ae638",
+        "wp-coding-standards/wpcs": "dev-develop#f72bcdfc4da28526a6e753bcecfaeff8a80a6d00",
         "wpackagist-plugin/debug-log-manager": "*",
         "wpackagist-plugin/document-generator-for-openapi": "*",
         "wpackagist-plugin/monkeyman-rewrite-analyzer": "*",
@@ -97,13 +114,11 @@
     "scripts": {
         "post-install-cmd": [
             "@sync-composer-wpenv",
-            "@sync-wpenv-phpstorm",
-            "@install-wp-cli"
+            "@sync-wpenv-phpstorm"
         ],
         "post-update-cmd": [
             "@sync-composer-wpenv",
-            "@sync-wpenv-phpstorm",
-            "@install-wp-cli"
+            "@sync-wpenv-phpstorm"
         ],
         "test": [
             "codecept run unit",
@@ -150,10 +165,6 @@
         ],
         "github-actions": [
             "act -P ubuntu-latest=shivammathur/node:latest"
-        ],
-        "install-wp-cli": [
-            "php ./bin/set-composer-provides.php",
-            "COMPOSER=composer-wp-cli.json composer update"
         ],
         "sync-composer-wpenv": [
             "php ./bin/sync-composer-wpenv.php"

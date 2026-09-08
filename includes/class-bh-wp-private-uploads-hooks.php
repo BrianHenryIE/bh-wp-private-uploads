@@ -204,6 +204,7 @@ class BH_WP_Private_Uploads_Hooks {
 		add_filter( 'the_posts', array( $upload, 'the_posts' ), 10, 2 );
 		add_filter( 'clean_url', array( $upload, 'clean_url' ) );
 		add_action( 'admin_init', array( $upload, 'admin_init' ) );
+		add_action( 'admin_enqueue_scripts', array( $upload, 'enqueue_scripts' ) );
 		add_filter( 'manage_upload_columns', array( $upload, 'manage_upload_columns' ) );
 	}
 

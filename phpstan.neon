@@ -1,5 +1,7 @@
 parameters:
     level: 10
+    WPCompat:
+        requiresAtLeast: '6.0'
     paths:
         - includes
         - development-plugin
@@ -14,7 +16,7 @@ parameters:
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
     scanDirectories:
         - wp-content/plugins
-        - vendor-wp-cli/wp-cli
+        - vendor/wp-cli
     scanFiles:
         - vendor/antecedent/patchwork/Patchwork.php
     reportUnmatchedIgnoredErrors: false
