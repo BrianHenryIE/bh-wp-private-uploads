@@ -77,7 +77,7 @@
     "require": {
         "php": ">=8.1",
         "ext-fileinfo": "*",
-        "psr/log": "^1 || ^2 || ^3",
+        "psr/log-implementation": "*",
         "wptrt/admin-notices": "^1.0"
     },
     "require-dev": {
@@ -101,6 +101,7 @@
         "wp-cli/dist-archive-command": "*",
         "wp-cli/handbook": "dev-main",
         "wp-cli/wp-cli-bundle": "*",
+        "wp-cli/wp-cli": "dev-main",
         "wp-cli/wp-cli-tests": "^5",
         "wp-coding-standards/wpcs": "*",
         "wpackagist-plugin/debug-log-manager": "*",

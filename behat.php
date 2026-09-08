@@ -14,10 +14,10 @@ use DVDoug\Behat\CodeCoverage\Extension;
  * @see \WP_CLI\Tests\Context\FeatureContext::get_vendor_dir()
  * @see \BrianHenryIE\WP_Private_Uploads\FeatureContext::prepare()
  */
-require_once __DIR__ . '/vendor-wp-cli/autoload.php';
+//require_once __DIR__ . '/vendor-wp-cli/autoload.php';
 
 /**
- * Run the Behat scenarios against the WP-CLI this project pins in `vendor-wp-cli/`, rather than whatever
+ * Run the Behat scenarios against the WP-CLI this project pins in `vendor/`, rather than whatever
  * `wp` happens to be on the `PATH`.
  *
  * The leading slash matters: `FeatureContext::get_bin_path()` returns `WP_CLI_BIN_DIR` as-is without
@@ -25,9 +25,9 @@ require_once __DIR__ . '/vendor-wp-cli/autoload.php';
  *
  * @see \WP_CLI\Tests\Context\FeatureContext::get_bin_path()
  */
-putenv( 'WP_CLI_BIN_DIR=' . __DIR__ . '/vendor-wp-cli/wp-cli/wp-cli/bin' );
+putenv( 'WP_CLI_BIN_DIR=' . __DIR__ . '/vendor/wp-cli/wp-cli/bin' );
 
-define( 'WP_CLI_ROOT', __DIR__ . '/vendor-wp-cli/wp-cli/wp-cli' );
+define( 'WP_CLI_ROOT', __DIR__ . '/vendor/wp-cli/wp-cli' );
 
 require_once WP_CLI_ROOT . '/php/utils.php';
 require_once WP_CLI_ROOT . '/php/WP_CLI/Process.php';
