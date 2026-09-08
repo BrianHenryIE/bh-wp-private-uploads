@@ -111,4 +111,55 @@ class FeatureContext extends \WP_CLI\Tests\Context\FeatureContext {
 		// Activate the development plugin.
 		$this->proc( 'wp plugin activate development-plugin' )->run_check();
 	}
+
+	/**
+	 * Short-circuit the is-private HTTP probe so the scenario does not depend on a webserver or the network.
+	 *
+	 * The WP-CLI test install has no webserver, and its site URL is `https://example.com`, so the
+	 * `wp_remote_get()` in `API::check_and_update_is_url_private()` would otherwise go out to the internet.
+	 * An mu-plugin answers any request for the site's own uploads URL with a 403, as a correctly
+	 * configured webserver would.
+	 *
+	 * @Given /^the webserver serves the uploads directory as private$/
+	 *
+	 * @see \BrianHenryIE\WP_Private_Uploads\API\API::check_and_update_is_url_private()
+	 */
+	public function given_the_webserver_serves_the_uploads_directory_as_private(): void {
+
+		$mu_plugins_dir = $this->variables['RUN_DIR'] . '/wp-content/mu-plugins';
+
+		if ( ! is_dir( $mu_plugins_dir ) ) {
+			mkdir( $mu_plugins_dir, 0777, true );
+		}
+
+		$mu_plugin = <<<'PHP'
+<?php
+/**
+ * Plugin Name: Behat: uploads directory is private
+ */
+
+add_filter(
+	'pre_http_request',
+	function ( $response, array $args, string $url ) {
+		if ( ! str_starts_with( $url, wp_upload_dir()['baseurl'] ) ) {
+			return $response;
+		}
+		return array(
+			'headers'  => array(),
+			'body'     => '',
+			'response' => array(
+				'code'    => 403,
+				'message' => 'Forbidden',
+			),
+			'cookies'  => array(),
+			'filename' => null,
+		);
+	},
+	10,
+	3
+);
+PHP;
+
+		file_put_contents( $mu_plugins_dir . '/uploads-directory-is-private.php', $mu_plugin );
+	}
 }
