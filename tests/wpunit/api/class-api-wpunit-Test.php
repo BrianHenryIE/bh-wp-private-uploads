@@ -446,6 +446,8 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 			)
 		);
 
+		$this->assertIsArray($query->posts);
+
 		$queried_post_ids = wp_list_pluck( $query->posts, 'ID' );
 
 		$this->assertContains( $result->post_id, $queried_post_ids );
