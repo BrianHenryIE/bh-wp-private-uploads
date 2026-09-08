@@ -19,6 +19,7 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Throwable;
+use WP_HTTP_Requests_Response;
 
 /**
  * @uses \BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface::get_uploads_subdirectory_name()
@@ -702,12 +703,15 @@ class API implements API_Interface {
 			return null;
 		}
 
-		$is_private = in_array(
-			wp_remote_retrieve_response_code( $request_response ),
-			// I think 404 is valid when the directory does exist.
-			array( 301, 302, 401, 403, 404 ),
-			true
-		);
+		// A webserver rule that sends unauthenticated requests to the WordPress login page is private too:
+		// the redirect is followed, so the final response is the login page's 200.
+		$is_private = $this->is_login_page_url( $this->get_final_url( $request_response ) ?? $url )
+			|| in_array(
+				wp_remote_retrieve_response_code( $request_response ),
+				// I think 404 is valid when the directory does exist.
+				array( 301, 302, 401, 403, 404 ),
+				true
+			);
 
 		$is_url_private_result = new Is_Private_Result(
 			$url,
@@ -724,5 +728,36 @@ class API implements API_Interface {
 		);
 
 		return $is_url_private_result;
+	}
+
+	/**
+	 * The URL the request ended at after any redirects, or null when the response does not carry one
+	 * (e.g. a `pre_http_request` short-circuit).
+	 *
+	 * @param array<string, mixed> $request_response The `wp_remote_get()` response.
+	 */
+	protected function get_final_url( array $request_response ): ?string {
+		$http_response = $request_response['http_response'] ?? null;
+
+		if ( ! ( $http_response instanceof WP_HTTP_Requests_Response ) ) {
+			return null;
+		}
+
+		$final_url = $http_response->get_response_object()->url;
+
+		return '' !== $final_url ? $final_url : null;
+	}
+
+	/**
+	 * Is the URL the site's login page (ignoring query args, e.g. `redirect_to`)?
+	 *
+	 * @param string $url The URL to test.
+	 */
+	protected function is_login_page_url( string $url ): bool {
+		$url_path   = wp_parse_url( $url, PHP_URL_PATH );
+		$login_path = wp_parse_url( wp_login_url(), PHP_URL_PATH );
+
+		return is_string( $url_path ) && is_string( $login_path ) && '' !== $login_path
+			&& untrailingslashit( $url_path ) === untrailingslashit( $login_path );
 	}
 }
