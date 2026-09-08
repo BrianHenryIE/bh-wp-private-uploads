@@ -1,5 +1,7 @@
 parameters:
     level: 10
+    WPCompat:
+        requiresAtLeast: '6.0'
     paths:
         - includes
         - development-plugin
