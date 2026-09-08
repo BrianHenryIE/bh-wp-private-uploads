@@ -77,7 +77,7 @@
     "require": {
         "php": ">=8.1",
         "ext-fileinfo": "*",
-        "psr/log-implementation": "*",
+        "psr/log": "^1 || ^2 || ^3",
         "wptrt/admin-notices": "^1.0"
     },
     "require-dev": {
