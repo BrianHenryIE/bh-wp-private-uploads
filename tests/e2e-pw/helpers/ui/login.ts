@@ -30,7 +30,7 @@ export async function login( user, page: Page ): Promise< void > {
 
 	await page.fill('input[name="log"]', user.username);
 	await page.fill('input[name="pwd"]', user.password);
-	await page.locator('#loginform').getByText('Log In').click();
+	await page.locator('#loginform').getByRole('button', { name: 'Log In' }).click();
 	await page.waitForLoadState('networkidle');
 
 	// Check if login was successful
