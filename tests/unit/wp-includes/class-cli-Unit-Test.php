@@ -53,6 +53,7 @@ class CLI_Unit_Test extends Unit_Testcase {
 
 		// Recent WP-CLI registers its built-in output formats (table/json/csv/yaml/…) during runner
 		// bootstrap, which does not run here. Register them so `format_items()` recognises `--format`.
+		/** @phpstan-ignore function.alreadyNarrowedType (I think this might differ between 2.x and 3.x) */
 		if ( method_exists( \WP_CLI\Formatter::class, 'register_builtin_formats' ) ) {
 			\WP_CLI\Formatter::register_builtin_formats();
 		}
