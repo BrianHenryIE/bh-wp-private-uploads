@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "194907fcee4d8c4aedf1fe56e45904db",
+    "content-hash": "af8d99a91a210ec15c75d34e9e3ff6d1",
     "packages": [
         {
             "name": "psr/log",
@@ -8648,16 +8648,16 @@
         },
         {
             "name": "wordpress/wordpress",
-            "version": "7.1.0",
+            "version": "7.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WordPress/wordpress-develop.git",
-                "reference": "daaca56d3d6a9a42a0c87f6eda766c33a77c1d05"
+                "reference": "a940fbc1e63a7e24d31a28e707e545ad4873cb84"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress/wordpress-develop/zipball/daaca56d3d6a9a42a0c87f6eda766c33a77c1d05",
-                "reference": "daaca56d3d6a9a42a0c87f6eda766c33a77c1d05",
+                "url": "https://api.github.com/repos/WordPress/wordpress-develop/zipball/a940fbc1e63a7e24d31a28e707e545ad4873cb84",
+                "reference": "a940fbc1e63a7e24d31a28e707e545ad4873cb84",
                 "shasum": ""
             },
             "require": {
@@ -8749,9 +8749,9 @@
             ],
             "support": {
                 "issues": "https://core.trac.wordpress.org/",
-                "source": "https://github.com/WordPress/wordpress-develop/tree/7.1.0"
+                "source": "https://github.com/WordPress/wordpress-develop/tree/7.1.1"
             },
-            "time": "2026-08-19T20:05:06+00:00"
+            "time": "2026-09-17T19:08:04+00:00"
         },
         {
             "name": "wp-cli/ability-command",

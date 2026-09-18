@@ -96,7 +96,7 @@
         "phpunit/phpcov": "*",
         "rector/rector": "^2.6",
         "szepeviktor/phpstan-wordpress": "^2.0.4",
-        "wordpress/wordpress": "7.1.0",
+        "wordpress/wordpress": "7.1.1",
         "wp-cli/dist-archive-command": "dev-main#be62a96becee07a47613f64ad52657bfcb856663",
         "wp-cli/wp-cli-bundle": "dev-main#789ab57db20822e1c306085584e058f2b5c3afeb",
         "wp-cli/handbook": "dev-main#6b00d2d62b5f6be26789c674ab6f9bf7fa907300",
