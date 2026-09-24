@@ -11648,15 +11648,15 @@
         },
         {
             "name": "wpackagist-plugin/woocommerce",
-            "version": "11.1.0",
+            "version": "11.1.2",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/woocommerce/",
-                "reference": "tags/11.1.0"
+                "reference": "tags/11.1.2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/woocommerce.11.1.0.zip"
+                "url": "https://downloads.wordpress.org/plugin/woocommerce.11.1.2.zip"
             },
             "require": {
                 "composer/installers": "^1.0 || ^2.0"
