@@ -90,7 +90,7 @@
         "codeception/codeception": "^5.2.2",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.2.1",
         "dvdoug/behat-code-coverage": "^5.3",
-        "johnpbloch/wordpress": "7.1.0",
+        "johnpbloch/wordpress": "7.1.1",
         "kamazee/pr-filter": "^1.1",
         "lucatume/wp-browser": "^4",
         "phpstan/extension-installer": "*",
