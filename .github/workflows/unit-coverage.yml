@@ -55,7 +55,7 @@ jobs:
           path: gh-pages
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@2.37.2
+        uses: shivammathur/setup-php@2.40.0
         with:
           php-version: ${{ matrix.php }}
           coverage: ${{ matrix.php == env.COVERAGE_PHP_VERSION && 'xdebug' || 'none' }}
