@@ -5,7 +5,8 @@
     "DISALLOW_FILE_EDIT": false
   },
   "core": "WordPress/WordPress#7.1",
-  "mysqlPort": 33066,
+  "port": 8871,
+  "mysqlPort": 33071,
   "lifecycleScripts": {
     "afterStart": "# bash 'tests/_wp-env/initialize-external.sh'"
   },
