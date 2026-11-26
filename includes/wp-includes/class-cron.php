@@ -136,7 +136,7 @@ class Cron {
 	/**
 	 * Handle the cron job.
 	 *
-	 * @hooked {plugin-slug}_private_uploads_check_url_{post_type_name}
+	 * @hooked {plugin_slug}_private_uploads_check_url_{post_type_name}
 	 */
 	public function check_is_url_public(): void {
 		$action = current_action();

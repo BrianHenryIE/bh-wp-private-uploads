@@ -8,4 +8,5 @@
 * For UI changes, PRs should contain screenshots of changes
 * methods that are hooked to WordPress actions and filters should have PhpDoc `@hooked` annotation with the name and `@see` annotation linking to the call site
 * API_Interface methods should return simple objects and not arrays
+* All actions/filters should use underscores in their name (never hyphens); when a hook name is built from the plugin slug or post type name, pass it through `str_hyphens_to_underscores()`. WordPress core hook names (e.g. `wp_ajax_query-attachments`) are the only exception.
 * 
