@@ -198,8 +198,30 @@ class Serve_Private_File {
 			);
 		}
 
-		$path = $upload['basedir'] . DIRECTORY_SEPARATOR . $this->settings->get_uploads_subdirectory_name() . DIRECTORY_SEPARATOR . $file;
+		$private_uploads_directory = $upload['basedir'] . DIRECTORY_SEPARATOR . $this->settings->get_uploads_subdirectory_name();
+
+		$path = $private_uploads_directory . DIRECTORY_SEPARATOR . $file;
 		if ( ! is_file( $path ) ) {
+			return new Private_File_Response(
+				status_code: 404,
+				status_description: 'File not found',
+			);
+		}
+
+		/**
+		 * Second layer of path traversal defence. `sanitize_filepath()` above removes `..`, but cannot know that
+		 * a segment of the path is a symlink leading out of the private uploads directory.
+		 *
+		 * Answered as a 404, the same as a file that does not exist.
+		 */
+		if ( ! $this->is_path_inside_directory( $path, $private_uploads_directory ) ) {
+			$this->logger->warning(
+				'Refused to serve {file}: it resolves to a location outside the private uploads directory.',
+				array(
+					'file'    => $file,
+					'user_id' => get_current_user_id(),
+				)
+			);
 			return new Private_File_Response(
 				status_code: 404,
 				status_description: 'File not found',
@@ -267,6 +289,30 @@ class Serve_Private_File {
 			status_code: 200,
 			headers: $this->filter_response_headers( $headers, $file ),
 			file_to_stream: $path,
+		);
+	}
+
+	/**
+	 * After resolving symlinks, `.` and `..`, is the path inside the directory?
+	 *
+	 * Both are resolved, so the directory itself may be, or be below, a symlink. Whole path segments are
+	 * compared: `/uploads/private-other/file` is not inside `/uploads/private`.
+	 *
+	 * @param string $path      The path of an existing file.
+	 * @param string $directory The directory the file must be inside.
+	 */
+	protected function is_path_inside_directory( string $path, string $directory ): bool {
+
+		$real_path      = realpath( $path );
+		$real_directory = realpath( $directory );
+
+		if ( false === $real_path || false === $real_directory ) {
+			return false;
+		}
+
+		return str_starts_with(
+			$real_path,
+			rtrim( $real_directory, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR
 		);
 	}
 
