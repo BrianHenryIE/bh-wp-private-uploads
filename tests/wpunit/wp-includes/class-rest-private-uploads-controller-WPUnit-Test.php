@@ -826,4 +826,230 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 
 		$this->assertFalse( $reflection_method->invoke( $sut ) );
 	}
+
+	/**
+	 * Insert a private uploads post directly, as the API class does for an uploaded file.
+	 *
+	 * @param int    $post_author_id The owner of the file; `0` for none.
+	 * @param string $post_title     The post title.
+	 */
+	protected function insert_private_upload_post( int $post_author_id, string $post_title ): int {
+		$post_id = wp_insert_post(
+			array(
+				'post_type'   => 'rest_test_private',
+				'post_status' => 'inherit',
+				'post_title'  => $post_title,
+				'post_author' => $post_author_id,
+				'guid'        => 'http://example.org/wp-content/uploads/private/' . sanitize_title( $post_title ) . '.pdf',
+			)
+		);
+		assert( $post_id > 0 );
+
+		return $post_id;
+	}
+
+	/**
+	 * Create a user with the given role and set them as the current user.
+	 *
+	 * @param string $role A WordPress role name.
+	 */
+	protected function set_current_user_to_new_user_with_role( string $role ): int {
+		$user_id = wp_insert_user(
+			array(
+				'user_login' => uniqid( $role ),
+				'user_pass'  => wp_generate_password(),
+				'user_email' => uniqid( $role ) . '@example.org',
+				'role'       => $role,
+			)
+		);
+		assert( is_int( $user_id ) );
+		wp_set_current_user( $user_id );
+
+		return $user_id;
+	}
+
+	/**
+	 * Core treats a post with the `inherit` status and no parent as public, which is right for attachments
+	 * but would list every private upload – title, owner, date – to logged-out visitors.
+	 *
+	 * @covers ::get_items_permissions_check
+	 */
+	public function test_anonymous_visitor_cannot_list_private_uploads(): void {
+
+		$config = $this->register_rest_post_type( uniqid( 'restreadanon' ) );
+
+		$this->insert_private_upload_post( 1, 'Secret document title' );
+
+		wp_set_current_user( 0 );
+
+		$request  = new WP_REST_Request( 'GET', "/{$config['namespace']}/{$config['rest_base']}" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 401, $response->get_status() );
+		$this->assertStringNotContainsString( 'Secret document title', (string) wp_json_encode( $response->get_data() ) );
+	}
+
+	/**
+	 * @covers ::check_read_permission
+	 */
+	public function test_anonymous_visitor_cannot_read_a_private_upload(): void {
+
+		$config = $this->register_rest_post_type( uniqid( 'restreadanonitem' ) );
+
+		$post_id = $this->insert_private_upload_post( 1, 'Secret document title' );
+
+		wp_set_current_user( 0 );
+
+		$request  = new WP_REST_Request( 'GET', "/{$config['namespace']}/{$config['rest_base']}/{$post_id}" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 401, $response->get_status() );
+		$this->assertStringNotContainsString( 'Secret document title', (string) wp_json_encode( $response->get_data() ) );
+	}
+
+	/**
+	 * A logged-in user without `edit_others_posts` cannot read another user's private upload.
+	 *
+	 * @covers ::check_read_permission
+	 * @dataProvider provide_roles_that_cannot_read_others_private_uploads
+	 *
+	 * @param string $role A WordPress role name.
+	 */
+	public function test_user_cannot_read_another_users_private_upload( string $role ): void {
+
+		$config = $this->register_rest_post_type( uniqid( 'restreadother' ) );
+
+		$post_id = $this->insert_private_upload_post( 1, 'Secret document title' );
+
+		$this->set_current_user_to_new_user_with_role( $role );
+
+		$request  = new WP_REST_Request( 'GET', "/{$config['namespace']}/{$config['rest_base']}/{$post_id}" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertStringNotContainsString( 'Secret document title', (string) wp_json_encode( $response->get_data() ) );
+	}
+
+	/**
+	 * @return array<string, array{0:string}>
+	 */
+	public function provide_roles_that_cannot_read_others_private_uploads(): array {
+		return array(
+			'subscriber'  => array( 'subscriber' ),
+			'contributor' => array( 'contributor' ),
+			'author'      => array( 'author' ),
+		);
+	}
+
+	/**
+	 * The owner of a file (its `post_author`) can read its record, whatever their role.
+	 *
+	 * @covers ::check_read_permission
+	 */
+	public function test_owner_can_read_their_private_upload(): void {
+
+		$config = $this->register_rest_post_type( uniqid( 'restreadowner' ) );
+
+		$subscriber_id = $this->set_current_user_to_new_user_with_role( 'subscriber' );
+
+		$post_id = $this->insert_private_upload_post( $subscriber_id, 'My own document' );
+
+		$request  = new WP_REST_Request( 'GET', "/{$config['namespace']}/{$config['rest_base']}/{$post_id}" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertSame( $post_id, $data['id'] );
+	}
+
+	/**
+	 * A user with the post type's `edit_others_posts` capability can read every private upload.
+	 *
+	 * @covers ::check_read_permission
+	 * @covers ::get_items_permissions_check
+	 * @covers ::prepare_items_query
+	 * @dataProvider provide_roles_that_can_read_all_private_uploads
+	 *
+	 * @param string $role A WordPress role name.
+	 */
+	public function test_user_with_edit_others_posts_can_read_and_list_all_private_uploads( string $role ): void {
+
+		$config = $this->register_rest_post_type( uniqid( 'restreadall' ) );
+
+		$other_user_id = wp_create_user( uniqid( 'other' ), wp_generate_password(), uniqid( 'other' ) . '@example.org' );
+		assert( is_int( $other_user_id ) );
+
+		$post_id       = $this->insert_private_upload_post( $other_user_id, 'Another user\'s document' );
+		$unowned_id    = $this->insert_private_upload_post( 0, 'Document with no owner' );
+		$ids_before    = $this->get_private_uploads_post_ids();
+		$current_count = count( $ids_before );
+
+		$this->set_current_user_to_new_user_with_role( $role );
+
+		$request  = new WP_REST_Request( 'GET', "/{$config['namespace']}/{$config['rest_base']}/{$post_id}" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'GET', "/{$config['namespace']}/{$config['rest_base']}" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$listed_ids = array_column( $data, 'id' );
+
+		$this->assertContains( $post_id, $listed_ids );
+		$this->assertContains( $unowned_id, $listed_ids );
+		$this->assertSame( $current_count, $response->get_headers()['X-WP-Total'] );
+	}
+
+	/**
+	 * @return array<string, array{0:string}>
+	 */
+	public function provide_roles_that_can_read_all_private_uploads(): array {
+		return array(
+			'editor'        => array( 'editor' ),
+			'administrator' => array( 'administrator' ),
+		);
+	}
+
+	/**
+	 * A logged-in user without `edit_others_posts` may list private uploads, but the list – and its total,
+	 * which would otherwise disclose how many files exist – contains only the files they own.
+	 *
+	 * @covers ::get_items_permissions_check
+	 * @covers ::prepare_items_query
+	 */
+	public function test_list_contains_only_the_users_own_private_uploads(): void {
+
+		$config = $this->register_rest_post_type( uniqid( 'restlistown' ) );
+
+		$others_post_id = $this->insert_private_upload_post( 1, 'Secret document title' );
+		$unowned_id     = $this->insert_private_upload_post( 0, 'Document with no owner' );
+
+		$subscriber_id = $this->set_current_user_to_new_user_with_role( 'subscriber' );
+
+		$own_post_id = $this->insert_private_upload_post( $subscriber_id, 'My own document' );
+
+		$request = new WP_REST_Request( 'GET', "/{$config['namespace']}/{$config['rest_base']}" );
+		// The user must not be able to ask for someone else's files.
+		$request->set_param( 'author', array( 1 ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$listed_ids = array_column( $data, 'id' );
+
+		$this->assertSame( array( $own_post_id ), $listed_ids );
+		$this->assertNotContains( $others_post_id, $listed_ids );
+		$this->assertNotContains( $unowned_id, $listed_ids );
+		$this->assertSame( 1, $response->get_headers()['X-WP-Total'] );
+	}
 }

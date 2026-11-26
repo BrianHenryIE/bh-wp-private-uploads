@@ -207,6 +207,8 @@ $private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance( $
 
 When the settings return a REST base, the standard attachment routes are registered for the private uploads post type at `/{plugin-slug}/v1/{rest-base}`, plus `POST /{plugin-slug}/v1/{rest-base}/upload` which saves a file without creating a post.
 
+The `GET` routes require a logged-in user. A private upload's record is readable by the file's owner (its `post_author`) and by users with the post type's `edit_others_posts` capability; the list contains only the user's own files unless they have that capability. Logged-out requests are rejected with 401.
+
 Both `POST` routes require `upload_files`, and accept two optional params which are authorized per object:
 
 | Param | Meaning | Required permission |

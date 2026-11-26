@@ -35,6 +35,12 @@ class Post_Type_WPUnit_Test extends WPUnit_Testcase {
 		$this->assertInstanceOf( \WP_Post_Type::class, $post_type_object );
 		$this->assertFalse( $post_type_object->public );
 		$this->assertFalse( $post_type_object->publicly_queryable );
+		// No front-end page for a private upload: only the file's own (permission-checked) URL.
+		$this->assertFalse( is_post_type_viewable( $post_type_object ) );
+		$this->assertFalse( $post_type_object->rewrite );
+		$this->assertFalse( $post_type_object->query_var );
+		$this->assertFalse( $post_type_object->has_archive );
+		$this->assertTrue( $post_type_object->exclude_from_search );
 		$this->assertTrue( $post_type_object->show_in_rest );
 		$this->assertSame( 'post-type-test-plugin/v1', $post_type_object->rest_namespace );
 		$this->assertSame( 'post-type-test-uploads', $post_type_object->rest_base );
