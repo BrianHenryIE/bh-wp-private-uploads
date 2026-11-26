@@ -185,6 +185,19 @@ $settings = new class() implements \BrianHenryIE\WP_Private_Uploads\Private_Uplo
 $private_uploads = \BrianHenryIE\WP_Private_Uploads\Private_Uploads::instance( $settings );
 ```
 
+#### REST API
+
+When the settings return a REST base, the standard attachment routes are registered for the private uploads post type at `/{plugin-slug}/v1/{rest-base}`, plus `POST /{plugin-slug}/v1/{rest-base}/upload` which saves a file without creating a post.
+
+Both `POST` routes require `upload_files`, and accept two optional params which are authorized per object:
+
+| Param | Meaning | Required permission |
+| --- | --- | --- |
+| `post_parent` | The id of the post the file belongs to, e.g. an order. | `edit_post` on that post. |
+| `post_author` | The id of the user who owns the file. Omit for no owner (`post_author` = `0`). | None for the current user's own id; otherwise the post type's `edit_others_posts` capability. |
+
+A request the user is not authorized for is rejected with 403 before the file is saved. An id that is not an integer, or not an existing post / user, is rejected with 400.
+
 #### CLI Command
 
 A CLI command is easily added during configuration:

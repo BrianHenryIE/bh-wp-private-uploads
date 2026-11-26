@@ -4,6 +4,8 @@
 
 ### Security
 
+* Breaking: the REST `post_parent` and `post_author` params are now authorized per object. Core only checks its own `post` and `author` params, so any user with `upload_files` could attach a private file to any post, or record any user as its owner. `post_parent` now requires `edit_post` on that post, and a `post_author` other than the current user requires the post type's `edit_others_posts` capability; otherwise the request is rejected with 403. Both params are declared in the routes' `args`: they must be integers and the ids of an existing post / user (400 otherwise).
+* The REST create route's filters that set the post type, author and parent are scoped to the post for the uploaded file and removed after the request, so attachments inserted by other plugins' hooks during the request are no longer converted to the private uploads post type.
 * Breaking: the REST `POST /{plugin-slug}/v1/{rest-base}/upload` response no longer discloses the server's absolute filesystem path. `file.file` is now relative to `WP_CONTENT_DIR` (e.g. `uploads/my-plugin/2026/10/doc.pdf`), or just the filename when uploads are outside `WP_CONTENT_DIR`. The `bh_wp_private_uploads_rest_upload` action still receives the absolute path.
 
 ### 0.5.1

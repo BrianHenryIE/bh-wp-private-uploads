@@ -396,4 +396,306 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 			unlink( $attached_path );
 		}
 	}
+
+	/**
+	 * Create a user with the Author role (has `upload_files` and `edit_posts`, but not `edit_others_posts`)
+	 * and set them as the current user.
+	 */
+	protected function set_current_user_to_new_author(): int {
+		$author_id = wp_insert_user(
+			array(
+				'user_login' => uniqid( 'author' ),
+				'user_pass'  => wp_generate_password(),
+				'user_email' => uniqid( 'author' ) . '@example.org',
+				'role'       => 'author',
+			)
+		);
+		assert( is_int( $author_id ) );
+		wp_set_current_user( $author_id );
+
+		return $author_id;
+	}
+
+	/**
+	 * @return int[] The ids of all posts of the test's private uploads post type.
+	 */
+	protected function get_private_uploads_post_ids(): array {
+		/** @var int[] $post_ids */
+		$post_ids = get_posts(
+			array(
+				'post_type'   => 'rest_test_private',
+				'post_status' => 'any',
+				'fields'      => 'ids',
+				'numberposts' => -1,
+			)
+		);
+		return $post_ids;
+	}
+
+	/**
+	 * Core only checks `edit_post` for its own `post` param, so a user with `upload_files` could attach a
+	 * private file to any post (e.g. another customer's order) through this library's `post_parent` param.
+	 *
+	 * @covers ::create_item_permissions_check
+	 */
+	public function test_author_with_post_parent_they_cannot_edit_returns_403(): void {
+
+		$subdir = uniqid( 'restforeignparent' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		$admins_post_id = wp_insert_post(
+			array(
+				'post_title'  => 'Admin post',
+				'post_author' => 1,
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->set_current_user_to_new_author();
+
+		$request = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}" );
+		$request->set_param( 'post_parent', $admins_post_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertEmpty( $this->get_private_uploads_post_ids() );
+		$this->assertEmpty( glob( wp_upload_dir()['basedir'] . "/{$subdir}/*/*/*" ) ?: array() );
+	}
+
+	/**
+	 * Core only checks `edit_others_posts` for its own `author` param, so a user with `upload_files` could
+	 * record any user as the owner of a file through this library's `post_author` param.
+	 *
+	 * @covers ::create_item_permissions_check
+	 */
+	public function test_author_with_post_author_of_another_user_returns_403(): void {
+
+		$subdir = uniqid( 'restforeignauthor' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		$this->set_current_user_to_new_author();
+
+		$request = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}" );
+		$request->set_param( 'post_author', 1 );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertEmpty( $this->get_private_uploads_post_ids() );
+		$this->assertEmpty( glob( wp_upload_dir()['basedir'] . "/{$subdir}/*/*/*" ) ?: array() );
+	}
+
+	/**
+	 * The `/upload` route shares the permission check.
+	 *
+	 * @covers ::create_item_permissions_check
+	 */
+	public function test_author_upload_route_with_post_parent_they_cannot_edit_returns_403(): void {
+
+		$subdir = uniqid( 'restuploadforeignparent' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		$admins_post_id = wp_insert_post(
+			array(
+				'post_title'  => 'Admin post',
+				'post_author' => 1,
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->set_current_user_to_new_author();
+
+		$request = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}/upload" );
+		$request->set_param( 'post_parent', $admins_post_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertEmpty( glob( wp_upload_dir()['basedir'] . "/{$subdir}/*/*/*" ) ?: array() );
+	}
+
+	/**
+	 * The authorization checks must not block a user acting on their own post, as themselves.
+	 *
+	 * @covers ::create_item_permissions_check
+	 * @covers ::create_item
+	 */
+	public function test_author_with_own_post_parent_and_post_author_returns_201(): void {
+
+		$subdir = uniqid( 'restownids' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		$author_id = $this->set_current_user_to_new_author();
+
+		$own_post_id = wp_insert_post(
+			array(
+				'post_title'  => 'Own post',
+				'post_author' => $author_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		$request = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}" );
+		// Strings, as they arrive in a real request: they should be sanitized to integers.
+		$request->set_param( 'post_parent', (string) $own_post_id );
+		$request->set_param( 'post_author', (string) $author_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsInt( $data['id'] );
+		$post = get_post( $data['id'] );
+
+		$this->assertInstanceOf( \WP_Post::class, $post );
+		$this->assertEquals( $author_id, $post->post_author );
+		$this->assertSame( $own_post_id, $post->post_parent );
+
+		$attached_path = get_attached_file( $post->ID );
+		if ( is_string( $attached_path ) && file_exists( $attached_path ) ) {
+			unlink( $attached_path );
+		}
+	}
+
+	/**
+	 * @return array<string, array{0:string, 1:mixed}>
+	 */
+	public function invalid_params_provider(): array {
+		return array(
+			'post_parent is not an integer' => array( 'post_parent', 'abc' ),
+			'post_parent does not exist'    => array( 'post_parent', 99999999 ),
+			'post_author is not an integer' => array( 'post_author', 'abc' ),
+			'post_author does not exist'    => array( 'post_author', 99999999 ),
+		);
+	}
+
+	/**
+	 * The params are declared in the route's `args`, so they are validated before anything is written.
+	 *
+	 * @dataProvider invalid_params_provider
+	 *
+	 * @covers ::get_endpoint_args_for_item_schema
+	 * @covers ::validate_post_parent_param
+	 * @covers ::validate_post_author_param
+	 *
+	 * @param string $param_name  The request param.
+	 * @param mixed  $param_value An invalid value for it.
+	 */
+	public function test_invalid_param_returns_400( string $param_name, $param_value ): void {
+
+		$subdir = uniqid( 'restinvalidparam' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		wp_set_current_user( 1 );
+
+		foreach ( array( '', '/upload' ) as $route_suffix ) {
+			$request = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}{$route_suffix}" );
+			$request->set_param( $param_name, $param_value );
+
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertSame( 400, $response->get_status(), "Route suffix: '{$route_suffix}'" );
+		}
+
+		$this->assertEmpty( $this->get_private_uploads_post_ids() );
+		$this->assertEmpty( glob( wp_upload_dir()['basedir'] . "/{$subdir}/*/*/*" ) ?: array() );
+	}
+
+	/**
+	 * The filters that set the post type, author and parent apply only to the one insert: an attachment
+	 * inserted by another plugin's hook during the request must not be converted or re-parented.
+	 *
+	 * @covers ::create_item
+	 * @covers ::add_insert_post_filters
+	 */
+	public function test_other_attachments_inserted_during_the_request_are_not_modified(): void {
+
+		$subdir = uniqid( 'restscoped' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		wp_set_current_user( 1 );
+
+		$parent_id = wp_insert_post( array( 'post_title' => 'Parent post' ) );
+
+		$other_attachment_id = null;
+		// `wp_insert_post()` returns early for attachments, so `add_attachment` is the action that fires.
+		add_action(
+			'add_attachment',
+			function () use ( &$other_attachment_id ): void {
+				if ( null !== $other_attachment_id ) {
+					return;
+				}
+				$other_attachment_id = 0; // Prevent recursion.
+				$other_attachment_id = wp_insert_attachment(
+					array(
+						'post_title'  => 'Another plugin\'s attachment',
+						'guid'        => 'https://example.org/another-plugins-attachment.pdf',
+						'post_author' => 1,
+					)
+				);
+			}
+		);
+
+		$request = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}" );
+		$request->set_param( 'post_parent', $parent_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$this->assertIsInt( $other_attachment_id );
+		$other_attachment = get_post( $other_attachment_id );
+		$this->assertInstanceOf( \WP_Post::class, $other_attachment );
+		$this->assertSame( 'attachment', $other_attachment->post_type );
+		$this->assertSame( 0, $other_attachment->post_parent );
+		$this->assertEquals( 1, $other_attachment->post_author );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsInt( $data['id'] );
+		$attached_path = get_attached_file( $data['id'] );
+		if ( is_string( $attached_path ) && file_exists( $attached_path ) ) {
+			unlink( $attached_path );
+		}
+	}
+
+	/**
+	 * @covers ::create_item
+	 * @covers ::add_insert_post_filters
+	 */
+	public function test_insert_filters_are_removed_after_the_request(): void {
+
+		$subdir = uniqid( 'restfiltersremoved' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		wp_set_current_user( 1 );
+
+		$parent_id = wp_insert_post( array( 'post_title' => 'Parent post' ) );
+
+		$had_insert_attachment_data_filter = has_filter( 'wp_insert_attachment_data' );
+		$had_insert_post_parent_filter     = has_filter( 'wp_insert_post_parent' );
+		$had_handle_upload_filter          = has_filter( 'wp_handle_upload' );
+
+		$request = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}" );
+		$request->set_param( 'post_parent', $parent_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$this->assertSame( $had_insert_attachment_data_filter, has_filter( 'wp_insert_attachment_data' ) );
+		$this->assertSame( $had_insert_post_parent_filter, has_filter( 'wp_insert_post_parent' ) );
+		$this->assertSame( $had_handle_upload_filter, has_filter( 'wp_handle_upload' ) );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsInt( $data['id'] );
+		$attached_path = get_attached_file( $data['id'] );
+		if ( is_string( $attached_path ) && file_exists( $attached_path ) ) {
+			unlink( $attached_path );
+		}
+	}
 }
