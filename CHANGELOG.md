@@ -4,6 +4,7 @@
 
 ### Security
 
+* A private file is only served when its real path, after resolving symlinks, is inside the private uploads directory. A symlink in the directory that points outside it is now answered with a 404 and logged, as a second layer behind the existing per-segment filename sanitization.
 * Breaking: served private files are sent with `X-Content-Type-Options: nosniff` and a `Content-Disposition` header. Only images (JPEG, PNG, GIF, WebP, AVIF), PDF, plain text, audio and video are displayed in the browser; every other type, including HTML and SVG, is now downloaded, so a file with active content cannot run scripts on the site's origin. Inline images and plain text are also sent with `Content-Security-Policy: sandbox; default-src 'none'`.
 * Add: `bh_wp_private_uploads_response_headers` filter to add, change or remove the headers sent with a private file.
 * Add: `bh_wp_private_uploads_cache_control_max_age` filter to set the `Cache-Control` max-age (default one hour) of a served private file; the `Expires` header follows it.

@@ -499,4 +499,133 @@ class Serve_Private_File_WPUnit_Test extends WPUnit_Testcase {
 		$this->assertSame( 200, $response->status_code );
 		$this->assertSame( 'nosniff', $response->headers['X-Content-Type-Options'] ?? null );
 	}
+
+	/**
+	 * Write a file outside the private uploads directory, standing in for e.g. `wp-config.php`.
+	 *
+	 * @return string Its absolute path.
+	 */
+	protected function make_file_outside_private_directory(): string {
+		$outside_directory = sys_get_temp_dir() . '/' . uniqid( 'outside-private-uploads' );
+		mkdir( $outside_directory, 0777, true );
+
+		$outside_file = $outside_directory . '/secret.txt';
+		file_put_contents( $outside_file, 'secret outside the private directory' );
+
+		return $outside_file;
+	}
+
+	/**
+	 * A symlink inside the private directory must not be a way to read a file outside it.
+	 *
+	 * `sanitize_file_name()` on each path segment stops `..`, but cannot know that a segment is a link.
+	 *
+	 * @covers ::get_response_for_request
+	 * @covers ::is_path_inside_directory
+	 */
+	public function test_symlink_to_file_outside_private_directory_returns_404(): void {
+
+		list( $sut, , $absolute ) = $this->make_sut_with_file();
+
+		wp_set_current_user( 1 );
+
+		$outside_file = $this->make_file_outside_private_directory();
+
+		$link = dirname( $absolute ) . '/link.txt';
+		$this->assertTrue( symlink( $outside_file, $link ) );
+
+		$response = $this->get_response( $sut, '2026/07/link.txt' );
+
+		unlink( $link );
+		unlink( $outside_file );
+
+		$this->assertSame( 404, $response->status_code );
+		$this->assertNull( $response->file_to_stream );
+		$this->assertTrue( $this->logger->hasWarningRecords() );
+	}
+
+	/**
+	 * The link may be any segment of the path: here a linked directory, with a real file inside it.
+	 *
+	 * @covers ::get_response_for_request
+	 * @covers ::is_path_inside_directory
+	 */
+	public function test_symlink_to_directory_outside_private_directory_returns_404(): void {
+
+		list( $sut, , $absolute ) = $this->make_sut_with_file();
+
+		wp_set_current_user( 1 );
+
+		$outside_file = $this->make_file_outside_private_directory();
+
+		$link = dirname( $absolute ) . '/linked-directory';
+		$this->assertTrue( symlink( dirname( $outside_file ), $link ) );
+
+		$response = $this->get_response( $sut, '2026/07/linked-directory/secret.txt' );
+
+		unlink( $link );
+		unlink( $outside_file );
+
+		$this->assertSame( 404, $response->status_code );
+		$this->assertNull( $response->file_to_stream );
+	}
+
+	/**
+	 * A sibling directory whose name merely starts with the private directory's name is outside it: the
+	 * containment check must compare whole path segments, not a string prefix.
+	 *
+	 * @covers ::get_response_for_request
+	 * @covers ::is_path_inside_directory
+	 */
+	public function test_symlink_to_sibling_directory_with_same_prefix_returns_404(): void {
+
+		list( $sut, , $absolute ) = $this->make_sut_with_file();
+
+		wp_set_current_user( 1 );
+
+		// `…/uploads/servetest123/2026/07/sample.txt` → `…/uploads/servetest123`.
+		$private_directory = dirname( $absolute, 3 );
+		$sibling_directory = $private_directory . '-sibling';
+		mkdir( $sibling_directory, 0777, true );
+		$sibling_file = $sibling_directory . '/secret.txt';
+		file_put_contents( $sibling_file, 'secret in the sibling directory' );
+
+		$link = dirname( $absolute ) . '/link.txt';
+		// `realpath()`: a relative target would be resolved from the link's own directory.
+		$this->assertTrue( symlink( (string) realpath( $sibling_file ), $link ) );
+
+		$response = $this->get_response( $sut, '2026/07/link.txt' );
+
+		unlink( $link );
+		unlink( $sibling_file );
+		rmdir( $sibling_directory );
+
+		$this->assertSame( 404, $response->status_code );
+		$this->assertNull( $response->file_to_stream );
+	}
+
+	/**
+	 * A symlink that stays inside the private directory is still served.
+	 *
+	 * @covers ::get_response_for_request
+	 * @covers ::is_path_inside_directory
+	 */
+	public function test_symlink_to_file_inside_private_directory_is_served(): void {
+
+		list( $sut, , $absolute ) = $this->make_sut_with_file();
+
+		wp_set_current_user( 1 );
+
+		$link = dirname( $absolute ) . '/link.txt';
+		// `realpath()`: a relative target would be resolved from the link's own directory.
+		$this->assertTrue( symlink( (string) realpath( $absolute ), $link ) );
+
+		$response = $this->get_response( $sut, '2026/07/link.txt' );
+
+		unlink( $link );
+
+		$this->assertSame( 200, $response->status_code );
+		$this->assertSame( $link, $response->file_to_stream );
+		$this->assertFalse( $this->logger->hasWarningRecords() );
+	}
 }
