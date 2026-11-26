@@ -154,11 +154,29 @@ Every hook is passed the `$plugin_slug` and `$post_type_name` of the instance it
 |---|---|---|
 | `bh_wp_private_uploads_can_upload` | filter | `$can_upload`, `$plugin_slug`, `$post_type_name`, `$tmp_file`, `$filename` |
 | `bh_wp_private_uploads_allow` | filter | `$should_serve_file`, `$plugin_slug`, `$post_type_name`, `$file` |
+| `bh_wp_private_uploads_cache_control_max_age` | filter | `$max_age_seconds`, `$plugin_slug`, `$post_type_name`, `$file` |
+| `bh_wp_private_uploads_response_headers` | filter | `$headers`, `$plugin_slug`, `$post_type_name`, `$file` |
 | `bh_wp_private_uploads_url_is_public_warning` | filter | `$content`, `$plugin_slug`, `$post_type_name`, `$url` |
 | `bh_wp_private_uploads_rest_upload` | action | `$plugin_slug`, `$post_type_name`, `$file`, `$request` |
 
 The earlier per-post-type hook names – `bh_wp_private_uploads_{$post_type_name}_allow`, `bh_wp_private_uploads_url_is_public_warning_{$post_type_name}` and `rest_private_uploads_upload` – still fire, but are deprecated as of 0.4.0 and will be removed in a future release.
 
+
+#### Response headers
+
+Private files are served with `X-Content-Type-Options: nosniff`. Images (JPEG, PNG, GIF, WebP, AVIF), PDF, plain text, audio and video are displayed in the browser (`Content-Disposition: inline`); every other type, including HTML and SVG, is sent as a download (`attachment`) so it cannot run scripts on your site's origin. Inline images and plain text are also sent with `Content-Security-Policy: sandbox; default-src 'none'`.
+
+Responses are `Cache-Control: private` with a max-age of one hour. Until the max-age passes, the user's browser may show its cached copy without the permission check running again. Change it, or return `0` so every view is revalidated, with:
+
+```php
+add_filter( 'bh_wp_private_uploads_cache_control_max_age', 'set_private_uploads_max_age', 10, 4 );
+
+function set_private_uploads_max_age( int $max_age_seconds, string $plugin_slug, string $post_type_name, string $file ): int {
+	return 'my-plugin' === $plugin_slug ? 5 * MINUTE_IN_SECONDS : $max_age_seconds;
+}
+```
+
+`bh_wp_private_uploads_response_headers` filters the complete `name => value` array of headers last. Be careful making a type that can contain scripts `inline`.
 
 ### Advanced
 

@@ -104,6 +104,14 @@ test( 'an admin can download a private file from its direct URL', async ( {
 	expect( ( await response.body() ).toString( 'latin1' ) ).toContain(
 		'%PDF'
 	);
+
+	// The browser must not sniff a different type, and only safe types are displayed rather than downloaded.
+	const headers = response.headers();
+	expect( headers[ 'x-content-type-options' ] ).toBe( 'nosniff' );
+	expect( headers[ 'content-disposition' ] ).toMatch(
+		/^inline; filename="private-e2e-[^"]+\.pdf"$/
+	);
+	expect( headers[ 'cache-control' ] ).toBe( 'private, max-age=3600' );
 } );
 
 test( 'an anonymous visitor cannot download a private file', async ( {
