@@ -12,6 +12,46 @@ use BrianHenryIE\WP_Private_Uploads\WPUnit_Testcase;
 class Media_WPUnit_Test extends WPUnit_Testcase {
 
 	/**
+	 * The `$pagenow` global before the test, restored in {@see self::tearDown()}.
+	 *
+	 * @var mixed
+	 */
+	protected $pagenow_before;
+
+	/**
+	 * The `REQUEST_URI` before the test, restored in {@see self::tearDown()}.
+	 *
+	 * @var mixed
+	 */
+	protected $request_uri_before;
+
+	protected function setUp(): void {
+		parent::setUp();
+
+		global $pagenow;
+		$this->pagenow_before     = $pagenow;
+		$this->request_uri_before = $_SERVER['REQUEST_URI'] ?? null;
+	}
+
+	/**
+	 * The request globals the tests set must not leak into other tests, including when an assertion fails.
+	 */
+	protected function tearDown(): void {
+		global $pagenow;
+		$pagenow = $this->pagenow_before;
+
+		unset( $_SERVER['HTTP_REFERER'], $_POST['post_type'], $_REQUEST['_wpnonce'] );
+
+		if ( null === $this->request_uri_before ) {
+			unset( $_SERVER['REQUEST_URI'] );
+		} else {
+			$_SERVER['REQUEST_URI'] = $this->request_uri_before;
+		}
+
+		parent::tearDown();
+	}
+
+	/**
 	 * @covers ::set_uploads_subdirectory
 	 */
 	public function test_prepends_subdirectory_to_basedir(): void {
@@ -427,5 +467,247 @@ class Media_WPUnit_Test extends WPUnit_Testcase {
 
 		unset( $_SERVER['HTTP_REFERER'] );
 		$pagenow = $pagenow_before;
+	}
+
+	/**
+	 * Was the upload routed to the private uploads directory and post type?
+	 *
+	 * @param Media $sut The instance `on_upload_attachment()` was called on.
+	 */
+	protected function has_private_upload_hooks( Media $sut ): bool {
+		return false !== has_filter( 'upload_dir', array( $sut, 'set_uploads_subdirectory' ) )
+			|| false !== has_filter( 'wp_insert_attachment_data', array( $sut, 'set_post_type_on_insert_attachment' ) )
+			|| false !== has_action( 'add_attachment', array( $sut, 'change_post_type_to_attachment_in_cache' ) );
+	}
+
+	/**
+	 * SECURITY-PLAN.md F4: the legitimate flow must not depend on the `Referer` header. The admin script sends
+	 * `post_type` in the upload's POST body, so an `async-upload.php` request with a valid nonce and no
+	 * `Referer` at all is still routed to the private directory.
+	 *
+	 * This must keep passing when the `Referer` branch is removed.
+	 *
+	 * phpcs:disable WordPress.Security.NonceVerification.Missing
+	 *
+	 * @covers ::on_upload_attachment
+	 * @covers ::is_private_upload_via_post
+	 */
+	public function test_on_upload_attachment_adds_hooks_without_referer(): void {
+
+		$sut = $this->get_media_for_post_type( 'media_upload_test' );
+
+		global $pagenow;
+		$pagenow = 'async-upload.php';
+
+		unset( $_SERVER['HTTP_REFERER'] );
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'media-form' );
+		$_POST['post_type']   = 'media_upload_test';
+
+		$sut->on_upload_attachment();
+
+		$this->assertTrue( $this->has_private_upload_hooks( $sut ) );
+	}
+
+	/**
+	 * A valid nonce is not enough: the `post_type` POST field must be this instance's post type. An ordinary
+	 * media library upload (no `post_type`, or another instance's) is left alone.
+	 *
+	 * phpcs:disable WordPress.Security.NonceVerification.Missing
+	 *
+	 * @covers ::on_upload_attachment
+	 * @covers ::is_private_upload_via_post
+	 * @dataProvider provide_post_types_of_other_uploads
+	 *
+	 * @param ?string $posted_post_type The `post_type` POST field; null when it is absent.
+	 */
+	public function test_on_upload_attachment_does_nothing_for_another_post_type( ?string $posted_post_type ): void {
+
+		$sut = $this->get_media_for_post_type( 'media_upload_test' );
+
+		global $pagenow;
+		$pagenow = 'async-upload.php';
+
+		unset( $_SERVER['HTTP_REFERER'] );
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'media-form' );
+		if ( null !== $posted_post_type ) {
+			$_POST['post_type'] = $posted_post_type;
+		}
+
+		$sut->on_upload_attachment();
+
+		$this->assertFalse( $this->has_private_upload_hooks( $sut ) );
+	}
+
+	/**
+	 * @return array<string, array{0:?string}>
+	 */
+	public function provide_post_types_of_other_uploads(): array {
+		return array(
+			'no post_type field'                    => array( null ),
+			'core attachment'                       => array( 'attachment' ),
+			'another instance'                      => array( 'other_private_media' ),
+			'post type with this one as its prefix' => array( 'media_upload_test_other' ),
+		);
+	}
+
+	/**
+	 * SECURITY-PLAN.md F4: negative cases for the `Referer` branch. No nonce and no `post_type` POST field are
+	 * sent, so only the `Referer` could route these uploads – and it must not.
+	 *
+	 * @covers ::on_upload_attachment
+	 * @covers ::is_private_upload_via_referer
+	 * @dataProvider provide_referers_that_must_not_route_the_upload
+	 *
+	 * @param string  $page_now The `$pagenow` global.
+	 * @param ?string $referer  The `Referer` header; null when it is absent.
+	 */
+	public function test_on_upload_attachment_referer_branch_does_nothing( string $page_now, ?string $referer ): void {
+
+		$sut = $this->get_media_for_post_type( 'media_upload_test' );
+
+		global $pagenow;
+		$pagenow = $page_now;
+
+		unset( $_REQUEST['_wpnonce'], $_POST['post_type'], $_SERVER['HTTP_REFERER'] );
+		if ( null !== $referer ) {
+			$_SERVER['HTTP_REFERER'] = $referer;
+		}
+
+		$sut->on_upload_attachment();
+
+		$this->assertFalse( $this->has_private_upload_hooks( $sut ) );
+	}
+
+	/**
+	 * @return array<string, array{0:string, 1:?string}>
+	 */
+	public function provide_referers_that_must_not_route_the_upload(): array {
+		$admin_url = 'http://example.org/wp-admin';
+
+		return array(
+			'no referer'                           => array( 'async-upload.php', null ),
+			'referer without a post type'          => array( 'async-upload.php', "{$admin_url}/media-new.php" ),
+			'referer for core attachments'         => array( 'async-upload.php', "{$admin_url}/upload.php?post_type=attachment" ),
+			'referer for another instance'         => array( 'async-upload.php', "{$admin_url}/media-new.php?post_type=other_private_media" ),
+			'matching referer, not an upload page' => array( 'admin-ajax.php', "{$admin_url}/media-new.php?post_type=media_upload_test" ),
+			'matching referer on upload.php'       => array( 'upload.php', "{$admin_url}/upload.php?post_type=media_upload_test" ),
+		);
+	}
+
+	/**
+	 * SECURITY-PLAN.md F4: this documents a KNOWN BUG, it is not desired behaviour.
+	 *
+	 * `is_private_upload_via_referer()` matches with `str_contains()`, so the `Referer` of an unrelated page
+	 * whose post type merely *starts with* this instance's post type name (`media_upload_test_other` vs
+	 * `media_upload_test`) routes that upload into this instance's private directory.
+	 *
+	 * When F4 is fixed, change `assertTrue` to `assertFalse`.
+	 *
+	 * @covers ::on_upload_attachment
+	 * @covers ::is_private_upload_via_referer
+	 */
+	public function test_on_upload_attachment_referer_branch_matches_post_type_prefix_known_bug(): void {
+
+		$sut = $this->get_media_for_post_type( 'media_upload_test' );
+
+		global $pagenow;
+		$pagenow = 'async-upload.php';
+
+		unset( $_REQUEST['_wpnonce'], $_POST['post_type'] );
+		$_SERVER['HTTP_REFERER'] = 'http://example.org/wp-admin/media-new.php?post_type=media_upload_test_other';
+
+		$sut->on_upload_attachment();
+
+		$this->assertTrue( $this->has_private_upload_hooks( $sut ), 'The prefix collision is fixed: invert this assertion.' );
+	}
+
+	/**
+	 * Were the media library query's filters added?
+	 *
+	 * @param Media $sut The instance `on_query_attachments()` was called on.
+	 */
+	protected function has_query_attachments_hooks( Media $sut ): bool {
+		return false !== has_filter( 'ajax_query_attachments_args', array( $sut, 'set_query_post_type_to_cpt' ) )
+			|| false !== has_filter( 'the_posts', array( $sut, 'change_post_type_to_attachment' ) )
+			|| false !== has_filter( 'wp_prepare_attachment_for_js', array( $sut, 'prepare_attachment_for_js' ) );
+	}
+
+	/**
+	 * The admin script adds `?post_type=` to the AJAX URL, so the media library query is switched to the
+	 * private uploads post type with no `Referer`.
+	 *
+	 * @covers ::on_query_attachments
+	 */
+	public function test_on_query_attachments_adds_hooks_for_request_uri_without_referer(): void {
+
+		$sut = $this->get_media_for_post_type( 'media_upload_test' );
+
+		unset( $_SERVER['HTTP_REFERER'] );
+		$_SERVER['REQUEST_URI'] = '/wp-admin/admin-ajax.php?post_type=media_upload_test';
+
+		$sut->on_query_attachments();
+
+		$this->assertTrue( $this->has_query_attachments_hooks( $sut ) );
+	}
+
+	/**
+	 * The current fallback for media library *reads*: the `Referer` of the private media library page.
+	 *
+	 * SECURITY-PLAN.md PR 6 may keep this (reads only) or remove it; update this test with that decision.
+	 *
+	 * @covers ::on_query_attachments
+	 */
+	public function test_on_query_attachments_adds_hooks_for_referer(): void {
+
+		$sut = $this->get_media_for_post_type( 'media_upload_test' );
+
+		$_SERVER['REQUEST_URI']  = '/wp-admin/admin-ajax.php';
+		$_SERVER['HTTP_REFERER'] = 'http://example.org/wp-admin/upload.php?post_type=media_upload_test&mode=grid';
+
+		$sut->on_query_attachments();
+
+		$this->assertTrue( $this->has_query_attachments_hooks( $sut ) );
+	}
+
+	/**
+	 * An ordinary media library query, or another instance's, is left alone. Unlike the upload's `Referer`
+	 * check, the query string is parsed, so a post type with this one as its prefix does not match.
+	 *
+	 * @covers ::on_query_attachments
+	 * @dataProvider provide_requests_that_must_not_switch_the_query
+	 *
+	 * @param string  $request_uri The `REQUEST_URI`.
+	 * @param ?string $referer     The `Referer` header; null when it is absent.
+	 */
+	public function test_on_query_attachments_does_nothing_for_other_requests( string $request_uri, ?string $referer ): void {
+
+		$sut = $this->get_media_for_post_type( 'media_upload_test' );
+
+		unset( $_SERVER['HTTP_REFERER'] );
+		$_SERVER['REQUEST_URI'] = $request_uri;
+		if ( null !== $referer ) {
+			$_SERVER['HTTP_REFERER'] = $referer;
+		}
+
+		$sut->on_query_attachments();
+
+		$this->assertFalse( $this->has_query_attachments_hooks( $sut ) );
+	}
+
+	/**
+	 * @return array<string, array{0:string, 1:?string}>
+	 */
+	public function provide_requests_that_must_not_switch_the_query(): array {
+		$admin_url = 'http://example.org/wp-admin';
+		$ajax_uri  = '/wp-admin/admin-ajax.php';
+
+		return array(
+			'neither has a post type'             => array( $ajax_uri, null ),
+			'referer of the core media library'   => array( $ajax_uri, "{$admin_url}/upload.php" ),
+			'referer for another instance'        => array( $ajax_uri, "{$admin_url}/upload.php?post_type=other_private_media" ),
+			'referer with this type as a prefix'  => array( $ajax_uri, "{$admin_url}/upload.php?post_type=media_upload_test_other" ),
+			'request uri for another instance'    => array( "{$ajax_uri}?post_type=other_private_media", null ),
+			'request uri with this type a prefix' => array( "{$ajax_uri}?post_type=media_upload_test_other", null ),
+		);
 	}
 }
