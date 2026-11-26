@@ -257,6 +257,92 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	}
 
 	/**
+	 * Listing private uploads requires a logged-in user. What they are shown is limited in
+	 * {@see self::prepare_items_query()}.
+	 *
+	 * @see WP_REST_Posts_Controller::get_items_permissions_check()
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return true|WP_Error
+	 */
+	public function get_items_permissions_check( $request ) {
+
+		$core_permissions_check = parent::get_items_permissions_check( $request );
+
+		if ( true !== $core_permissions_check ) {
+			return $core_permissions_check;
+		}
+
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error(
+				'rest_forbidden',
+				__( 'Sorry, you are not allowed to list private uploads.', 'bh-wp-private-uploads' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Can the current user read the record of a private upload?
+	 *
+	 * Core treats a post with the `inherit` status and no parent as published, and one with a parent as
+	 * readable by anyone who can read the parent. That is right for attachments, but it made every private
+	 * upload's title, owner and dates readable by logged-out visitors.
+	 *
+	 * Private uploads are readable by their owner (the `post_author`) and by users with the post type's
+	 * `edit_others_posts` capability.
+	 *
+	 * @see WP_REST_Posts_Controller::check_read_permission()
+	 * @used-by WP_REST_Posts_Controller::get_item_permissions_check()
+	 *
+	 * @param \WP_Post $post The post to read.
+	 * @return bool
+	 */
+	public function check_read_permission( $post ) {
+
+		// E.g. a parent post of another type: core's rules apply.
+		if ( $post->post_type !== $this->post_type ) {
+			return parent::check_read_permission( $post );
+		}
+
+		if ( ! is_user_logged_in() ) {
+			return false;
+		}
+
+		return get_current_user_id() === (int) $post->post_author
+			|| $this->current_user_can_edit_others_posts();
+	}
+
+	/**
+	 * Limit the list of private uploads to those the current user owns, unless they have the post type's
+	 * `edit_others_posts` capability.
+	 *
+	 * Done in the query, rather than by filtering the results, so the totals in the response headers do not
+	 * disclose how many private uploads exist.
+	 *
+	 * @see WP_REST_Attachments_Controller::prepare_items_query()
+	 *
+	 * @param array<mixed>     $prepared_args The prepared `WP_Query` args.
+	 * @param ?WP_REST_Request $request       The request object.
+	 * @return array<mixed>
+	 */
+	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
+
+		$query_args = parent::prepare_items_query( $prepared_args, $request );
+
+		if ( $this->current_user_can_edit_others_posts() ) {
+			return $query_args;
+		}
+
+		unset( $query_args['author__in'], $query_args['author__not_in'], $query_args['author_name'] );
+		$query_args['author'] = get_current_user_id();
+
+		return $query_args;
+	}
+
+	/**
 	 * Read a post id or user id request param as a non-negative integer; `0` when it is absent.
 	 *
 	 * @param WP_REST_Request $request    The request object.

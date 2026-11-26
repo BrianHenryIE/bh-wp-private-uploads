@@ -52,6 +52,9 @@ class Post_Type {
 		$post_type_config = array(
 			'public'             => false,
 			'publicly_queryable' => false,
+			// No front-end page: no `/{post-type}/{slug}/` rewrite rules and no `?{post-type}={slug}` query var.
+			'rewrite'            => false,
+			'query_var'          => false,
 			'delete_with_user'   => true,
 			'supports'           => array( // Matches the default for attachments.
 				'title',
