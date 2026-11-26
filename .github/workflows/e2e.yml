@@ -52,7 +52,7 @@ jobs:
         run: |
           echo "Waiting for WordPress to be ready..."
           for i in {1..30}; do
-            if curl -s http://localhost:8888 > /dev/null; then
+            if curl -s http://localhost:8871 > /dev/null; then
               echo "WordPress is ready!"
               break
             fi
@@ -62,7 +62,7 @@ jobs:
 
       - name: Activate plugins
         run: |
-          # Activate the development plugin on development environment (port 8888)
+          # Activate the development plugin on development environment (port 8871)
           npx wp-env run cli -- wp plugin activate development-plugin
           # List plugins to verify activation
           npx wp-env run cli -- wp plugin list
