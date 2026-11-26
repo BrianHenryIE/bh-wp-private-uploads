@@ -222,14 +222,24 @@ class Serve_Private_File {
 		$last_modified      = gmdate( $date_format, $last_modified_unix );
 		$etag               = md5( $last_modified );
 
+		$max_age_seconds = $this->get_cache_control_max_age( $file );
+
 		$headers = array(
-			'Content-Type'  => $mimetype,
-			'Last-Modified' => $last_modified,
-			'ETag'          => '"' . $etag . '"',
-			'Expires'       => gmdate( $date_format, time() + HOUR_IN_SECONDS ), // an arbitrary hour from now.
+			'Content-Type'           => $mimetype,
+			// The browser must use the `Content-Type` above, and never guess e.g. HTML from the file's contents.
+			'X-Content-Type-Options' => 'nosniff',
+			'Content-Disposition'    => $this->get_content_disposition( $mimetype, $file ),
+			'Last-Modified'          => $last_modified,
+			'ETag'                   => '"' . $etag . '"',
+			'Expires'                => gmdate( $date_format, time() + $max_age_seconds ),
 			// Mark the response private so a shared proxy does not cache private content.
-			'Cache-Control' => 'private, max-age=3600',
+			'Cache-Control'          => "private, max-age={$max_age_seconds}",
 		);
+
+		if ( $this->is_sandboxed_mime_type( $mimetype ) ) {
+			// `sandbox` gives the document a unique origin with scripts disabled; `default-src 'none'` stops it loading anything.
+			$headers['Content-Security-Policy'] = "sandbox; default-src 'none'";
+		}
 
 		/**
 		 * Per RFC 7232 §3.3, a recipient must ignore `If-Modified-Since` when `If-None-Match` is present,
@@ -247,7 +257,7 @@ class Serve_Private_File {
 			 */
 			return new Private_File_Response(
 				status_code: 304,
-				headers: $headers,
+				headers: $this->filter_response_headers( $headers, $file ),
 			);
 		}
 
@@ -255,9 +265,168 @@ class Serve_Private_File {
 
 		return new Private_File_Response(
 			status_code: 200,
-			headers: $headers,
+			headers: $this->filter_response_headers( $headers, $file ),
 			file_to_stream: $path,
 		);
+	}
+
+	/**
+	 * How long, in seconds, the browser may cache the file before revalidating it. Default one hour.
+	 *
+	 * The response is always `Cache-Control: private`, so only the user's own browser caches it. Until the
+	 * max-age passes the browser may show its copy without asking the server, i.e. without the permission
+	 * check running again – return `0` to have every view revalidated.
+	 *
+	 * @param string $file The sanitized requested filename, relative to the private uploads directory.
+	 */
+	protected function get_cache_control_max_age( string $file ): int {
+
+		$default_max_age_seconds = HOUR_IN_SECONDS;
+
+		/**
+		 * Filter the `Cache-Control` max-age of a served private file. The `Expires` header is set to match.
+		 *
+		 * A return value that is not a non-negative integer is ignored and the default is used. (The value is
+		 * documented as `mixed` because that is what a callback may return; it is passed, and should be, an `int`.)
+		 *
+		 * @hooked "bh_wp_private_uploads_cache_control_max_age"
+		 *
+		 * @param mixed  $max_age_seconds The max-age in seconds, an integer. Default `HOUR_IN_SECONDS`.
+		 * @param string $plugin_slug     The plugin slug of this private uploads instance.
+		 * @param string $post_type_name  The post type name of this private uploads instance.
+		 * @param string $file            The requested filename, relative to the private uploads directory.
+		 */
+		$max_age_seconds = apply_filters(
+			'bh_wp_private_uploads_cache_control_max_age',
+			$default_max_age_seconds,
+			$this->settings->get_plugin_slug(),
+			$this->settings->get_post_type_name(),
+			$file
+		);
+
+		if ( ! is_numeric( $max_age_seconds ) || (int) $max_age_seconds < 0 ) {
+			return $default_max_age_seconds;
+		}
+
+		return (int) $max_age_seconds;
+	}
+
+	/**
+	 * Mime types that cannot run scripts, so are safe to display in the browser on the site's origin.
+	 *
+	 * Everything else – notably HTML, SVG and XML – is sent as a download. The types are those the file is
+	 * *served* as: with `nosniff` the browser does not second-guess them.
+	 *
+	 * @param string $mimetype The `Content-Type` the file is served with.
+	 */
+	protected function is_inline_mime_type( string $mimetype ): bool {
+
+		$inline_mime_types = array(
+			'image/jpeg',
+			'image/png',
+			'image/gif',
+			'image/webp',
+			'image/avif',
+			'application/pdf',
+			'text/plain',
+		);
+
+		return in_array( $mimetype, $inline_mime_types, true )
+			|| str_starts_with( $mimetype, 'audio/' )
+			|| str_starts_with( $mimetype, 'video/' );
+	}
+
+	/**
+	 * Should the inline response also be sandboxed with a `Content-Security-Policy`?
+	 *
+	 * Images and plain text are. PDF, audio and video are displayed by the browser's built-in viewers, which
+	 * fail to load under `sandbox` / `default-src 'none'`, and those types cannot run scripts on the site's
+	 * origin anyway. Downloads (`Content-Disposition: attachment`) are not rendered so need no policy.
+	 *
+	 * @param string $mimetype The `Content-Type` the file is served with.
+	 */
+	protected function is_sandboxed_mime_type( string $mimetype ): bool {
+		return $this->is_inline_mime_type( $mimetype )
+			&& ( str_starts_with( $mimetype, 'image/' ) || 'text/plain' === $mimetype );
+	}
+
+	/**
+	 * `inline` for the types that are safe to display in the browser, `attachment` (download) for the rest.
+	 *
+	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Disposition
+	 *
+	 * @param string $mimetype The `Content-Type` the file is served with.
+	 * @param string $file     The sanitized requested filename, relative to the private uploads directory.
+	 */
+	protected function get_content_disposition( string $mimetype, string $file ): string {
+
+		$disposition = $this->is_inline_mime_type( $mimetype ) ? 'inline' : 'attachment';
+
+		$filename = sanitize_file_name( wp_basename( $file ) );
+
+		// The quoted `filename` must be ASCII, without quotes, backslashes or control characters.
+		$ascii_filename = (string) preg_replace( '/[^\x20-\x7E]|["\\\\]/u', '_', $filename );
+
+		$content_disposition = "{$disposition}; filename=\"{$ascii_filename}\"";
+
+		if ( $ascii_filename !== $filename ) {
+			// RFC 5987 encoding, which browsers prefer when present.
+			$content_disposition .= "; filename*=UTF-8''" . rawurlencode( $filename );
+		}
+
+		return $content_disposition;
+	}
+
+	/**
+	 * Allow consumers to add, change or remove the headers sent with a private file.
+	 *
+	 * Only applied when the file is being served (200) or is unchanged (304), i.e. after the access check.
+	 *
+	 * @param array<string,string> $headers The response headers, name => value.
+	 * @param string               $file    The sanitized requested filename, relative to the private uploads directory.
+	 * @return array<string,string>
+	 */
+	protected function filter_response_headers( array $headers, string $file ): array {
+
+		/**
+		 * Filter the headers sent with a private file.
+		 *
+		 * Take care removing `X-Content-Type-Options`, or changing `Content-Disposition` to `inline` for a
+		 * type that can contain scripts (HTML, SVG): the file would run on the site's origin as the viewer.
+		 *
+		 * A return value that is not an array is ignored, as are entries that are not `string => scalar`. (The
+		 * value is documented as `mixed` because that is what a callback may return; it is passed, and should
+		 * be, an `array<string,string>` of name => value.)
+		 *
+		 * @hooked "bh_wp_private_uploads_response_headers"
+		 *
+		 * @param mixed  $headers        The response headers, name => value.
+		 * @param string $plugin_slug    The plugin slug of this private uploads instance.
+		 * @param string $post_type_name The post type name of this private uploads instance.
+		 * @param string $file           The requested filename, relative to the private uploads directory.
+		 */
+		$filtered_headers = apply_filters(
+			'bh_wp_private_uploads_response_headers',
+			$headers,
+			$this->settings->get_plugin_slug(),
+			$this->settings->get_post_type_name(),
+			$file
+		);
+
+		if ( ! is_array( $filtered_headers ) ) {
+			return $headers;
+		}
+
+		$valid_headers = array();
+		foreach ( $filtered_headers as $name => $value ) {
+			if ( ! is_string( $name ) || ! is_scalar( $value ) ) {
+				continue;
+			}
+			// A header can never span lines.
+			$valid_headers[ str_replace( array( "\r", "\n" ), '', $name ) ] = str_replace( array( "\r", "\n" ), '', (string) $value );
+		}
+
+		return $valid_headers;
 	}
 
 	/**
