@@ -132,6 +132,7 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 	 * An admin POSTing a file creates a post of the custom post type (not `attachment`), with the file
 	 * stored under the private uploads subdirectory.
 	 *
+	 * @covers ::__construct
 	 * @covers ::create_item
 	 * @covers ::add_set_private_uploads_filters
 	 */
@@ -251,6 +252,7 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 	 * the absolute path for server-side consumers.
 	 *
 	 * @covers ::upload_item
+	 * @covers ::get_path_relative_to_wp_content_dir
 	 */
 	public function test_upload_item_response_file_is_relative_to_wp_content_dir(): void {
 
@@ -437,6 +439,7 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 	 * private file to any post (e.g. another customer's order) through this library's `post_parent` param.
 	 *
 	 * @covers ::create_item_permissions_check
+	 * @covers ::get_id_param
 	 */
 	public function test_author_with_post_parent_they_cannot_edit_returns_403(): void {
 
@@ -468,6 +471,8 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 	 * record any user as the owner of a file through this library's `post_author` param.
 	 *
 	 * @covers ::create_item_permissions_check
+	 * @covers ::get_id_param
+	 * @covers ::current_user_can_edit_others_posts
 	 */
 	public function test_author_with_post_author_of_another_user_returns_403(): void {
 
@@ -520,6 +525,10 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 	 *
 	 * @covers ::create_item_permissions_check
 	 * @covers ::create_item
+	 * @covers ::get_id_param
+	 * @covers ::validate_post_parent_param
+	 * @covers ::validate_post_author_param
+	 * @covers ::add_insert_post_filters
 	 */
 	public function test_author_with_own_post_parent_and_post_author_returns_201(): void {
 
@@ -578,6 +587,8 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 	 * @dataProvider invalid_params_provider
 	 *
 	 * @covers ::get_endpoint_args_for_item_schema
+	 * @covers ::get_post_parent_and_post_author_args
+	 * @covers ::register_routes
 	 * @covers ::validate_post_parent_param
 	 * @covers ::validate_post_author_param
 	 *
@@ -697,5 +708,122 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 		if ( is_string( $attached_path ) && file_exists( $attached_path ) ) {
 			unlink( $attached_path );
 		}
+	}
+
+	/**
+	 * `0` means "no parent" and "no owner": it is valid, needs no permission, and is what is saved.
+	 *
+	 * @covers ::validate_post_parent_param
+	 * @covers ::validate_post_author_param
+	 * @covers ::create_item_permissions_check
+	 * @covers ::get_id_param
+	 * @covers ::add_insert_post_filters
+	 * @covers ::create_item
+	 */
+	public function test_zero_post_parent_and_post_author_are_accepted(): void {
+
+		$subdir = uniqid( 'restzeroids' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		$this->set_current_user_to_new_author();
+
+		$had_insert_post_parent_filter = has_filter( 'wp_insert_post_parent' );
+
+		$request = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}" );
+		$request->set_param( 'post_parent', 0 );
+		$request->set_param( 'post_author', '0' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsInt( $data['id'] );
+		$post = get_post( $data['id'] );
+
+		$this->assertInstanceOf( \WP_Post::class, $post );
+		$this->assertSame( 'rest_test_private', $post->post_type );
+		$this->assertEquals( 0, $post->post_author );
+		$this->assertSame( 0, $post->post_parent );
+		$this->assertSame( $had_insert_post_parent_filter, has_filter( 'wp_insert_post_parent' ) );
+
+		$attached_path = get_attached_file( $post->ID );
+		if ( is_string( $attached_path ) && file_exists( $attached_path ) ) {
+			unlink( $attached_path );
+		}
+	}
+
+	/**
+	 * The positive side of the `post_author` check for a non-admin: an Editor has `edit_others_posts`, so
+	 * may record another user as the owner of the file.
+	 *
+	 * @covers ::create_item_permissions_check
+	 * @covers ::current_user_can_edit_others_posts
+	 * @covers ::get_id_param
+	 * @covers ::add_insert_post_filters
+	 */
+	public function test_editor_can_set_another_user_as_post_author(): void {
+
+		$subdir = uniqid( 'resteditor' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		$other_user_id = wp_create_user( uniqid( 'other' ), wp_generate_password(), uniqid( 'other' ) . '@example.org' );
+		assert( is_int( $other_user_id ) );
+
+		$editor_id = wp_insert_user(
+			array(
+				'user_login' => uniqid( 'editor' ),
+				'user_pass'  => wp_generate_password(),
+				'user_email' => uniqid( 'editor' ) . '@example.org',
+				'role'       => 'editor',
+			)
+		);
+		assert( is_int( $editor_id ) );
+		wp_set_current_user( $editor_id );
+
+		$request = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}" );
+		$request->set_param( 'post_author', $other_user_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsInt( $data['id'] );
+		$post = get_post( $data['id'] );
+
+		$this->assertInstanceOf( \WP_Post::class, $post );
+		$this->assertEquals( $other_user_id, $post->post_author );
+
+		$attached_path = get_attached_file( $post->ID );
+		if ( is_string( $attached_path ) && file_exists( $attached_path ) ) {
+			unlink( $attached_path );
+		}
+	}
+
+	/**
+	 * Fail closed: if the post type is no longer registered there is no capability to check, so nobody
+	 * may create posts on behalf of other users – not even an administrator.
+	 *
+	 * @covers ::current_user_can_edit_others_posts
+	 */
+	public function test_current_user_can_edit_others_posts_is_false_when_post_type_is_not_registered(): void {
+
+		$this->register_rest_post_type( uniqid( 'restunregistered' ) );
+
+		$sut = new REST_Private_Uploads_Controller( 'rest_test_private' );
+
+		$reflection_method = new \ReflectionMethod( $sut, 'current_user_can_edit_others_posts' );
+		$reflection_method->setAccessible( true );
+
+		wp_set_current_user( 1 );
+
+		$this->assertTrue( $reflection_method->invoke( $sut ) );
+
+		unregister_post_type( 'rest_test_private' );
+
+		$this->assertFalse( $reflection_method->invoke( $sut ) );
 	}
 }
