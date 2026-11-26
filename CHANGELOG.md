@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Security
+
+* Breaking: the REST `POST /{plugin-slug}/v1/{rest-base}/upload` response no longer discloses the server's absolute filesystem path. `file.file` is now relative to `WP_CONTENT_DIR` (e.g. `uploads/my-plugin/2026/10/doc.pdf`), or just the filename when uploads are outside `WP_CONTENT_DIR`. The `bh_wp_private_uploads_rest_upload` action still receives the absolute path.
+
 ### 0.5.1
 
 * Fix: The "publicly accessible" notice was shown when the webserver redirects unauthenticated requests for private uploads to the WordPress login page: `wp_remote_get()` follows the redirect and the login page's 200 was read as public. The is-private check now treats a request that ends on the login page (the path of `wp_login_url()`) as private.
