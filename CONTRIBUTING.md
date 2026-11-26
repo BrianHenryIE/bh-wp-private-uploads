@@ -21,7 +21,7 @@ npx playwright test
 
 Open the Playwright UI for better visibility when running E2E tests:
 ```bash
-BASEURL=http://localhost:8888 npx playwright test --ui &;
+BASEURL=http://localhost:8871 npx playwright test --ui &;
 ```
 
 Run WP CLI tests:
@@ -73,7 +73,7 @@ APPLICATION_PASSWORD=$(wp user application-password create $USER_ID private-uplo
 echo "$USER_LOGIN application password: $APPLICATION_PASSWORD";
 
 ATTACHMENT_ID="182";
-curl --location --request DELETE 'localhost:8888/wp-json/wp/v2/media/$ATTACHMENT_ID?force=true' \
+curl --location --request DELETE 'localhost:8871/wp-json/wp/v2/media/$ATTACHMENT_ID?force=true' \
   --header 'Authorization: Basic $APPLICATION_PASSWORD'
 ```
 
