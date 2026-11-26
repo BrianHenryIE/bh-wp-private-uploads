@@ -200,6 +200,9 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 *
 	 * @see WP_REST_Attachments_Controller::insert_attachment()
 	 *
+	 * The `file` path in the response is relative to `WP_CONTENT_DIR`, so the server's filesystem layout is
+	 * not disclosed. The `bh_wp_private_uploads_rest_upload` action still receives the absolute path.
+	 *
 	 * @param WP_REST_Request $request The parsed request.
 	 * @return array{file:array{file:string, url:string, type:string}}|WP_Error
 	 */
@@ -252,8 +255,29 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 			'bh_wp_private_uploads_rest_upload'
 		);
 
+		$file['file'] = $this->get_path_relative_to_wp_content_dir( $file['file'] );
+
 		return array(
 			'file' => $file,
 		);
+	}
+
+	/**
+	 * Remove the `WP_CONTENT_DIR` prefix from an absolute path.
+	 *
+	 * When the uploads directory has been relocated outside `WP_CONTENT_DIR`, only the filename is returned,
+	 * so an absolute path is never disclosed.
+	 *
+	 * @param string $absolute_path The absolute path of the uploaded file.
+	 */
+	protected function get_path_relative_to_wp_content_dir( string $absolute_path ): string {
+		$path        = wp_normalize_path( $absolute_path );
+		$content_dir = trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) );
+
+		if ( str_starts_with( $path, $content_dir ) ) {
+			return substr( $path, strlen( $content_dir ) );
+		}
+
+		return wp_basename( $path );
 	}
 }

@@ -221,10 +221,11 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 		$this->assertIsArray( $data['file'] );
 		$this->assertIsString( $data['file']['file'] );
 
-		$uploaded_file = $data['file']['file'];
+		$uploaded_file = WP_CONTENT_DIR . '/' . $data['file']['file'];
 
 		// The uploaded file is stored under the private subdirectory.
 		$this->assertStringContainsString( "/{$subdir}/", $uploaded_file );
+		$this->assertFileExists( $uploaded_file );
 
 		$this->assertTrue( $fired, 'The bh_wp_private_uploads_rest_upload action should have fired.' );
 
@@ -241,6 +242,113 @@ class REST_Private_Uploads_Controller_WPUnit_Test extends WPUnit_Testcase {
 		// Uploaded file is on disk (not rolled back with the DB); remove it.
 		if ( file_exists( $uploaded_file ) ) {
 			unlink( $uploaded_file );
+		}
+	}
+
+	/**
+	 * The `upload_item` response must not disclose the server's filesystem layout: the `file` path is
+	 * relative to `WP_CONTENT_DIR`, while the `bh_wp_private_uploads_rest_upload` action still receives
+	 * the absolute path for server-side consumers.
+	 *
+	 * @covers ::upload_item
+	 */
+	public function test_upload_item_response_file_is_relative_to_wp_content_dir(): void {
+
+		$subdir = uniqid( 'restuploadrelative' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		wp_set_current_user( 1 );
+
+		$action_file = null;
+		add_action(
+			'bh_wp_private_uploads_rest_upload',
+			function ( string $plugin_slug, string $post_type_name, array $file ) use ( &$action_file ): void {
+				$action_file = $file['file'];
+			},
+			10,
+			3
+		);
+
+		$request  = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}/upload" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['file'] );
+		$this->assertIsString( $data['file']['file'] );
+
+		$relative_file = $data['file']['file'];
+
+		$this->assertStringNotContainsString( ABSPATH, $relative_file );
+		$this->assertStringNotContainsString( WP_CONTENT_DIR, $relative_file );
+		$this->assertStringStartsWith( 'uploads/', $relative_file );
+		$this->assertStringContainsString( "/{$subdir}/", $relative_file );
+
+		$this->assertIsString( $action_file );
+		$this->assertSame( WP_CONTENT_DIR . '/' . $relative_file, $action_file );
+
+		// Uploaded file is on disk (not rolled back with the DB); remove it.
+		if ( file_exists( $action_file ) ) {
+			unlink( $action_file );
+		}
+	}
+
+	/**
+	 * When uploads are relocated outside `WP_CONTENT_DIR`, the response contains only the filename rather
+	 * than falling back to the absolute path.
+	 *
+	 * @covers ::upload_item
+	 * @covers ::get_path_relative_to_wp_content_dir
+	 */
+	public function test_upload_item_response_file_is_filename_when_uploads_outside_wp_content_dir(): void {
+
+		$subdir = uniqid( 'restuploadrelocated' );
+		$config = $this->register_rest_post_type( $subdir );
+
+		wp_set_current_user( 1 );
+
+		$relocated_basedir = sys_get_temp_dir() . '/' . uniqid( 'relocated-uploads' );
+		add_filter(
+			'upload_dir',
+			function ( array $upload_dir_data ) use ( $relocated_basedir ): array {
+				/** @var string $subdir */
+				$subdir                     = $upload_dir_data['subdir'];
+				$upload_dir_data['basedir'] = $relocated_basedir;
+				$upload_dir_data['path']    = $relocated_basedir . $subdir;
+				return $upload_dir_data;
+			},
+			1
+		);
+
+		$action_file = null;
+		add_action(
+			'bh_wp_private_uploads_rest_upload',
+			function ( string $plugin_slug, string $post_type_name, array $file ) use ( &$action_file ): void {
+				$action_file = $file['file'];
+			},
+			10,
+			3
+		);
+
+		$request  = $this->make_upload_request( "/{$config['namespace']}/{$config['rest_base']}/upload" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['file'] );
+
+		$this->assertIsString( $action_file );
+		$this->assertStringStartsWith( $relocated_basedir, $action_file );
+
+		$this->assertSame( wp_basename( $action_file ), $data['file']['file'] );
+
+		// Uploaded file is on disk (not rolled back with the DB); remove it.
+		if ( file_exists( $action_file ) ) {
+			unlink( $action_file );
 		}
 	}
 
