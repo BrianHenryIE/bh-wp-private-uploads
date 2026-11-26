@@ -4,6 +4,7 @@
 
 ### Security
 
+* The result of the hourly is-the-directory-private check is saved in its transient as a JSON string, not as a serialized `Is_Private_Result` object, so reading it no longer has WordPress `unserialize()` a class from the database. A value in any other shape, including one saved by an earlier version, is deleted and a new check is scheduled.
 * A private file is only served when its real path, after resolving symlinks, is inside the private uploads directory. A symlink in the directory that points outside it is now answered with a 404 and logged, as a second layer behind the existing per-segment filename sanitization.
 * Breaking: served private files are sent with `X-Content-Type-Options: nosniff` and a `Content-Disposition` header. Only images (JPEG, PNG, GIF, WebP, AVIF), PDF, plain text, audio and video are displayed in the browser; every other type, including HTML and SVG, is now downloaded, so a file with active content cannot run scripts on the site's origin. Inline images and plain text are also sent with `Content-Security-Policy: sandbox; default-src 'none'`.
 * Add: `bh_wp_private_uploads_response_headers` filter to add, change or remove the headers sent with a private file.

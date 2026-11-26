@@ -1040,4 +1040,113 @@ class API_WPUnit_Test extends WPUnit_Testcase {
 		unlink( "{$dir}/index.php" );
 		rmdir( $dir );
 	}
+
+	/**
+	 * The probe result is saved as a JSON string of scalars, not as a serialized PHP object, so reading the
+	 * transient never unserializes a class from the database. Reading it back rebuilds an equal result.
+	 *
+	 * @covers ::check_and_update_is_url_private
+	 * @covers ::encode_is_private_result
+	 * @covers ::get_last_checked_is_url_private
+	 * @covers ::decode_is_private_result
+	 */
+	public function test_is_private_result_is_stored_as_json_and_read_back(): void {
+
+		$test_uploads_directory_name = uniqid( 'jsontransient' );
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_uploads_subdirectory_name' => $test_uploads_directory_name,
+				'get_plugin_slug'               => 'json-transient-test',
+				'get_post_type_name'            => 'json_transient_test',
+			)
+		);
+
+		$dir = sprintf( '%s/uploads/%s/', constant( 'WP_CONTENT_DIR' ), $test_uploads_directory_name );
+		mkdir( $dir, 0777, true );
+		file_put_contents( "{$dir}sample.pdf", '%PDF-1.4' );
+
+		$api = new API( $settings, $this->logger );
+
+		add_filter(
+			'pre_http_request',
+			fn() => array(
+				'body'     => '',
+				'response' => array(
+					'code' => 403,
+				),
+			)
+		);
+
+		$checked_result = $api->check_and_update_is_url_private();
+
+		unlink( "{$dir}sample.pdf" );
+		rmdir( $dir );
+
+		$this->assertNotNull( $checked_result );
+
+		$transient_name = 'bh_wp_private_uploads_json_transient_test_is_private';
+
+		// What is in the database, before WordPress would `maybe_unserialize()` it.
+		$stored_value = get_option( '_transient_' . $transient_name );
+
+		$this->assertIsString( $stored_value );
+		$this->assertStringNotContainsString( 'Is_Private_Result', $stored_value );
+		$this->assertFalse( is_serialized( $stored_value ) );
+
+		$decoded = json_decode( $stored_value, true );
+
+		$this->assertIsArray( $decoded );
+		$this->assertSame( array( 'url', 'is_private', 'http_response_code', 'last_checked' ), array_keys( $decoded ) );
+		$this->assertSame( $checked_result->url, $decoded['url'] );
+		$this->assertTrue( $decoded['is_private'] );
+		$this->assertSame( 403, $decoded['http_response_code'] );
+		// Stored in UTC.
+		$this->assertIsString( $decoded['last_checked'] );
+		$this->assertStringEndsWith( '+00:00', $decoded['last_checked'] );
+
+		$read_result = $api->get_last_checked_is_url_private();
+
+		$this->assertInstanceOf( Is_Private_Result::class, $read_result );
+		$this->assertNotSame( $checked_result, $read_result );
+		$this->assertSame( $checked_result->url, $read_result->url );
+		$this->assertSame( $checked_result->is_private, $read_result->is_private );
+		$this->assertSame( $checked_result->http_response_code, $read_result->http_response_code );
+		$this->assertSame( $checked_result->last_checked->getTimestamp(), $read_result->last_checked->getTimestamp() );
+	}
+
+	/**
+	 * Before 0.6.0 the `Is_Private_Result` object itself was stored. After upgrading, that value is discarded
+	 * and a new check is scheduled, rather than the unserialized object being trusted.
+	 *
+	 * @covers ::get_last_checked_is_url_private
+	 * @covers ::decode_is_private_result
+	 */
+	public function test_legacy_serialized_object_transient_is_discarded(): void {
+
+		$settings = $this->makeEmpty(
+			Private_Uploads_Settings_Interface::class,
+			array(
+				'get_plugin_slug'    => 'legacy-transient-test',
+				'get_post_type_name' => 'legacy_transient_test',
+			)
+		);
+
+		$api = new API( $settings, $this->logger );
+
+		$transient_name = 'bh_wp_private_uploads_legacy_transient_test_is_private';
+
+		set_transient(
+			$transient_name,
+			new Is_Private_Result( 'https://example.org/file.pdf', true, 403, new \DateTimeImmutable() ),
+			HOUR_IN_SECONDS
+		);
+
+		$result = $api->get_last_checked_is_url_private();
+
+		$this->assertNull( $result );
+		$this->assertFalse( get_transient( $transient_name ) );
+		$this->assertNotFalse( wp_next_scheduled( 'legacy_transient_test_private_uploads_check_url_legacy_transient_test' ) );
+	}
 }

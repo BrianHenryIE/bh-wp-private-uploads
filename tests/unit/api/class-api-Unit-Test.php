@@ -34,27 +34,66 @@ class API_Unit_Test extends Unit_Testcase {
 
 		$is_private_transient_name = 'bh_wp_private_uploads_the_post_type_name_is_private';
 
-		$happy_transient_value = new Is_Private_Result(
-			url: 'success',
-			is_private: true,
-			http_response_code: 403,
-			last_checked: new DateTimeImmutable(),
-		);
+		$happy_transient_value = '{"url":"https:\\/\\/example.org\\/file.pdf","is_private":true,"http_response_code":403,"last_checked":"2026-11-25T12:34:56+00:00"}';
 
 		WP_Mock::userFunction( 'get_transient' )
 				->once()
 				->with( $is_private_transient_name )
 				->andReturn( $happy_transient_value );
 
+		WP_Mock::userFunction( 'delete_transient' )->never();
+
 		$result = $sut->get_last_checked_is_url_private();
 
-		$this->assertEquals( 'success', $result?->url );
+		$this->assertInstanceOf( Is_Private_Result::class, $result );
+		$this->assertSame( 'https://example.org/file.pdf', $result->url );
+		$this->assertTrue( $result->is_private );
+		$this->assertSame( 403, $result->http_response_code );
+		$this->assertSame( '2026-11-25T12:34:56+00:00', $result->last_checked->format( \DateTimeInterface::ATOM ) );
 	}
 
 	/**
-	 * @covers ::get_last_checked_is_url_private
+	 * @return array<string, array{0:mixed}>
 	 */
-	public function test_get_last_checked_is_url_private_invalid_transient(): void {
+	public function provide_invalid_transient_values(): array {
+		$valid = array(
+			'url'                => 'https://example.org/file.pdf',
+			'is_private'         => true,
+			'http_response_code' => 403,
+			'last_checked'       => '2026-11-25T12:34:56+00:00',
+		);
+
+		$without_url = $valid;
+		unset( $without_url['url'] );
+
+		return array(
+			// Before 0.6.0 the object itself was stored, and WordPress unserialized it.
+			'legacy unserialized object'   => array( new Is_Private_Result( 'https://example.org/file.pdf', true, 403, new DateTimeImmutable() ) ),
+			'not json'                     => array( 'bad value' ),
+			'json but not an object'       => array( '"a string"' ),
+			'empty json object'            => array( '{}' ),
+			'an array, not a json string'  => array( $valid ),
+			'missing a property'           => array( json_encode( $without_url ) ),
+			'unknown property'             => array( json_encode( array_merge( $valid, array( 'unknown' => 1 ) ) ) ),
+			'url is not a string'          => array( json_encode( array_merge( $valid, array( 'url' => 123 ) ) ) ),
+			'is_private is not a bool'     => array( json_encode( array_merge( $valid, array( 'is_private' => 'yes' ) ) ) ),
+			'response code is not an int'  => array( json_encode( array_merge( $valid, array( 'http_response_code' => '403' ) ) ) ),
+			'last_checked is not a string' => array( json_encode( array_merge( $valid, array( 'last_checked' => array( 'date' => '2026-11-25' ) ) ) ) ),
+			'last_checked is not a date'   => array( json_encode( array_merge( $valid, array( 'last_checked' => 'not a date' ) ) ) ),
+		);
+	}
+
+	/**
+	 * A stored value that is not the expected JSON is treated as absent: it is deleted, and a new check is
+	 * scheduled. Nothing from the database is ever unserialized into the result object.
+	 *
+	 * @covers ::get_last_checked_is_url_private
+	 * @covers ::decode_is_private_result
+	 * @dataProvider provide_invalid_transient_values
+	 *
+	 * @param mixed $transient_value What `get_transient()` returns.
+	 */
+	public function test_get_last_checked_is_url_private_invalid_transient( $transient_value ): void {
 
 		$settings = $this->makeEmpty(
 			Private_Uploads_Settings_Interface::class,
@@ -72,39 +111,7 @@ class API_Unit_Test extends Unit_Testcase {
 		WP_Mock::userFunction( 'get_transient' )
 				->once()
 				->with( $is_private_transient_name )
-				->andReturn( 'bad value' );
-
-		WP_Mock::userFunction( 'wp_get_scheduled_event' )
-				->once()
-				->andReturnTrue();
-
-		$result = $sut->get_last_checked_is_url_private();
-
-		$this->assertNull( $result );
-	}
-
-	/**
-	 * @covers ::get_last_checked_is_url_private
-	 */
-	public function test_get_last_checked_is_url_private_error_deserializing_transient(): void {
-
-		$settings = $this->makeEmpty(
-			Private_Uploads_Settings_Interface::class,
-			array(
-				'get_plugin_slug'    => 'the-plugin-slug',
-				'get_post_type_name' => 'the_post_type_name',
-			)
-		);
-		$logger   = $this->logger;
-
-		$sut = new API( $settings, $logger );
-
-		$is_private_transient_name = 'bh_wp_private_uploads_the_post_type_name_is_private';
-
-		WP_Mock::userFunction( 'get_transient' )
-				->once()
-				->with( $is_private_transient_name )
-				->andThrow( new \TypeError( 'Something went wrong' ) );
+				->andReturn( $transient_value );
 
 		WP_Mock::userFunction( 'delete_transient' )
 				->once()
@@ -118,7 +125,6 @@ class API_Unit_Test extends Unit_Testcase {
 
 		$this->assertNull( $result );
 	}
-
 
 	/**
 	 * @covers ::schedule_single_check_is_url_private
@@ -187,7 +193,16 @@ class API_Unit_Test extends Unit_Testcase {
 		WP_Mock::userFunction( 'get_transient' )
 				->once()
 				->with( 'bh_wp_private_uploads_the_post_type_name_is_private' )
-				->andReturn( $is_private_result );
+				->andReturn(
+					json_encode(
+						array(
+							'url'                => $is_private_result->url,
+							'is_private'         => $is_private_result->is_private,
+							'http_response_code' => $is_private_result->http_response_code,
+							'last_checked'       => $is_private_result->last_checked->format( \DateTimeInterface::ATOM ),
+						)
+					)
+				);
 
 		WP_Mock::userFunction( 'wp_count_posts' )
 				->once()
@@ -204,7 +219,11 @@ class API_Unit_Test extends Unit_Testcase {
 		$this->assertSame( '/path/to/wp-content/uploads/the-private-directory', $result->path );
 		$this->assertSame( 'https://example.org/wp-content/uploads/the-private-directory', $result->url );
 		$this->assertSame( 3, $result->post_count );
-		$this->assertSame( $is_private_result, $result->last_checked_is_private );
+		$this->assertInstanceOf( Is_Private_Result::class, $result->last_checked_is_private );
+		$this->assertSame( $is_private_result->url, $result->last_checked_is_private->url );
+		$this->assertTrue( $result->last_checked_is_private->is_private );
+		$this->assertSame( 403, $result->last_checked_is_private->http_response_code );
+		$this->assertSame( $is_private_result->last_checked->getTimestamp(), $result->last_checked_is_private->last_checked->getTimestamp() );
 	}
 
 	/**
