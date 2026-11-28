@@ -35,7 +35,7 @@ jobs:
       # No `wp-cli` tool: `composer install` installs the WP-CLI this project pins into `vendor-wp-cli/`
       # (via the `install-wp-cli` post-install script), and `behat.php` points `WP_CLI_BIN_DIR` at it.
       - name: Install PHP
-        uses: shivammathur/setup-php@2.37.2
+        uses: shivammathur/setup-php@2.40.0
         with:
           php-version: ${{ matrix.php }}
           tools: composer, wp-cli:nightly
