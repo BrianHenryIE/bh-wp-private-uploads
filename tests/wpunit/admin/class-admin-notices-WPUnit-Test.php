@@ -114,13 +114,60 @@ class Admin_Notices_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
+	 * The link in the notice goes to the full URL, but shows it relative to the site URL, which is shorter
+	 * and is the part that identifies the directory.
+	 *
+	 * @covers ::admin_notices
+	 */
+	public function test_notice_link_text_is_relative_to_the_site_url(): void {
+
+		$public_url = get_site_url() . '/wp-content/uploads/private/2026/11/file.pdf';
+
+		$sut = $this->get_admin_notices_for_public_url( $public_url );
+
+		$sut->admin_notices();
+
+		$notice = $sut->get_all()['test-plugin-private-uploads-url-is-public'];
+
+		$this->assertInstanceOf( Notice::class, $notice );
+
+		$message = $notice->get_message();
+
+		$this->assertStringContainsString( 'href="' . $public_url . '"', $message );
+		$this->assertStringContainsString( '>/wp-content/uploads/private/2026/11/file.pdf</a>', $message );
+	}
+
+	/**
+	 * A URL that is not under the site URL (e.g. uploads served from another domain) is shown in full.
+	 *
+	 * @covers ::admin_notices
+	 */
+	public function test_notice_link_text_is_the_full_url_when_not_under_the_site_url(): void {
+
+		$sut = $this->get_admin_notices_for_public_url();
+
+		$sut->admin_notices();
+
+		$notice = $sut->get_all()['test-plugin-private-uploads-url-is-public'];
+
+		$this->assertInstanceOf( Notice::class, $notice );
+
+		$this->assertStringContainsString(
+			'>http://example.com/wp-content/uploads/private</a>',
+			$notice->get_message()
+		);
+	}
+
+	/**
 	 * An Admin_Notices whose API reports the private uploads URL is publicly accessible,
 	 * i.e. one which will add the notice when `admin_notices()` is called.
+	 *
+	 * @param string $public_url The URL the check found to be public.
 	 */
-	protected function get_admin_notices_for_public_url(): Admin_Notices {
+	protected function get_admin_notices_for_public_url( string $public_url = 'http://example.com/wp-content/uploads/private' ): Admin_Notices {
 
 		$is_private_result = new Is_Private_Result(
-			'http://example.com/wp-content/uploads/private',
+			$public_url,
 			false,
 			200,
 			new DateTimeImmutable()
