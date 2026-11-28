@@ -19,8 +19,10 @@ test('upload file via post meta-box', async ({ context, page, admin, requestUtil
 
 	await loginAsAdmin( page );
 
+	// An ordinary, public page: only the file uploaded through its meta-box is private. Named so it is not
+	// mistaken for a public page *of* a private upload.
 	const pageData = await requestUtils.createPage({
-		title: 'Test Private Upload Page ' + Date.now(),
+		title: 'E2E public page with private uploads meta-box ' + Date.now(),
 		status: 'publish',
 	});
 
