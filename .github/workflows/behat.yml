@@ -48,7 +48,7 @@ jobs:
       # which shells out to Ghostscript (`gs`). Without it the command still succeeds but prints
       # `sh: 1: gs: not found` to STDERR, and Behat's `When I run` step fails on any STDERR output.
       - name: Install Ghostscript
-        run: sudo apt-get update && sudo apt-get install -y ghostscript
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ghostscript
 
       - name: Run Behat tests
         run: composer behat
