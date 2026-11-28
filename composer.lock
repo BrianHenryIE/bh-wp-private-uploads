@@ -2869,7 +2869,8 @@
                 "issues": "https://github.com/kamazee/pr-filter/issues",
                 "source": "https://github.com/kamazee/pr-filter/tree/1.1.1"
             },
-            "time": "2026-07-04T09:40:46+00:00"
+            "time": "2026-07-04T09:40:46+00:00",
+            "published-time": "2026-07-04T09:44:22+00:00"
         },
         {
             "name": "laravel/serializable-closure",
@@ -12141,5 +12142,5 @@
     "platform-overrides": {
         "php": "8.1"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }
