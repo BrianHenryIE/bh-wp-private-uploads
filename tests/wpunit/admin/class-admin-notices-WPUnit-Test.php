@@ -159,6 +159,106 @@ class Admin_Notices_WPUnit_Test extends WPUnit_Testcase {
 	}
 
 	/**
+	 * The site URL is removed from the link text when the two URLs differ only in ways that do not
+	 * change where they point: the scheme, the host's letter case, or a trailing slash on `siteurl`.
+	 *
+	 * @covers ::admin_notices
+	 * @covers ::get_url_relative_to_site_url
+	 *
+	 * @dataProvider same_site_urls
+	 *
+	 * @param string $site_url   The `siteurl` WordPress reports.
+	 * @param string $public_url The URL the check found to be public.
+	 */
+	public function test_notice_link_text_is_relative_for_equivalent_site_urls( string $site_url, string $public_url ): void {
+
+		add_filter( 'site_url', fn(): string => $site_url );
+
+		$sut = $this->get_admin_notices_for_public_url( $public_url );
+
+		$sut->admin_notices();
+
+		$notice = $sut->get_all()['test-plugin-private-uploads-url-is-public'];
+
+		$this->assertInstanceOf( Notice::class, $notice );
+
+		$message = $notice->get_message();
+
+		$this->assertStringContainsString( 'href="' . $public_url . '"', $message );
+		$this->assertStringContainsString( '>/wp-content/uploads/private</a>', $message );
+	}
+
+	/**
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function same_site_urls(): array {
+		return array(
+			'identical'                   => array( 'https://example.org', 'https://example.org/wp-content/uploads/private' ),
+			'site url has trailing slash' => array( 'https://example.org/', 'https://example.org/wp-content/uploads/private' ),
+			'scheme differs'              => array( 'http://example.org', 'https://example.org/wp-content/uploads/private' ),
+			'host case differs'           => array( 'https://Example.org', 'https://example.org/wp-content/uploads/private' ),
+			'site in a subdirectory'      => array( 'https://example.org/blog/', 'https://example.org/blog/wp-content/uploads/private' ),
+		);
+	}
+
+	/**
+	 * The site URL must match up to a path boundary: a different host, or a different directory,
+	 * that merely starts with the same characters is shown in full.
+	 *
+	 * @covers ::admin_notices
+	 * @covers ::get_url_relative_to_site_url
+	 *
+	 * @dataProvider other_site_urls
+	 *
+	 * @param string $site_url   The `siteurl` WordPress reports.
+	 * @param string $public_url The URL the check found to be public.
+	 */
+	public function test_notice_link_text_is_the_full_url_when_site_url_is_only_a_string_prefix( string $site_url, string $public_url ): void {
+
+		add_filter( 'site_url', fn(): string => $site_url );
+
+		$sut = $this->get_admin_notices_for_public_url( $public_url );
+
+		$sut->admin_notices();
+
+		$notice = $sut->get_all()['test-plugin-private-uploads-url-is-public'];
+
+		$this->assertInstanceOf( Notice::class, $notice );
+
+		$this->assertStringContainsString( '>' . $public_url . '</a>', $notice->get_message() );
+	}
+
+	/**
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function other_site_urls(): array {
+		return array(
+			'host starts with the site host'      => array( 'https://example.org', 'https://example.org.uk/wp-content/uploads/private' ),
+			'path starts with the site directory' => array( 'https://example.org/blog', 'https://example.org/blog-two/wp-content/uploads/private' ),
+			'site url is found later in the url'  => array( 'https://example.org', 'https://cdn.test/?from=https://example.org/wp-content/uploads/private' ),
+		);
+	}
+
+	/**
+	 * The link text is HTML text, not a URL attribute, so it is escaped with `esc_html()`:
+	 * `esc_url()` would print `&` as `&#038;` and drop characters that are not valid in a URL.
+	 *
+	 * @covers ::admin_notices
+	 */
+	public function test_notice_link_text_is_escaped_as_html(): void {
+
+		$sut = $this->get_admin_notices_for_public_url( get_site_url() . '/wp-content/uploads/private/?a=1&b=2' );
+
+		$sut->admin_notices();
+
+		$notice = $sut->get_all()['test-plugin-private-uploads-url-is-public'];
+
+		$this->assertInstanceOf( Notice::class, $notice );
+
+		$this->assertStringContainsString( '>/wp-content/uploads/private/?a=1&amp;b=2</a>', $notice->get_message() );
+	}
+
+	/**
 	 * An Admin_Notices whose API reports the private uploads URL is publicly accessible,
 	 * i.e. one which will add the notice when `admin_notices()` is called.
 	 *

@@ -94,7 +94,7 @@ class Admin_Notices extends Notices {
 			'<a data-plugin="%s" href="%s">%s</a>',
 			esc_attr( $this->settings->get_plugin_slug() ),
 			esc_url( $url ),
-			esc_url( str_replace( get_site_url(), '', $url ) )
+			esc_html( $this->get_url_relative_to_site_url( $url ) )
 		);
 		// translators: %s is a HTML link to the directory's URL.
 		$content = sprintf( __( 'Private uploads directory at %s is publicly accessible.', 'bh-wp-private-uploads' ), $href );
@@ -143,6 +143,37 @@ class Admin_Notices extends Notices {
 				'type'  => 'warning',
 			)
 		);
+	}
+
+	/**
+	 * The part of a URL after the site URL, for display, e.g. `/wp-content/uploads/private`.
+	 *
+	 * The scheme, the letter case of the site URL and a trailing slash on the site URL are ignored,
+	 * so `http://Example.org/` still matches `https://example.org/wp-content`. The site URL must end
+	 * at a path boundary: `https://example.org/blog` does not match `https://example.org/blog-two`.
+	 *
+	 * @param string $url An absolute URL.
+	 *
+	 * @return string The path relative to the site URL, with a leading slash; or the unchanged URL when it is not under the site URL.
+	 */
+	protected function get_url_relative_to_site_url( string $url ): string {
+
+		$scheme_pattern = '#^https?://#i';
+
+		$site_url_without_scheme = untrailingslashit( (string) preg_replace( $scheme_pattern, '', get_site_url() ) );
+		$url_without_scheme      = (string) preg_replace( $scheme_pattern, '', $url );
+
+		if ( '' === $site_url_without_scheme || 0 !== stripos( $url_without_scheme, $site_url_without_scheme ) ) {
+			return $url;
+		}
+
+		$relative_url = substr( $url_without_scheme, strlen( $site_url_without_scheme ) );
+
+		if ( '' === $relative_url ) {
+			return '/';
+		}
+
+		return in_array( $relative_url[0], array( '/', '?', '#' ), true ) ? $relative_url : $url;
 	}
 
 	/**
