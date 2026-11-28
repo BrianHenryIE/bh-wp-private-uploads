@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Security
+
+* Breaking: the REST read routes no longer disclose private uploads to the public. `GET /{plugin-slug}/v1/{rest-base}` and `GET /{plugin-slug}/v1/{rest-base}/{id}` returned every private upload's title, owner and dates to logged-out visitors, because core treats a post with the `inherit` status as published. Both now require a logged-in user: a record is readable by the file's owner (`post_author`) and by users with the post type's `edit_others_posts` capability, and the list contains only the user's own files unless they have that capability.
+* The private uploads post type is registered with `rewrite` and `query_var` disabled, so no front-end rewrite rules or query var exist for it. (It was already not publicly queryable.)
+* The result of the hourly is-the-directory-private check is saved in its transient as a JSON string, not as a serialized `Is_Private_Result` object, so reading it no longer has WordPress `unserialize()` a class from the database. A value in any other shape, including one saved by an earlier version, is deleted and a new check is scheduled.
+* A private file is only served when its real path, after resolving symlinks, is inside the private uploads directory. A symlink in the directory that points outside it is now answered with a 404 and logged, as a second layer behind the existing per-segment filename sanitization.
+* Breaking: served private files are sent with `X-Content-Type-Options: nosniff` and a `Content-Disposition` header. Only images (JPEG, PNG, GIF, WebP, AVIF), PDF, plain text, audio and video are displayed in the browser; every other type, including HTML and SVG, is now downloaded, so a file with active content cannot run scripts on the site's origin. Inline images and plain text are also sent with `Content-Security-Policy: sandbox; default-src 'none'`.
+* Add: `bh_wp_private_uploads_response_headers` filter to add, change or remove the headers sent with a private file.
+* Add: `bh_wp_private_uploads_cache_control_max_age` filter to set the `Cache-Control` max-age (default one hour) of a served private file; the `Expires` header follows it.
+* Breaking: the REST `post_parent` and `post_author` params are now authorized per object. Core only checks its own `post` and `author` params, so any user with `upload_files` could attach a private file to any post, or record any user as its owner. `post_parent` now requires `edit_post` on that post, and a `post_author` other than the current user requires the post type's `edit_others_posts` capability; otherwise the request is rejected with 403. Both params are declared in the routes' `args`: they must be integers and the ids of an existing post / user (400 otherwise).
+* The REST create route's filters that set the post type, author and parent are scoped to the post for the uploaded file and removed after the request, so attachments inserted by other plugins' hooks during the request are no longer converted to the private uploads post type.
+* Breaking: the REST `POST /{plugin-slug}/v1/{rest-base}/upload` response no longer discloses the server's absolute filesystem path. `file.file` is now relative to `WP_CONTENT_DIR` (e.g. `uploads/my-plugin/2026/10/doc.pdf`), or just the filename when uploads are outside `WP_CONTENT_DIR`. The `bh_wp_private_uploads_rest_upload` action still receives the absolute path.
+
 ### 0.5.1
 
 * Fix: The "publicly accessible" notice was shown when the webserver redirects unauthenticated requests for private uploads to the WordPress login page: `wp_remote_get()` follows the redirect and the login page's 200 was read as public. The is-private check now treats a request that ends on the login page (the path of `wp_login_url()`) as private.

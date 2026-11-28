@@ -15,10 +15,10 @@ use BrianHenryIE\WP_Private_Uploads\Private_Uploads_Settings_Interface;
 use BrianHenryIE\WP_Private_Uploads\WP_Includes\Cron;
 use DateTimeImmutable;
 use DateTimeInterface;
+use DateTimeZone;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use Throwable;
 use WP_HTTP_Requests_Response;
 
 /**
@@ -539,23 +539,99 @@ class API implements API_Interface {
 
 		$transient_name = $this->get_is_private_transient_name();
 
-		try {
-			/**
-			 * @var false|Is_Private_Result $transient_value
-			 */
-			$transient_value = get_transient( $transient_name );
+		$transient_value = get_transient( $transient_name );
 
-			if ( $transient_value instanceof Is_Private_Result ) {
-				return $transient_value;
-			}
-		} catch ( Throwable ) {
-			// If the `Is_Private_Result` class is modified, deserializing the transient value will fail.
+		$is_private_result = $this->decode_is_private_result( $transient_value );
+
+		if ( $is_private_result instanceof Is_Private_Result ) {
+			return $is_private_result;
+		}
+
+		if ( false !== $transient_value ) {
+			// E.g. the object stored by an earlier version of the library, or after `Is_Private_Result` changes.
 			delete_transient( $transient_name );
+			$this->logger->debug(
+				'Deleted the {transient_name} transient: its value was not a valid is-private check result.',
+				array( 'transient_name' => $transient_name )
+			);
 		}
 
 		$this->schedule_single_check_is_url_private();
 
 		return null;
+	}
+
+	/**
+	 * The result as a JSON string, for saving in a transient.
+	 *
+	 * Saving the object itself would have WordPress `serialize()` it, and so `unserialize()` a class from the
+	 * database on every read. JSON can only ever decode to arrays and scalars.
+	 *
+	 * @see self::decode_is_private_result()
+	 *
+	 * @param Is_Private_Result $is_private_result The result to save.
+	 * @return ?string JSON object with the result's properties as its keys; `last_checked` as an ISO 8601 string in UTC.
+	 */
+	protected function encode_is_private_result( Is_Private_Result $is_private_result ): ?string {
+
+		$properties = (array) $is_private_result;
+
+		$properties['last_checked'] = DateTimeImmutable::createFromInterface( $is_private_result->last_checked )
+			->setTimezone( new DateTimeZone( 'UTC' ) )
+			->format( DateTimeInterface::ATOM );
+
+		$json = wp_json_encode( $properties );
+
+		return false === $json ? null : $json;
+	}
+
+	/**
+	 * Rebuild the result from the JSON string saved in the transient.
+	 *
+	 * The decoded properties are passed to the constructor by name, so they are checked first: exactly the
+	 * constructor's parameters, with the correct types. Anything else is not a result.
+	 *
+	 * @see self::encode_is_private_result()
+	 *
+	 * TODO: Log why decoding failed (not a string, invalid JSON, wrong properties or types, unparseable date).
+	 *
+	 * @param mixed $transient_value The value from `get_transient()`.
+	 * @return ?Is_Private_Result Null when the value is not a result saved by `encode_is_private_result()`.
+	 */
+	protected function decode_is_private_result( mixed $transient_value ): ?Is_Private_Result {
+
+		if ( ! is_string( $transient_value ) ) {
+			return null;
+		}
+
+		$properties = json_decode( $transient_value, true );
+
+		if (
+			! is_array( $properties )
+			|| 4 !== count( $properties )
+			|| ! isset( $properties['url'], $properties['is_private'], $properties['http_response_code'], $properties['last_checked'] )
+			|| ! is_string( $properties['url'] )
+			|| ! is_bool( $properties['is_private'] )
+			|| ! is_int( $properties['http_response_code'] )
+			|| ! is_string( $properties['last_checked'] )
+		) {
+			return null;
+		}
+
+		$last_checked = DateTimeImmutable::createFromFormat( DateTimeInterface::ATOM, $properties['last_checked'] );
+
+		if ( false === $last_checked ) {
+			return null;
+		}
+
+		$constructor_arguments = array(
+			'url'                => $properties['url'],
+			'is_private'         => $properties['is_private'],
+			'http_response_code' => $properties['http_response_code'],
+			'last_checked'       => $last_checked,
+		);
+
+		return new Is_Private_Result( ...$constructor_arguments );
 	}
 
 	/**
@@ -720,11 +796,30 @@ class API implements API_Interface {
 			new DateTimeImmutable()
 		);
 
+		$is_url_private_result_json = $this->encode_is_private_result( $is_url_private_result );
+
+		if ( null === $is_url_private_result_json ) {
+			$this->logger->error(
+				'Failed to encode the is-private check result for {url} as JSON; it was not saved.',
+				array( 'url' => $url )
+			);
+			return $is_url_private_result;
+		}
+
 		// Expiration slightly longer than cron schedule – i.e. the transient should always be present.
 		set_transient(
 			$this->get_is_private_transient_name(),
-			$is_url_private_result,
+			$is_url_private_result_json,
 			constant( 'HOUR_IN_SECONDS' ) + 60
+		);
+
+		$this->logger->debug(
+			'Saved the is-private check result for {url}: {is_private}, HTTP {http_response_code}.',
+			array(
+				'url'                => $url,
+				'is_private'         => $is_private ? 'private' : 'public',
+				'http_response_code' => $is_url_private_result->http_response_code,
+			)
 		);
 
 		return $is_url_private_result;

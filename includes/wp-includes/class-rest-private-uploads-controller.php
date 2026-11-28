@@ -91,15 +91,292 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'upload_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'args'                => $this->get_post_parent_and_post_author_args(),
 			)
 		);
 	}
 
 	/**
-	 * Filters to:
-	 * * set the correct uploads subdir
-	 * * set the post type
-	 * * set the parent post
+	 * Add the `post_parent` and `post_author` params to the inherited "create" route, so they are validated
+	 * and sanitized before the permission check and the callback run.
+	 *
+	 * @see WP_REST_Posts_Controller::register_routes()
+	 *
+	 * @param string $method The HTTP method(s) of the route the args are for.
+	 * @return array<string,array<string,mixed>> The endpoint args.
+	 */
+	public function get_endpoint_args_for_item_schema( $method = \WP_REST_Server::CREATABLE ) {
+
+		$endpoint_args = parent::get_endpoint_args_for_item_schema( $method );
+
+		if ( \WP_REST_Server::CREATABLE !== $method ) {
+			return $endpoint_args;
+		}
+
+		return array_merge( $endpoint_args, $this->get_post_parent_and_post_author_args() );
+	}
+
+	/**
+	 * The definitions of the two params this controller adds to core's attachment params.
+	 *
+	 * Authorization for the values is in {@see self::create_item_permissions_check()}.
+	 *
+	 * @return array<string,array<string,mixed>>
+	 */
+	protected function get_post_parent_and_post_author_args(): array {
+		return array(
+			'post_parent' => array(
+				'description'       => __( 'The id of the post the file belongs to. Requires permission to edit that post.', 'bh-wp-private-uploads' ),
+				'type'              => 'integer',
+				'minimum'           => 0,
+				'validate_callback' => array( $this, 'validate_post_parent_param' ),
+				'sanitize_callback' => 'absint',
+			),
+			'post_author' => array(
+				'description'       => __( 'The id of the user who owns the file. Requires permission to edit others\' posts when it is not the current user.', 'bh-wp-private-uploads' ),
+				'type'              => 'integer',
+				'minimum'           => 0,
+				'validate_callback' => array( $this, 'validate_post_author_param' ),
+				'sanitize_callback' => 'absint',
+			),
+		);
+	}
+
+	/**
+	 * Check the `post_parent` param is an integer, and the id of an existing post.
+	 *
+	 * @see self::get_post_parent_and_post_author_args()
+	 *
+	 * @param mixed           $value   The unsanitized param value.
+	 * @param WP_REST_Request $request The request object.
+	 * @param string          $param   The param name.
+	 * @return true|WP_Error
+	 */
+	public function validate_post_parent_param( $value, WP_REST_Request $request, string $param ) {
+
+		$is_valid_integer = rest_validate_request_arg( $value, $request, $param );
+
+		if ( is_wp_error( $is_valid_integer ) ) {
+			return $is_valid_integer;
+		}
+
+		/** @var int|numeric-string $value */
+		$post_parent_id = (int) $value;
+
+		if ( 0 !== $post_parent_id && ! ( get_post( $post_parent_id ) instanceof \WP_Post ) ) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post parent ID.', 'bh-wp-private-uploads' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check the `post_author` param is an integer, and the id of an existing user.
+	 *
+	 * @see self::get_post_parent_and_post_author_args()
+	 *
+	 * @param mixed           $value   The unsanitized param value.
+	 * @param WP_REST_Request $request The request object.
+	 * @param string          $param   The param name.
+	 * @return true|WP_Error
+	 */
+	public function validate_post_author_param( $value, WP_REST_Request $request, string $param ) {
+
+		$is_valid_integer = rest_validate_request_arg( $value, $request, $param );
+
+		if ( is_wp_error( $is_valid_integer ) ) {
+			return $is_valid_integer;
+		}
+
+		/** @var int|numeric-string $value */
+		$post_author_id = (int) $value;
+
+		if ( 0 !== $post_author_id && false === get_userdata( $post_author_id ) ) {
+			return new WP_Error(
+				'rest_user_invalid_id',
+				__( 'Invalid post author ID.', 'bh-wp-private-uploads' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Core's checks, plus per-object authorization for this controller's `post_parent` and `post_author` params.
+	 *
+	 * Core only checks `edit_post` for its own `post` param and `edit_others_posts` for its own `author` param.
+	 * Without these checks, any user with `upload_files` could attach a private file to any post (e.g. another
+	 * customer's order), or record any user as its owner.
+	 *
+	 * Used by both the "create" route and the "upload" route.
+	 *
+	 * @see WP_REST_Attachments_Controller::create_item_permissions_check()
+	 * @see WP_REST_Posts_Controller::create_item_permissions_check()
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return true|WP_Error
+	 */
+	public function create_item_permissions_check( $request ) {
+
+		$core_permissions_check = parent::create_item_permissions_check( $request );
+
+		if ( true !== $core_permissions_check ) {
+			return $core_permissions_check;
+		}
+
+		$post_parent_id = $this->get_id_param( $request, 'post_parent' );
+
+		if ( 0 !== $post_parent_id && ! current_user_can( 'edit_post', $post_parent_id ) ) {
+			return new WP_Error(
+				'rest_cannot_edit',
+				__( 'Sorry, you are not allowed to upload private files to this post.', 'bh-wp-private-uploads' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		$post_author_id = $this->get_id_param( $request, 'post_author' );
+
+		if (
+			0 !== $post_author_id
+			&& get_current_user_id() !== $post_author_id
+			&& ! $this->current_user_can_edit_others_posts()
+		) {
+			return new WP_Error(
+				'rest_cannot_edit_others',
+				__( 'Sorry, you are not allowed to upload private files as this user.', 'bh-wp-private-uploads' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Listing private uploads requires a logged-in user. What they are shown is limited in
+	 * {@see self::prepare_items_query()}.
+	 *
+	 * @see WP_REST_Posts_Controller::get_items_permissions_check()
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return true|WP_Error
+	 */
+	public function get_items_permissions_check( $request ) {
+
+		$core_permissions_check = parent::get_items_permissions_check( $request );
+
+		if ( true !== $core_permissions_check ) {
+			return $core_permissions_check;
+		}
+
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error(
+				'rest_forbidden',
+				__( 'Sorry, you are not allowed to list private uploads.', 'bh-wp-private-uploads' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Can the current user read the record of a private upload?
+	 *
+	 * Core treats a post with the `inherit` status and no parent as published, and one with a parent as
+	 * readable by anyone who can read the parent. That is right for attachments, but it made every private
+	 * upload's title, owner and dates readable by logged-out visitors.
+	 *
+	 * Private uploads are readable by their owner (the `post_author`) and by users with the post type's
+	 * `edit_others_posts` capability.
+	 *
+	 * @see WP_REST_Posts_Controller::check_read_permission()
+	 * @used-by WP_REST_Posts_Controller::get_item_permissions_check()
+	 *
+	 * @param \WP_Post $post The post to read.
+	 * @return bool
+	 */
+	public function check_read_permission( $post ) {
+
+		// E.g. a parent post of another type: core's rules apply.
+		if ( $post->post_type !== $this->post_type ) {
+			return parent::check_read_permission( $post );
+		}
+
+		if ( ! is_user_logged_in() ) {
+			return false;
+		}
+
+		return get_current_user_id() === (int) $post->post_author
+			|| $this->current_user_can_edit_others_posts();
+	}
+
+	/**
+	 * Limit the list of private uploads to those the current user owns, unless they have the post type's
+	 * `edit_others_posts` capability.
+	 *
+	 * Done in the query, rather than by filtering the results, so the totals in the response headers do not
+	 * disclose how many private uploads exist.
+	 *
+	 * @see WP_REST_Attachments_Controller::prepare_items_query()
+	 *
+	 * @param array<mixed>     $prepared_args The prepared `WP_Query` args.
+	 * @param ?WP_REST_Request $request       The request object.
+	 * @return array<mixed>
+	 */
+	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
+
+		$query_args = parent::prepare_items_query( $prepared_args, $request );
+
+		if ( $this->current_user_can_edit_others_posts() ) {
+			return $query_args;
+		}
+
+		unset( $query_args['author__in'], $query_args['author__not_in'], $query_args['author_name'] );
+		$query_args['author'] = get_current_user_id();
+
+		return $query_args;
+	}
+
+	/**
+	 * Read a post id or user id request param as a non-negative integer; `0` when it is absent.
+	 *
+	 * @param WP_REST_Request $request    The request object.
+	 * @param string          $param_name The name of the param: `post_parent` or `post_author`.
+	 */
+	protected function get_id_param( WP_REST_Request $request, string $param_name ): int {
+
+		$param_value = $request->get_param( $param_name );
+
+		return is_numeric( $param_value ) ? absint( $param_value ) : 0;
+	}
+
+	/**
+	 * Can the current user create posts of this controller's post type on behalf of other users?
+	 *
+	 * Uses the post type's own mapping of the `edit_others_posts` capability.
+	 */
+	protected function current_user_can_edit_others_posts(): bool {
+
+		$post_type_object = get_post_type_object( $this->post_type );
+
+		if ( ! ( $post_type_object instanceof WP_Post_Type ) ) {
+			return false;
+		}
+
+		$edit_others_posts_capability = $post_type_object->cap->edit_others_posts ?? null;
+
+		return is_string( $edit_others_posts_capability ) && current_user_can( $edit_others_posts_capability );
+	}
+
+	/**
+	 * Filter `wp_upload_dir()` so the file is saved in the private uploads subdirectory.
+	 *
+	 * The post type, author and parent post are set by {@see self::add_insert_post_filters()}.
 	 *
 	 * @param WP_REST_Request $request The request object.
 	 */
@@ -127,6 +404,57 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 			return $upload_dir_data;
 		};
 		add_filter( 'upload_dir', $private_path, 10, 1 );
+	}
+
+	/**
+	 * Filters to, on the post inserted for this request's upload:
+	 * * set the post type
+	 * * set the post author
+	 * * set the parent post
+	 *
+	 * The filters only change the insert whose `guid` is the URL of the file uploaded in this request, in case
+	 * hooks during the request insert other attachments. The URL is not known until the upload is handled, so
+	 * it is captured on `wp_handle_upload`.
+	 *
+	 * @see WP_REST_Attachments_Controller::insert_attachment()
+	 * @see \BrianHenryIE\WP_Private_Uploads\API\API::create_post_for_file()
+	 *
+	 * @param WP_REST_Request $request The request object, whose params have been validated, sanitized and authorized.
+	 * @return callable(): void Removes the filters.
+	 */
+	protected function add_insert_post_filters( WP_REST_Request $request ): callable {
+
+		$post_type      = $this->post_type;
+		$post_author_id = $this->get_id_param( $request, 'post_author' );
+		$post_parent_id = $this->get_id_param( $request, 'post_parent' );
+
+		$uploaded_file_url = null;
+
+		/**
+		 * Record the URL of the uploaded file, which core uses as the new post's `guid`.
+		 *
+		 * @see _wp_handle_upload()
+		 *
+		 * @param array{file:string, url:string, type:string} $upload The saved file.
+		 * @return array{file:string, url:string, type:string}
+		 */
+		$record_uploaded_file_url = function ( array $upload ) use ( &$uploaded_file_url ): array {
+			$uploaded_file_url = $upload['url'];
+			return $upload;
+		};
+		add_filter( 'wp_handle_upload', $record_uploaded_file_url, PHP_INT_MAX );
+
+		/**
+		 * `$postarr` is slashed.
+		 *
+		 * @param array<string,mixed> $postarr The post data passed to `wp_insert_post()`.
+		 */
+		$is_post_for_uploaded_file = function ( array $postarr ) use ( &$uploaded_file_url ): bool {
+			return is_string( $uploaded_file_url )
+				&& isset( $postarr['guid'] )
+				&& is_string( $postarr['guid'] )
+				&& wp_unslash( $postarr['guid'] ) === $uploaded_file_url;
+		};
 
 		/**
 		 * The REST attachment controller calls insert_attachment which forces the post type to attachment rather than
@@ -134,47 +462,43 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 		 *
 		 * Filters attachment post data before it is updated in or added to the database.
 		 *
-		 * @param array $data                An array of slashed, sanitized, and processed attachment post data.
-		 * @param array $postarr             An array of slashed and sanitized attachment post data, but not processed.
-		 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data
-		 *                                   as originally passed to wp_insert_post().
+		 * @see wp_insert_post()
+		 *
+		 * @param array<string,mixed> $data    An array of slashed, sanitized, and processed attachment post data.
+		 * @param array<string,mixed> $postarr An array of slashed and sanitized attachment post data, but not processed.
+		 * @return array<string,mixed>
 		 */
-		$post_type = $this->post_type;
-		add_filter(
-			'wp_insert_attachment_data',
-			/**
-			 * @param array<string,mixed> $data
-			 * @param array<string,mixed> $postarr
-			 * @param array<string,mixed> $unsanitized_postarr
-			 * @return array<string,mixed>
-			 */
-			function ( array $data, array $postarr, array $unsanitized_postarr ) use ( $post_type, $request ): array {
-				$data['post_type'] = $post_type;
-
-				if ( ! empty( $request->get_param( 'post_author' ) ) ) {
-					$data['post_author'] = $request->get_param( 'post_author' );
-				} else {
-					$data['post_author'] = 0;
-				}
-
-				return $data;
-			},
-			10,
-			3
-		);
+		$set_post_type_and_author = function ( array $data, array $postarr ) use ( $post_type, $post_author_id, $is_post_for_uploaded_file ): array {
+			if ( $is_post_for_uploaded_file( $postarr ) ) {
+				$data['post_type']   = $post_type;
+				$data['post_author'] = $post_author_id;
+			}
+			return $data;
+		};
+		add_filter( 'wp_insert_attachment_data', $set_post_type_and_author, 10, 2 );
 
 		/**
-		 * During `wp_insert_post()` this filter is called and we immediately return the value from the request. It
-		 * doesn't look like it should work, but I think it does.
+		 * Filters the post parent -- used to check for and prevent hierarchy loops.
 		 *
 		 * @see wp_insert_post()
+		 *
+		 * @param int                 $post_parent Post parent ID.
+		 * @param int                 $post_id     Post ID.
+		 * @param array<string,mixed> $new_postarr Array of parsed post data.
+		 * @param array<string,mixed> $postarr     Array of sanitized, but otherwise unmodified post data.
 		 */
-		if ( ! empty( $request->get_param( 'post_parent' ) ) ) {
-			add_filter(
-				'wp_insert_post_parent',
-				fn() => $request->get_param( 'post_parent' )
-			);
+		$set_post_parent = function ( $post_parent, $post_id, array $new_postarr, array $postarr ) use ( $post_parent_id, $is_post_for_uploaded_file ) {
+			return $is_post_for_uploaded_file( $postarr ) ? $post_parent_id : $post_parent;
+		};
+		if ( 0 !== $post_parent_id ) {
+			add_filter( 'wp_insert_post_parent', $set_post_parent, 10, 4 );
 		}
+
+		return function () use ( $record_uploaded_file_url, $set_post_type_and_author, $set_post_parent ): void {
+			remove_filter( 'wp_handle_upload', $record_uploaded_file_url, PHP_INT_MAX );
+			remove_filter( 'wp_insert_attachment_data', $set_post_type_and_author, 10 );
+			remove_filter( 'wp_insert_post_parent', $set_post_parent, 10 );
+		};
 	}
 
 	/**
@@ -188,7 +512,13 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 
 		$this->add_set_private_uploads_filters( $request );
 
-		return parent::create_item( $request );
+		$remove_insert_post_filters = $this->add_insert_post_filters( $request );
+
+		try {
+			return parent::create_item( $request );
+		} finally {
+			$remove_insert_post_filters();
+		}
 	}
 
 	/**
@@ -199,6 +529,9 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 	 * @see self::create_item() when we want to upload AND add a new attachment-post.
 	 *
 	 * @see WP_REST_Attachments_Controller::insert_attachment()
+	 *
+	 * The `file` path in the response is relative to `WP_CONTENT_DIR`, so the server's filesystem layout is
+	 * not disclosed. The `bh_wp_private_uploads_rest_upload` action still receives the absolute path.
 	 *
 	 * @param WP_REST_Request $request The parsed request.
 	 * @return array{file:array{file:string, url:string, type:string}}|WP_Error
@@ -252,8 +585,29 @@ class REST_Private_Uploads_Controller extends WP_REST_Attachments_Controller {
 			'bh_wp_private_uploads_rest_upload'
 		);
 
+		$file['file'] = $this->get_path_relative_to_wp_content_dir( $file['file'] );
+
 		return array(
 			'file' => $file,
 		);
+	}
+
+	/**
+	 * Remove the `WP_CONTENT_DIR` prefix from an absolute path.
+	 *
+	 * When the uploads directory has been relocated outside `WP_CONTENT_DIR`, only the filename is returned,
+	 * so an absolute path is never disclosed.
+	 *
+	 * @param string $absolute_path The absolute path of the uploaded file.
+	 */
+	protected function get_path_relative_to_wp_content_dir( string $absolute_path ): string {
+		$path        = wp_normalize_path( $absolute_path );
+		$content_dir = trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) );
+
+		if ( str_starts_with( $path, $content_dir ) ) {
+			return substr( $path, strlen( $content_dir ) );
+		}
+
+		return wp_basename( $path );
 	}
 }
