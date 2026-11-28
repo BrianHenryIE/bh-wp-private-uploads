@@ -90,7 +90,12 @@ class Admin_Notices extends Notices {
 
 		$notice_id = $this->get_notice_id();
 
-		$href = '<a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a>';
+		$href = sprintf(
+			'<a data-plugin="%s" href="%s">%s</a>',
+			esc_attr( $this->settings->get_plugin_slug() ),
+			esc_url( $url ),
+			esc_url( str_replace( get_site_url(), '', $url ) )
+		);
 		// translators: %s is a HTML link to the directory's URL.
 		$content = sprintf( __( 'Private uploads directory at %s is publicly accessible.', 'bh-wp-private-uploads' ), $href );
 		/**
